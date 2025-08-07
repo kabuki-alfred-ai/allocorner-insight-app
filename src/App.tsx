@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { Layout } from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import Verbatims from "./pages/Verbatims";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -15,7 +17,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="contexte" element={<div className="p-8 text-center text-muted-foreground">Page Contexte - En développement</div>} />
+            <Route path="chiffres" element={<div className="p-8 text-center text-muted-foreground">Page Chiffres clés - En développement</div>} />
+            <Route path="verbatims" element={<Verbatims />} />
+            <Route path="themes" element={<div className="p-8 text-center text-muted-foreground">Page Analyse thématique - En développement</div>} />
+            <Route path="tendances" element={<div className="p-8 text-center text-muted-foreground">Page Synthèse & tendances - En développement</div>} />
+            <Route path="emotions" element={<div className="p-8 text-center text-muted-foreground">Page IRC & Plutchik - En développement</div>} />
+            <Route path="recommandations" element={<div className="p-8 text-center text-muted-foreground">Page Recommandations - En développement</div>} />
+            <Route path="ressources" element={<div className="p-8 text-center text-muted-foreground">Page Ressources - En développement</div>} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
