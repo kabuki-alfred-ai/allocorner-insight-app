@@ -16,6 +16,7 @@ import {
 
 export default function Dashboard() {
   const { metrics } = eventData;
+  const totalThemeCount = themes.reduce((sum, t) => sum + t.count, 0);
 
   return (
     <div className="space-y-8">
@@ -106,7 +107,7 @@ export default function Dashboard() {
                       className="h-2 rounded-full transition-all duration-300"
                       style={{ 
                         backgroundColor: theme.color,
-                        width: `${(theme.count / messages.length) * 100}%`
+                        width: `${(theme.count / totalThemeCount) * 100}%`
                       }}
                     />
                   </div>

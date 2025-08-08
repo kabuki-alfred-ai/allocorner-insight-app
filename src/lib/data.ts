@@ -75,31 +75,31 @@ export const eventData: EventData = {
 export const themes: Theme[] = [
   {
     name: "Fierté territoriale & attachement",
-    count: 3,
+    count: 33,
     color: "#2F66F5",
     extract: "Un département qu'on protège, qu'on développe. Et qui survivra à l'an 3000."
   },
   {
     name: "Nostalgie, transmission & mémoire",
-    count: 4,
+    count: 43,
     color: "#FFC629",
     extract: "Je laisse ce message pour mes enfants… s'il reste quelque chose de la Charente."
   },
   {
     name: "Critique de la centralisation & besoin de représentation locale",
-    count: 2,
+    count: 22,
     color: "#E35454",
     extract: "Si le Département disparaît, on perd notre relais, notre voix."
   },
   {
     name: "Humour & dérision futuriste",
-    count: 4,
+    count: 43,
     color: "#39B36A",
     extract: "J'espère qu'il y aura des charentaises volantes !"
   },
   {
     name: "Identité locale & perte potentielle",
-    count: 2,
+    count: 22,
     color: "#8B5CF6",
     extract: "Si le Département disparaît… on aura perdu notre identité charentaise."
   }
