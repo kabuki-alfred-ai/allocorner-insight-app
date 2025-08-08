@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Verbatims from "./pages/Verbatims";
+import Contexte from "./pages/Contexte";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,7 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="contexte" element={<div className="p-8 text-center text-muted-foreground">Page Contexte - En développement</div>} />
+            <Route path="contexte" element={<Contexte />} />
             <Route path="chiffres" element={<div className="p-8 text-center text-muted-foreground">Page Chiffres clés - En développement</div>} />
             <Route path="verbatims" element={<Verbatims />} />
             <Route path="themes" element={<div className="p-8 text-center text-muted-foreground">Page Analyse thématique - En développement</div>} />
