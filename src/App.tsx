@@ -7,6 +7,7 @@ import { Layout } from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Verbatims from "./pages/Verbatims";
 import Contexte from "./pages/Contexte";
+import Themes from "./pages/Themes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,7 +24,7 @@ const App = () => (
             <Route path="contexte" element={<Contexte />} />
             <Route path="chiffres" element={<div className="p-8 text-center text-muted-foreground">Page Chiffres clés - En développement</div>} />
             <Route path="verbatims" element={<Verbatims />} />
-            <Route path="themes" element={<div className="p-8 text-center text-muted-foreground">Page Analyse thématique - En développement</div>} />
+            <Route path="themes" element={<Themes />} />
             <Route path="tendances" element={<div className="p-8 text-center text-muted-foreground">Page Synthèse & tendances - En développement</div>} />
             <Route path="emotions" element={<div className="p-8 text-center text-muted-foreground">Page IRC & Plutchik - En développement</div>} />
             <Route path="recommandations" element={<div className="p-8 text-center text-muted-foreground">Page Recommandations - En développement</div>} />
