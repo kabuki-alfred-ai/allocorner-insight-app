@@ -51,13 +51,13 @@ export const eventData: EventData = {
   client: "Archives de la Charente",
   title: "Journées Européennes du Patrimoine",
   dates: "21 & 22 septembre 2024",
-  participants_estimated: 100,
+  participants_estimated: 200,
   context: "Sonder les représentations liées au Département de la Charente et recueillir la parole citoyenne.",
   metrics: {
-    messages_count: 15,
+    messages_count: 163,
     avg_duration_sec: 54.5,
-    total_duration_sec: 818,
-    participation_rate_estimated: 0.15,
+    total_duration_sec: 1636,
+    participation_rate_estimated: 0.815,
     irc_score: 66,
     tonality_avg: 3.2,
     high_emotion_share: 0.59
