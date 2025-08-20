@@ -1,24 +1,16 @@
-import { useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { eventData, themes, messages, trends } from "@/lib/data";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Cell
-} from "recharts";
+import { useEffect, useState, useMemo } from "react";
+import { eventData, themes, Theme } from "@/lib/data";
+import { ThemeSelector } from "@/components/themes/ThemeSelector";
+import { ThemeSynthesis } from "@/components/themes/ThemeSynthesis";
+import { MessageList } from "@/components/themes/MessageList";
 
 export default function Themes() {
+  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+
   // SEO
   useEffect(() => {
     const title = `Analyse thématique — ${eventData.client}`;
-    const description = `Analyse thématique des verbatims: répartition, top thèmes et verbatims représentatifs pour ${eventData.title}.`;
+    const description = `Exploration interactive des thématiques: visualisations, synthèses et messages audio pour ${eventData.title}.`;
 
     document.title = title;
 
@@ -74,134 +66,51 @@ export default function Themes() {
     };
   }, []);
 
+  // Initialize with most frequent theme
+  useEffect(() => {
+    if (!selectedTheme && themes.length > 0) {
+      const sortedThemes = [...themes].sort((a, b) => b.count - a.count);
+      setSelectedTheme(sortedThemes[0]);
+    }
+  }, [selectedTheme]);
+
   const total = useMemo(() => themes.reduce((s, t) => s + t.count, 0), []);
-  const chartData = useMemo(() => themes.map(t => ({
-    name: t.name,
-    shortName: t.name.length > 26 ? `${t.name.slice(0, 24)}…` : t.name,
-    count: t.count,
-    color: t.color,
-  })), []);
-
-  const sortedThemes = useMemo(() => [...themes].sort((a, b) => b.count - a.count), []);
-  const top3 = sortedThemes.slice(0, 3);
-
-  const reps = top3.map((t) => ({
-    theme: t,
-    message: messages.find(m => m.themes.includes(t.name))
-  }));
 
   return (
-    <main className="mx-auto max-w-6xl space-y-8">
+    <main className="mx-auto max-w-7xl space-y-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Analyse thématique</h1>
-        <p className="text-muted-foreground">Répartition des thèmes et verbatims représentatifs</p>
+        <p className="text-muted-foreground">Exploration interactive des thèmes et messages</p>
       </header>
 
-      {/* Distribution + Ranking */}
-      <section className="grid gap-6 lg:grid-cols-3">
-        <article className="lg:col-span-2">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle>Répartition thématique</CardTitle>
-              <CardDescription>Nombre de messages par thème</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="shortName" interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip formatter={(value: number) => [`${value} messages`, "Messages"]} />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </article>
-
-        <aside>
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle>Top thèmes</CardTitle>
-              <CardDescription>Classement par volume</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Thème</TableHead>
-                    <TableHead className="text-right">Volume</TableHead>
-                    <TableHead className="text-right">Part</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedThemes.map((t) => (
-                    <TableRow key={t.name}>
-                      <TableCell className="max-w-[220px] truncate">
-                        <div className="flex items-center gap-2">
-                          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: t.color }} />
-                          <span title={t.name}>{t.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">{t.count}</TableCell>
-                      <TableCell className="text-right">{Math.round((t.count / total) * 100)}%</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+      {/* 3-column layout */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Left column - Theme selector */}
+        <aside className="lg:col-span-3">
+          <div className="sticky top-6">
+            <ThemeSelector
+              themes={themes}
+              selectedTheme={selectedTheme}
+              onThemeSelect={setSelectedTheme}
+              total={total}
+            />
+          </div>
         </aside>
-      </section>
 
-      {/* Representative quotes */}
-      <section>
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>Verbatims représentatifs</CardTitle>
-            <CardDescription>Extraits pour les thèmes dominants</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              {reps.map(({ theme, message }) => (
-                <div key={theme.name} className="rounded-lg border bg-card p-4">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: theme.color }} />
-                      <span className="font-medium">{theme.name}</span>
-                    </div>
-                    <Badge variant="secondary">{theme.count} msgs</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {message?.quote ?? "Aucun extrait disponible"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+        {/* Center column - Theme synthesis */}
+        <section className="lg:col-span-5">
+          <div className="sticky top-6">
+            {selectedTheme && <ThemeSynthesis theme={selectedTheme} />}
+          </div>
+        </section>
 
-      {/* Frequent words */}
-      <section>
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>Mots fréquents</CardTitle>
-            <CardDescription>Indices récurrents dans les verbatims</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {trends.frequent_words.map((w: string) => (
-                <Badge key={w} variant="outline">{w}</Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+        {/* Right column - Messages list */}
+        <section className="lg:col-span-4">
+          <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+            {selectedTheme && <MessageList theme={selectedTheme} />}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
