@@ -47,21 +47,24 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
         return (
           <Card 
             key={theme.name} 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-              isSelected ? 'ring-2 ring-primary shadow-md' : ''
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+              isSelected ? 'ring-2 ring-primary shadow-lg bg-accent/5' : 'hover:bg-accent/5'
             }`}
             onClick={() => onThemeSelect(theme)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm leading-tight truncate">
-                    {theme.name}
-                  </h3>
+            <CardContent className="p-5">
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base leading-tight">
+                  {theme.name}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary" className="text-sm font-medium">
+                    {percentage}%
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {theme.count} message{theme.count > 1 ? 's' : ''}
+                  </span>
                 </div>
-                <Badge variant="secondary" className="text-xs shrink-0">
-                  {percentage}% • {theme.count} msgs
-                </Badge>
               </div>
             </CardContent>
           </Card>

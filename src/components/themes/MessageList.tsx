@@ -182,7 +182,7 @@ export function MessageList({ theme, onThemeSelect }: MessageListProps) {
                       <Badge 
                         key={themeName} 
                         variant="outline" 
-                        className="text-xs cursor-pointer hover:bg-muted transition-colors"
+                        className="text-xs cursor-pointer hover:bg-accent transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (relatedTheme) {
@@ -190,7 +190,7 @@ export function MessageList({ theme, onThemeSelect }: MessageListProps) {
                           }
                         }}
                       >
-                        #{themeName.toLowerCase().replace(/\s+/g, '')}
+                        {themeName}
                       </Badge>
                     );
                   })}

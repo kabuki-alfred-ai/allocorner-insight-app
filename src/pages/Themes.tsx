@@ -77,7 +77,7 @@ export default function Themes() {
   const total = useMemo(() => themes.reduce((s, t) => s + t.count, 0), []);
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6">
+    <main className="space-y-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Analyse thématique</h1>
         <p className="text-muted-foreground">Exploration interactive des thèmes et témoignages</p>
