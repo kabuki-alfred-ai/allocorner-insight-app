@@ -80,7 +80,7 @@ export default function Themes() {
     <main className="mx-auto max-w-7xl space-y-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Analyse thématique</h1>
-        <p className="text-muted-foreground">Exploration interactive des thèmes et messages</p>
+        <p className="text-muted-foreground">Exploration interactive des thèmes et témoignages</p>
       </header>
 
       {/* 3-column layout */}
@@ -107,7 +107,7 @@ export default function Themes() {
         {/* Right column - Messages list */}
         <section className="lg:col-span-4">
           <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
-            {selectedTheme && <MessageList theme={selectedTheme} />}
+            {selectedTheme && <MessageList theme={selectedTheme} onThemeSelect={setSelectedTheme} />}
           </div>
         </section>
       </div>

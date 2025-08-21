@@ -53,30 +53,15 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
             onClick={() => onThemeSelect(theme)}
           >
             <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm leading-tight truncate">
-                      {theme.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {getHashtag(theme.name)}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs shrink-0">
-                    {percentage}% • {theme.count} msgs
-                  </Badge>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm leading-tight truncate">
+                    {theme.name}
+                  </h3>
                 </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Tonalité</span>
-                  </div>
-                  <Progress 
-                    value={60 + Math.random() * 30} 
-                    className="h-2"
-                  />
-                </div>
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  {percentage}% • {theme.count} msgs
+                </Badge>
               </div>
             </CardContent>
           </Card>

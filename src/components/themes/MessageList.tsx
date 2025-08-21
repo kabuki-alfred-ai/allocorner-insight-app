@@ -6,14 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { Theme, Message, messages } from "@/lib/data";
+import { Theme, Message, messages, themes } from "@/lib/data";
 import { Search, Filter } from "lucide-react";
 
 interface MessageListProps {
   theme: Theme;
+  onThemeSelect: (theme: Theme) => void;
 }
 
-export function MessageList({ theme }: MessageListProps) {
+export function MessageList({ theme, onThemeSelect }: MessageListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showPositiveOnly, setShowPositiveOnly] = useState(false);
   const [showNegativeOnly, setShowNegativeOnly] = useState(false);
@@ -69,7 +70,7 @@ export function MessageList({ theme }: MessageListProps) {
       {/* Header */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Messages liés
+          Témoignages
         </h2>
         <p className="text-sm text-muted-foreground">
           {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''} pour "{theme.name}"
@@ -175,11 +176,24 @@ export function MessageList({ theme }: MessageListProps) {
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1">
-                  {message.themes.map((themeName) => (
-                    <Badge key={themeName} variant="outline" className="text-xs">
-                      #{themeName.toLowerCase().replace(/\s+/g, '')}
-                    </Badge>
-                  ))}
+                  {message.themes.map((themeName) => {
+                    const relatedTheme = themes.find(t => t.name === themeName);
+                    return (
+                      <Badge 
+                        key={themeName} 
+                        variant="outline" 
+                        className="text-xs cursor-pointer hover:bg-muted transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (relatedTheme) {
+                            onThemeSelect(relatedTheme);
+                          }
+                        }}
+                      >
+                        #{themeName.toLowerCase().replace(/\s+/g, '')}
+                      </Badge>
+                    );
+                  })}
                   {message.emotions.slice(0, 2).map((emotion) => (
                     <Badge key={emotion} variant="secondary" className="text-xs">
                       {emotion}

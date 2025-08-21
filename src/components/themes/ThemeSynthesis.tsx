@@ -17,21 +17,6 @@ interface ThemeSynthesisProps {
 }
 
 export function ThemeSynthesis({ theme }: ThemeSynthesisProps) {
-  // Simulated tonality distribution (-5 to +5)
-  const tonalityData = [
-    { value: -5, count: 1 },
-    { value: -4, count: 0 },
-    { value: -3, count: 2 },
-    { value: -2, count: 1 },
-    { value: -1, count: 3 },
-    { value: 0, count: 5 },
-    { value: 1, count: 8 },
-    { value: 2, count: 12 },
-    { value: 3, count: 6 },
-    { value: 4, count: 3 },
-    { value: 5, count: 2 }
-  ];
-
   // Simulated IRC score
   const ircScore = 66;
   
@@ -48,11 +33,15 @@ export function ThemeSynthesis({ theme }: ThemeSynthesisProps) {
   ];
 
   const getIrcLabel = (score: number) => {
-    if (score >= 80) return "très positif";
-    if (score >= 60) return "positif modéré";
-    if (score >= 40) return "neutre";
-    if (score >= 20) return "négatif modéré";
-    return "très négatif";
+    if (score >= 70) return "Score élevé";
+    if (score >= 40) return "Score moyen";
+    return "Score faible";
+  };
+
+  const getIrcColor = (score: number) => {
+    if (score >= 70) return "#10B981"; // green
+    if (score >= 40) return "#F59E0B"; // yellow
+    return "#EF4444"; // red
   };
 
   return (
@@ -66,77 +55,76 @@ export function ThemeSynthesis({ theme }: ThemeSynthesisProps) {
         <h2 className="text-xl font-semibold text-foreground">{theme.name}</h2>
       </div>
 
-      {/* Tonality histogram */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Distribution tonalité</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={tonalityData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="value" 
-                  domain={[-5, 5]}
-                  type="number"
-                  ticks={[-5, -3, -1, 0, 1, 3, 5]}
-                />
-                <YAxis allowDecimals={false} />
-                <Tooltip formatter={(value: number) => [`${value} messages`, "Messages"]} />
-                <Bar 
-                  dataKey="count" 
-                  fill="hsl(var(--primary))" 
-                  radius={[2, 2, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* IRC Gauge */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Indice IRC</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-foreground mb-1">
-              {ircScore}
+      {/* IRC Gauge and Word Cloud side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* IRC Gauge */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Indice IRC</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center">
+              {/* Semi-circle gauge */}
+              <div className="relative w-32 h-16 mb-4">
+                <svg 
+                  viewBox="0 0 100 50" 
+                  className="w-full h-full"
+                  style={{ transform: 'rotate(0deg)' }}
+                >
+                  {/* Background arc */}
+                  <path
+                    d="M 10 40 A 30 30 0 0 1 90 40"
+                    stroke="hsl(var(--muted))"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                  {/* Progress arc */}
+                  <path
+                    d="M 10 40 A 30 30 0 0 1 90 40"
+                    stroke={getIrcColor(ircScore)}
+                    strokeWidth="8"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(ircScore / 100) * 125.66} 125.66`}
+                    style={{ 
+                      transition: 'stroke-dasharray 0.3s ease-in-out'
+                    }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {ircScore}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                {getIrcLabel(ircScore)}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {ircScore} = {getIrcLabel(ircScore)}
-            </p>
-          </div>
-          <Progress value={ircScore} className="h-3" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>0</span>
-            <span>50</span>
-            <span>100</span>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Word cloud */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Mots-clés</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2 items-center justify-center p-4">
-            {keywords.map((keyword) => (
-              <span
-                key={keyword.word}
-                className={`${keyword.size} font-medium text-muted-foreground hover:text-foreground transition-colors cursor-default`}
-                style={{ color: `${theme.color}80` }}
-              >
-                {keyword.word}
-              </span>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+        {/* Word cloud */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Mots-clés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2 items-center justify-center p-2">
+              {keywords.map((keyword) => (
+                <span
+                  key={keyword.word}
+                  className={`${keyword.size} font-medium text-muted-foreground hover:text-foreground transition-colors cursor-default`}
+                  style={{ color: `${theme.color}80` }}
+                >
+                  {keyword.word}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Summary card */}
       <Card className="shadow-card">
@@ -159,12 +147,6 @@ export function ThemeSynthesis({ theme }: ThemeSynthesisProps) {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">#heritage</Badge>
-            <Badge variant="outline">#fierté</Badge>
-            <Badge variant="outline">#identité</Badge>
-            <Badge variant="outline">#territoire</Badge>
-          </div>
         </CardContent>
       </Card>
     </div>
