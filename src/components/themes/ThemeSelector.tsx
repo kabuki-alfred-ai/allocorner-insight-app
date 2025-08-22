@@ -48,7 +48,9 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
           <Card 
             key={theme.name} 
             className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              isSelected ? 'ring-2 ring-primary shadow-lg bg-accent/5' : 'hover:bg-accent/5'
+              isSelected 
+                ? `ring-2 ring-primary shadow-lg ${theme.color} bg-opacity-20` 
+                : 'hover:bg-accent/5'
             }`}
             onClick={() => onThemeSelect(theme)}
           >
