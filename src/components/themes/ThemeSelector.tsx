@@ -26,11 +26,16 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
       .replace(/[^a-z0-9]/g, '');
   };
 
-  const getTonalityColor = (theme: Theme) => {
-    // Simulated tonality based on theme color
-    if (theme.color.includes('green') || theme.color.includes('emerald')) return 'bg-green-500';
-    if (theme.color.includes('red') || theme.color.includes('rose')) return 'bg-red-500';
-    return 'bg-gray-400';
+  const getSelectedBackground = (theme: Theme) => {
+    // Convert theme color to background class for selected state
+    if (theme.color.includes('yellow') || theme.color.includes('amber')) return 'bg-yellow-100 border-yellow-300';
+    if (theme.color.includes('blue') || theme.color.includes('cyan')) return 'bg-blue-100 border-blue-300';
+    if (theme.color.includes('green') || theme.color.includes('emerald')) return 'bg-green-100 border-green-300';
+    if (theme.color.includes('red') || theme.color.includes('rose')) return 'bg-red-100 border-red-300';
+    if (theme.color.includes('purple') || theme.color.includes('violet')) return 'bg-purple-100 border-purple-300';
+    if (theme.color.includes('orange')) return 'bg-orange-100 border-orange-300';
+    if (theme.color.includes('pink')) return 'bg-pink-100 border-pink-300';
+    return 'bg-gray-100 border-gray-300';
   };
 
   return (
@@ -48,7 +53,9 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
           <Card 
             key={theme.name} 
             className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              isSelected ? 'ring-2 ring-primary shadow-lg bg-accent/5' : 'hover:bg-accent/5'
+              isSelected 
+                ? `${getSelectedBackground(theme)} shadow-lg ring-1` 
+                : 'hover:bg-accent/5 border-border'
             }`}
             onClick={() => onThemeSelect(theme)}
           >
