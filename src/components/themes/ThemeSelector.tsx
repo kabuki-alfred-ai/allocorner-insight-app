@@ -27,15 +27,23 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
   };
 
   const getSelectedBackground = (theme: Theme) => {
-    // Convert theme color to background class for selected state
-    if (theme.color.includes('yellow') || theme.color.includes('amber')) return 'bg-yellow-100 border-yellow-300';
-    if (theme.color.includes('blue') || theme.color.includes('cyan')) return 'bg-blue-100 border-blue-300';
-    if (theme.color.includes('green') || theme.color.includes('emerald')) return 'bg-green-100 border-green-300';
-    if (theme.color.includes('red') || theme.color.includes('rose')) return 'bg-red-100 border-red-300';
-    if (theme.color.includes('purple') || theme.color.includes('violet')) return 'bg-purple-100 border-purple-300';
-    if (theme.color.includes('orange')) return 'bg-orange-100 border-orange-300';
-    if (theme.color.includes('pink')) return 'bg-pink-100 border-pink-300';
-    return 'bg-gray-100 border-gray-300';
+    // Use semantic theme colors from the design system
+    if (theme.color.includes('yellow') || theme.color.includes('amber')) {
+      return 'bg-theme-transmission/10 border-theme-transmission/30';
+    }
+    if (theme.color.includes('blue') || theme.color.includes('cyan')) {
+      return 'bg-theme-fierte/10 border-theme-fierte/30';
+    }
+    if (theme.color.includes('green') || theme.color.includes('emerald')) {
+      return 'bg-theme-humour/10 border-theme-humour/30';
+    }
+    if (theme.color.includes('red') || theme.color.includes('rose')) {
+      return 'bg-theme-centralisation/10 border-theme-centralisation/30';
+    }
+    if (theme.color.includes('purple') || theme.color.includes('violet')) {
+      return 'bg-theme-identite/10 border-theme-identite/30';
+    }
+    return 'bg-muted border-border';
   };
 
   return (
