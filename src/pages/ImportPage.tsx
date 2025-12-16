@@ -241,26 +241,25 @@ const ImportPage = () => {
     
     // Store file references for the visualization page
     // In a real app, you would upload these to a server and get URLs back
-    toast.success("Chargement du reporting...");
-    navigate("/");
+    toast.success("Chargement du dashboard...");
+    navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="container max-w-3xl py-12 px-4">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-foreground mb-3">
-            Import du Reporting Allo Corner
+            Préparer votre analyse Allo Corner
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Importez les fichiers nécessaires pour visualiser votre rapport d'analyse.
-            Les champs marqués d'un * sont obligatoires.
+            Importez les fichiers nécessaires pour générer et visualiser votre dashboard d'analyse.
           </p>
         </div>
 
         <div className="space-y-6">
           <FileUploadZone
-            title="Dossier ZIP des ressources"
+            title="Dossier ZIP – Données sources"
             description="Fichiers audio (.mp3, .wav, .m4a) et transcriptions (.txt)"
             icon={<FileArchive className="h-5 w-5" />}
             accept=".zip"
@@ -271,8 +270,8 @@ const ImportPage = () => {
           />
 
           <FileUploadZone
-            title="PDF du Reporting"
-            description="Rapport d'analyse final avec synthèse, graphiques et indicateurs"
+            title="PDF du reporting"
+            description="Rapport d'analyse final (synthèse, graphiques, indicateurs)"
             icon={<FileText className="h-5 w-5" />}
             accept=".pdf"
             required={true}
@@ -282,8 +281,8 @@ const ImportPage = () => {
           />
 
           <FileUploadZone
-            title="Logo client"
-            description="Logo pour personnaliser l'en-tête du reporting"
+            title="Logo du client"
+            description="Logo pour personnaliser le dashboard (en-tête, branding)"
             icon={<Image className="h-5 w-5" />}
             accept=".png,.jpg,.jpeg"
             required={false}
@@ -293,22 +292,22 @@ const ImportPage = () => {
           />
         </div>
 
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex flex-col items-center gap-3">
           <Button
             size="lg"
             disabled={!canSubmit}
             onClick={handleVisualize}
             className="px-8"
           >
-            Visualiser le reporting
+            Accéder au dashboard d'analyse
           </Button>
-        </div>
 
-        {!canSubmit && (
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Veuillez importer le fichier ZIP et le PDF pour continuer
-          </p>
-        )}
+          {!canSubmit && (
+            <p className="text-sm text-muted-foreground">
+              Veuillez importer le fichier ZIP et le PDF pour continuer
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

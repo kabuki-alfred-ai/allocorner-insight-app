@@ -25,8 +25,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/import" element={<ImportPage />} />
-          <Route path="/" element={<Layout />}>
+          <Route path="/" element={<ImportPage />} />
+          <Route path="/dashboard" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="contexte" element={<Contexte />} />
             <Route path="chiffres" element={<ChiffresPage />} />
