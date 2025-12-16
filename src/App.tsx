@@ -13,6 +13,7 @@ import TendancesPage from "./pages/TendancesPage";
 import EmotionsPage from "./pages/EmotionsPage";
 import RecommandationsPage from "./pages/RecommandationsPage";
 import RessourcesPage from "./pages/RessourcesPage";
+import ImportPage from "./pages/ImportPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/import" element={<ImportPage />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="contexte" element={<Contexte />} />
