@@ -26,15 +26,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
-  { title: "Accueil", url: "/dashboard", icon: Home },
-  { title: "Contexte", url: "/dashboard/contexte", icon: Info },
-  { title: "Chiffres clés", url: "/dashboard/chiffres", icon: BarChart3 },
-  { title: "Verbatims", url: "/dashboard/verbatims", icon: AudioLines },
-  { title: "Analyse thématique", url: "/dashboard/themes", icon: Tags },
-  { title: "Synthèse & tendances", url: "/dashboard/tendances", icon: TrendingUp },
-  { title: "IRC & Plutchik", url: "/dashboard/emotions", icon: Heart },
-  { title: "Recommandations", url: "/dashboard/recommandations", icon: Target },
-  { title: "Ressources", url: "/dashboard/ressources", icon: Download },
+  { title: "Accueil", url: "/", icon: Home },
+  { title: "Contexte", url: "/contexte", icon: Info },
+  { title: "Chiffres clés", url: "/chiffres", icon: BarChart3 },
+  { title: "Verbatims", url: "/verbatims", icon: AudioLines },
+  { title: "Analyse thématique", url: "/themes", icon: Tags },
+  { title: "Synthèse & tendances", url: "/tendances", icon: TrendingUp },
+  { title: "IRC & Plutchik", url: "/emotions", icon: Heart },
+  { title: "Recommandations", url: "/recommandations", icon: Target },
+  { title: "Ressources", url: "/ressources", icon: Download },
 ];
 
 export function AppSidebar() {
