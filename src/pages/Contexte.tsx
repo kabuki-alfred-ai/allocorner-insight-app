@@ -68,8 +68,8 @@ export default function Contexte() {
   ];
 
   const objectifs = [
-    "Sonder les représentations liées au Département de la Charente",
-    "Recueillir la parole citoyenne durant les JEP 2024",
+    "Recueillir la parole des visiteurs et clients sur le stand Allo Corner",
+    "Mesurer l'impact émotionnel et identitaire de la marque Madame la Présidente",
   ];
 
   return (
