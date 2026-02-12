@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  passwordHash    String          @map("password_hash")
+  name            String
+  role            Role            @default(MEMBER)
+  refreshToken    String?         @map("refresh_token")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  invitedMembers  ProjectMember[] @relation("MemberInviter")
+  projectMembers  ProjectMember[] @relation("MemberUser")
+  createdProjects Project[]       @relation("ProjectCreator")
+
+  @@map("users")
+}
+
+model Project {
+  id                    String                @id @default(uuid())
+  clientName            String                @map("client_name")
+  title                 String
+  dates                 String
+  context               String                @default("")
+  analyst               String                @default("")
+  methodology           String                @default("")
+  participantsEstimated Int                   @default(0) @map("participants_estimated")
+  logoKey               String?               @map("logo_key")
+  createdById           String                @map("created_by_id")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+  featuredVerbatims     FeaturedVerbatim[]
+  invitations           Invitation[]
+  messages              Message[]
+  members               ProjectMember[]
+  metrics               ProjectMetrics?
+  plutchik              ProjectPlutchik?
+  createdBy             User                  @relation("ProjectCreator", fields: [createdById], references: [id])
+  recommendations       Recommendation[]
+  themes                Theme[]
+  transversalAnalyses   TransversalAnalysis[]
+  trends                Trends?
+  objectives            ProjectObjective[]
+  strategicActions      StrategicAction[]
+  ircBreakdown          IrcBreakdown?
+  resources             ProjectResource[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  userId      String    @map("user_id")
+  invitedById String?   @map("invited_by_id")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  invitedBy   User?     @relation("MemberInviter", fields: [invitedById], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User      @relation("MemberUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectMetrics {
+  id                String  @id @default(uuid())
+  projectId         String  @unique @map("project_id")
+  messagesCount     Int     @default(0) @map("messages_count")
+  avgDurationSec    Float   @default(0) @map("avg_duration_sec")
+  totalDurationSec  Float   @default(0) @map("total_duration_sec")
+  participationRate Float   @default(0) @map("participation_rate")
+  ircScore          Float   @default(0) @map("irc_score")
+  tonalityAvg       Float   @default(0) @map("tonality_avg")
+  highEmotionShare  Float   @default(0) @map("high_emotion_share")
+  ircInterpretation String  @default("") @map("irc_interpretation")
+  emotionalClimate  String  @default("") @map("emotional_climate")
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_metrics")
+}
+
+model ProjectPlutchik {
+  id              String  @id @default(uuid())
+  projectId       String  @unique @map("project_id")
+  joy             Float   @default(0)
+  trust           Float   @default(0)
+  sadness         Float   @default(0)
+  anticipation    Float   @default(0)
+  anger           Float   @default(0)
+  surprise        Float   @default(0)
+  fear            Float   @default(0)
+  cocktailSummary String  @default("") @map("cocktail_summary")
+  project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_plutchik")
+}
+
+model Message {
+  id                String             @id @default(uuid())
+  projectId         String             @map("project_id")
+  filename          String
+  audioKey          String?            @map("audio_key")
+  duration          Float?
+  speaker           String?
+  transcriptTxt     String             @default("") @map("transcript_txt")
+  emotionalLoad     EmotionalLoad      @default(MEDIUM) @map("emotional_load")
+  quote             String             @default("")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  featuredVerbatims FeaturedVerbatim[]
+  messageEmotions   MessageEmotion[]
+  messageThemes     MessageTheme[]
+  totemForThemes    Theme[]            @relation("MessageTotem")
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model MessageTheme {
+  id        String  @id @default(uuid())
+  messageId String  @map("message_id")
+  themeId   String  @map("theme_id")
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  theme     Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, themeId])
+  @@map("message_themes")
+}
+
+model MessageEmotion {
+  id          String  @id @default(uuid())
+  messageId   String  @map("message_id")
+  emotionName String  @map("emotion_name")
+  message     Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, emotionName])
+  @@map("message_emotions")
+}
+
+model Theme {
+  id             String          @id @default(uuid())
+  projectId      String          @map("project_id")
+  name           String
+  temporality    String          @default("")
+  emotionLabel   String          @default("") @map("emotion_label")
+  analysis       String          @default("")
+  verbatimTotem  String          @default("") @map("verbatim_totem")
+  totemMessageId String?         @map("totem_message_id")
+  count          Int             @default(0)
+  color          String          @default("#2F66F5")
+  messageThemes  MessageTheme[]
+  keywords       ThemeKeyword[]
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  totemMessage   Message?        @relation("MessageTotem", fields: [totemMessageId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, name])
+  @@map("themes")
+}
+
+model ThemeKeyword {
+  id        String  @id @default(uuid())
+  themeId   String  @map("theme_id")
+  keyword   String
+  theme     Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([themeId, keyword])
+  @@map("theme_keywords")
+}
+
+model FeaturedVerbatim {
+  id          String           @id @default(uuid())
+  projectId   String           @map("project_id")
+  category    VerbatimCategory
+  messageId   String?          @map("message_id")
+  citation    String
+  implication String           @default("")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  message     Message?         @relation(fields: [messageId], references: [id])
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("featured_verbatims")
+}
+
+model Recommendation {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  title     String
+  objective String   @default("")
+  priority  Priority @default(MOYENNE)
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("recommendations")
+}
+
+model Trends {
+  id               String  @id @default(uuid())
+  projectId        String  @unique @map("project_id")
+  mainTrends       Json    @default("[]") @map("main_trends")
+  strengths        Json    @default("[]")
+  recurringWords   Json    @default("[]") @map("recurring_words")
+  weakSignal       String  @default("") @map("weak_signal")
+  weakSignalDetail String  @default("") @map("weak_signal_detail")
+  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("trends")
+}
+
+model TransversalAnalysis {
+  id        String  @id @default(uuid())
+  projectId String  @map("project_id")
+  axis      String
+  category  String
+  content   String  @default("")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("transversal_analyses")
+}
+
+model Invitation {
+  id        String           @id @default(uuid())
+  projectId String           @map("project_id")
+  email     String
+  token     String           @unique
+  status    InvitationStatus @default(PENDING)
+  expiresAt DateTime         @map("expires_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email])
+  @@map("invitations")
+}
+
+enum Role {
+  SUPERADMIN
+  MEMBER
+}
+
+enum EmotionalLoad {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum VerbatimCategory {
+  CONTRASTE
+  ORIGINALITE
+  EMOTION
+  REPRESENTATIVITE
+  TOTEM
+}
+
+enum Priority {
+  HAUTE
+  MOYENNE
+  BASSE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model ProjectObjective {
+  id        String  @id @default(uuid())
+  projectId String  @map("project_id")
+  content   String
+  position  Int     @default(0)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_objectives")
+}
+
+model StrategicAction {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  title       String
+  description String   @default("")
+  priority    Priority @default(MOYENNE)
+  timeline    String   @default("")
+  resources   String   @default("")
+  position    Int      @default(0)
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("strategic_actions")
+}
+
+model IrcBreakdown {
+  id                String  @id @default(uuid())
+  projectId         String  @unique @map("project_id")
+  intensity         Float   @default(0)
+  thematicRichness  Float   @default(0) @map("thematic_richness")
+  narrativeCoherence Float  @default(0) @map("narrative_coherence")
+  originality       Float   @default(0)
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("irc_breakdown")
+}
+
+model ProjectResource {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  title       String
+  description String   @default("")
+  type        String
+  size        String   @default("")
+  fileKey     String?  @map("file_key")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_resources")
+}
