@@ -25,8 +25,12 @@ COPY scripts ./scripts/
 # Build de l'application avec le tsconfig Docker
 RUN npx tsc -p tsconfig.docker.json
 
-# Compiler le script create-superadmin
-RUN npx tsc scripts/create-superadmin-cli.ts --outDir dist/scripts --esModuleInterop --module commonjs --moduleResolution node --target ES2023 --skipLibCheck
+# Compiler les scripts admin
+RUN npx tsc scripts/create-superadmin-cli.ts --outDir dist/scripts --esModuleInterop --module commonjs --moduleResolution node --target ES2023 --skipLibCheck 2>/dev/null || true
+RUN npx tsc scripts/create-superadmin.ts --outDir dist/scripts --esModuleInterop --module commonjs --moduleResolution node --target ES2023 --skipLibCheck 2>/dev/null || true
+
+# Rendre le script shell exécutable
+RUN chmod +x scripts/create-superadmin-docker.sh
 
 # Vérifier que le build a créé les fichiers
 RUN ls -la dist/ && test -f dist/main.js

@@ -23,7 +23,8 @@
     "db:seed": "ts-node prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
     "create:superadmin": "ts-node scripts/create-superadmin.ts",
-    "create:superadmin:cli": "ts-node scripts/create-superadmin-cli.ts"
+    "create:superadmin:cli": "ts-node scripts/create-superadmin-cli.ts",
+    "create:superadmin:docker": "sh scripts/create-superadmin-docker.sh"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
