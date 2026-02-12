@@ -1,0 +1,93 @@
+# Docker Compose pour production (Coolify)
+version: '3.8'
+
+services:
+  # Frontend - Application React buildée
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Backend - API NestJS
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      - DATABASE_URL=${DATABASE_URL}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
+      # MinIO
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio}
+      - MINIO_PORT=${MINIO_PORT:-9000}
+      - MINIO_USE_SSL=${MINIO_USE_SSL:-false}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_AUDIO_BUCKET=${MINIO_AUDIO_BUCKET:-allocorner-audio}
+      - MINIO_LOGOS_BUCKET=${MINIO_LOGOS_BUCKET:-allocorner-logos}
+      # App
+      - PORT=3000
+      - NODE_ENV=production
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      - postgres
+      - minio
+    restart: unless-stopped
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-allocorner}
+      - POSTGRES_USER=${POSTGRES_USER:-allocorner}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Stockage S3 MinIO
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-allocorner}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: unless-stopped
+
+  # Initialisation MinIO (création des buckets)
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 ${MINIO_ACCESS_KEY:-allocorner} ${MINIO_SECRET_KEY};
+      mc mb --ignore-existing local/${MINIO_AUDIO_BUCKET:-allocorner-audio};
+      mc mb --ignore-existing local/${MINIO_LOGOS_BUCKET:-allocorner-logos};
+      mc anonymous set download local/${MINIO_AUDIO_BUCKET:-allocorner-audio};
+      exit 0;
+      "
+    restart: "no"
+
+volumes:
+  postgres_data:
+  minio_data:
