@@ -6,9 +6,9 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copier tous les fichiers de configuration d'abord
+# Copier les fichiers de configuration
 COPY package*.json ./
-COPY tsconfig*.json ./
+COPY tsconfig.docker.json ./
 COPY nest-cli.json ./
 COPY prisma ./prisma/
 
@@ -21,16 +21,11 @@ RUN npx prisma generate
 # Copier le code source
 COPY src ./src/
 
-# Modifier tsconfig pour le build (remplacer nodenext par commonjs temporairement)
-RUN sed -i 's/"module": "nodenext"/"module": "commonjs"/' tsconfig.json && \
-    sed -i 's/"moduleResolution": "nodenext"/"moduleResolution": "node"/' tsconfig.json && \
-    sed -i '/"resolvePackageJsonExports"/d' tsconfig.json
-
-# Build de l'application
-RUN npm run build
+# Build de l'application avec le tsconfig Docker
+RUN npx tsc -p tsconfig.docker.json
 
 # Vérifier que le build a créé les fichiers
-RUN ls -la dist/
+RUN ls -la dist/ && test -f dist/main.js
 
 # Exposer le port
 EXPOSE 3000
