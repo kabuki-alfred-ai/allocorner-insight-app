@@ -40,6 +40,9 @@ services:
       - PORT=3000
       - NODE_ENV=production
       - FRONTEND_URL=${SERVICE_URL_FRONTEND:-http://frontend}
+      # Email (optionnel)
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL:-invitations@allocorner.com}
     depends_on:
       - postgres
       - minio
