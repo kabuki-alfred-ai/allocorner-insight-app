@@ -22,6 +22,9 @@ RUN npx prisma generate
 COPY src ./src/
 COPY scripts ./scripts/
 
+# Copier les fichiers de données (pour le seed)
+COPY data ./data/
+
 # Build de l'application avec le tsconfig Docker
 RUN npx tsc -p tsconfig.docker.json
 

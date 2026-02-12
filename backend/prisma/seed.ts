@@ -305,12 +305,27 @@ async function ensureBucketExists() {
 }
 
 async function uploadAudioFile(filename: string, projectId: string): Promise<string> {
-  const localPath = path.join(process.cwd(), '..', 'data', 'audios', filename);
+  // Cherche dans plusieurs chemins possibles (local et Docker)
+  const possiblePaths = [
+    path.join(process.cwd(), 'data', 'audios', filename),      // Docker: /app/data/audios
+    path.join(process.cwd(), '..', 'data', 'audios', filename), // Local: backend/../data/audios
+    path.join(__dirname, '..', '..', 'data', 'audios', filename), // Alternative
+  ];
   
-  if (!fs.existsSync(localPath)) {
-    console.warn(`Fichier audio non trouvé: ${localPath}`);
+  let localPath: string | null = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      localPath = p;
+      break;
+    }
+  }
+  
+  if (!localPath) {
+    console.warn(`Fichier audio non trouvé: ${filename} (cherché dans: ${possiblePaths.join(', ')})`);
     return '';
   }
+  
+  console.log(`Fichier trouvé: ${localPath}`);
 
   const objectName = `${projectId}/${filename}`;
   
