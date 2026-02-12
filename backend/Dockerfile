@@ -20,9 +20,13 @@ RUN npx prisma generate
 
 # Copier le code source
 COPY src ./src/
+COPY scripts ./scripts/
 
 # Build de l'application avec le tsconfig Docker
 RUN npx tsc -p tsconfig.docker.json
+
+# Compiler le script create-superadmin
+RUN npx tsc scripts/create-superadmin-cli.ts --outDir dist/scripts --esModuleInterop --module commonjs --moduleResolution node --target ES2023 --skipLibCheck
 
 # Vérifier que le build a créé les fichiers
 RUN ls -la dist/ && test -f dist/main.js
