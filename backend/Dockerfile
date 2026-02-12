@@ -23,7 +23,8 @@ COPY src ./src/
 
 # Modifier tsconfig pour le build (remplacer nodenext par commonjs temporairement)
 RUN sed -i 's/"module": "nodenext"/"module": "commonjs"/' tsconfig.json && \
-    sed -i 's/"moduleResolution": "nodenext"/"moduleResolution": "node"/' tsconfig.json
+    sed -i 's/"moduleResolution": "nodenext"/"moduleResolution": "node"/' tsconfig.json && \
+    sed -i '/"resolvePackageJsonExports"/d' tsconfig.json
 
 # Build de l'application
 RUN npm run build
