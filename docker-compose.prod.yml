@@ -1,4 +1,5 @@
-# Docker Compose pour production (Coolify)
+# Docker Compose pour Coolify
+# Coolify gère automatiquement les ports et les domaines
 version: '3.8'
 
 services:
@@ -7,43 +8,43 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "8080:80"
+      args:
+        - VITE_API_URL=${SERVICE_URL_BACKEND:-http://backend:3000}
     environment:
-      - VITE_API_URL=${VITE_API_URL}
+      - VITE_API_URL=${SERVICE_URL_BACKEND:-http://backend:3000}
     depends_on:
       - backend
     restart: unless-stopped
+    # Coolify gère le port et le domaine automatiquement via SERVICE_FQDN_FRONTEND
 
   # Backend - API NestJS
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       # Database
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://allocorner:allocorner@postgres:5432/allocorner?schema=public}
       # JWT
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
       # MinIO
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio}
-      - MINIO_PORT=${MINIO_PORT:-9000}
-      - MINIO_USE_SSL=${MINIO_USE_SSL:-false}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-allocorner}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_AUDIO_BUCKET=${MINIO_AUDIO_BUCKET:-allocorner-audio}
       - MINIO_LOGOS_BUCKET=${MINIO_LOGOS_BUCKET:-allocorner-logos}
       # App
       - PORT=3000
       - NODE_ENV=production
-      - FRONTEND_URL=${FRONTEND_URL}
+      - FRONTEND_URL=${SERVICE_URL_FRONTEND:-http://frontend}
     depends_on:
       - postgres
       - minio
     restart: unless-stopped
+    # Coolify gère le port et le domaine via SERVICE_FQDN_BACKEND
 
   # Base de données PostgreSQL
   postgres:
@@ -51,12 +52,11 @@ services:
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-allocorner}
       - POSTGRES_USER=${POSTGRES_USER:-allocorner}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-allocorner}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     restart: unless-stopped
+    # Pas de port exposé - communication interne uniquement
 
   # Stockage S3 MinIO
   minio:
@@ -64,26 +64,29 @@ services:
     command: server /data --console-address ":9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-allocorner}
-      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-allocorner}
     volumes:
       - minio_data:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     restart: unless-stopped
+    # Coolify gère les ports via SERVICE_FQDN_MINIO si configuré
 
   # Initialisation MinIO (création des buckets)
   minio-init:
     image: minio/mc:latest
     depends_on:
       - minio
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-allocorner}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-allocorner}
+      - MINIO_AUDIO_BUCKET=${MINIO_AUDIO_BUCKET:-allocorner-audio}
+      - MINIO_LOGOS_BUCKET=${MINIO_LOGOS_BUCKET:-allocorner-logos}
     entrypoint: >
       /bin/sh -c "
       sleep 5;
-      mc alias set local http://minio:9000 ${MINIO_ACCESS_KEY:-allocorner} ${MINIO_SECRET_KEY};
-      mc mb --ignore-existing local/${MINIO_AUDIO_BUCKET:-allocorner-audio};
-      mc mb --ignore-existing local/${MINIO_LOGOS_BUCKET:-allocorner-logos};
-      mc anonymous set download local/${MINIO_AUDIO_BUCKET:-allocorner-audio};
+      mc alias set local http://minio:9000 $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY};
+      mc mb --ignore-existing local/$${MINIO_AUDIO_BUCKET};
+      mc mb --ignore-existing local/$${MINIO_LOGOS_BUCKET};
+      mc anonymous set download local/$${MINIO_AUDIO_BUCKET};
       exit 0;
       "
     restart: "no"
