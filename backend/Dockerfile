@@ -6,11 +6,11 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copier les fichiers de configuration
-COPY package*.json ./
-COPY tsconfig.docker.json ./
-COPY nest-cli.json ./
-COPY prisma ./prisma/
+# Copier les fichiers de configuration depuis backend/
+COPY backend/package*.json ./
+COPY backend/tsconfig.docker.json ./
+COPY backend/nest-cli.json ./
+COPY backend/prisma ./prisma/
 
 # Installer les dépendances
 RUN npm ci
@@ -18,12 +18,12 @@ RUN npm ci
 # Générer le client Prisma
 RUN npx prisma generate
 
-# Copier le code source
-COPY src ./src/
-COPY scripts ./scripts/
+# Copier le code source depuis backend/
+COPY backend/src ./src/
+COPY backend/scripts ./scripts/
 
-# Créer le dossier data (sera rempli via volume ou manuellement)
-RUN mkdir -p data/audios
+# Copier les fichiers de données (depuis la racine)
+COPY data ./data/
 
 # Build de l'application avec le tsconfig Docker
 RUN npx tsc -p tsconfig.docker.json

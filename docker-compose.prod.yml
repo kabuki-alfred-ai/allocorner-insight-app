@@ -20,8 +20,8 @@ services:
   # Backend - API NestJS
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       # Database
       - DATABASE_URL=${DATABASE_URL:-postgresql://allocorner:allocorner@postgres:5432/allocorner?schema=public}
