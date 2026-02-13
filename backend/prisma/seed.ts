@@ -2,11 +2,15 @@ import { PrismaClient, Role, EmotionalLoad, VerbatimCategory, Priority } from '@
 import * as Minio from 'minio';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
 
-// Pour ESM: créer équivalent de __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Déterminer le chemin de base (compatible CommonJS/ESM)
+const getBaseDir = () => {
+  // En Docker: /app, en local: racine du projet
+  if (process.cwd().includes('/app')) {
+    return process.cwd(); // /app en Docker
+  }
+  return path.join(process.cwd(), 'backend');
+};
 
 const prisma = new PrismaClient();
 
@@ -311,10 +315,11 @@ async function ensureBucketExists() {
 
 async function uploadAudioFile(filename: string, projectId: string): Promise<string> {
   // Cherche dans plusieurs chemins possibles (local et Docker)
+  const baseDir = getBaseDir();
   const possiblePaths = [
-    path.join(process.cwd(), 'data', 'audios', filename),      // Docker: /app/data/audios
-    path.join(process.cwd(), '..', 'data', 'audios', filename), // Local: backend/../data/audios
-    path.join(__dirname, '..', '..', 'data', 'audios', filename), // Docker depuis prisma/
+    path.join(baseDir, 'data', 'audios', filename),              // Docker: /app/data/audios
+    path.join(baseDir, '..', 'data', 'audios', filename),        // Local: backend/../data/audios
+    path.join(baseDir, 'prisma', '..', '..', 'data', 'audios', filename), // depuis prisma/
   ];
   
   let localPath: string | null = null;
