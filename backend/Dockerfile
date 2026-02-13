@@ -22,8 +22,8 @@ RUN npx prisma generate
 COPY src ./src/
 COPY scripts ./scripts/
 
-# Copier les fichiers de données (pour le seed)
-COPY data ./data/
+# Créer le dossier data (sera rempli via volume ou manuellement)
+RUN mkdir -p data/audios
 
 # Build de l'application avec le tsconfig Docker
 RUN npx tsc -p tsconfig.docker.json
