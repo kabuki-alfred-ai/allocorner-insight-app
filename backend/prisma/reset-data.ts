@@ -23,16 +23,16 @@ async function resetData() {
   const { count: trendsCount } = await prisma.trends.deleteMany({});
   console.log(`  ✅ ${trendsCount} tendances supprimées`);
 
-  // 5. Actions prioritaires (dépendent des projects)
-  const { count: actionsCount } = await prisma.priorityAction.deleteMany({});
-  console.log(`  ✅ ${actionsCount} actions prioritaires supprimées`);
+  // 5. Actions stratégiques (dépendent des projects)
+  const { count: actionsCount } = await prisma.strategicAction.deleteMany({});
+  console.log(`  ✅ ${actionsCount} actions stratégiques supprimées`);
 
-  // 6. Métriques IRC (dépendent des projects)
-  const { count: metricsCount } = await prisma.ircMetrics.deleteMany({});
-  console.log(`  ✅ ${metricsCount} métriques IRC supprimées`);
+  // 6. Métriques projet (dépendent des projects)
+  const { count: metricsCount } = await prisma.projectMetrics.deleteMany({});
+  console.log(`  ✅ ${metricsCount} métriques projet supprimées`);
 
-  // 7. Données Plutchik (dépendent des projects)
-  const { count: plutchikCount } = await prisma.plutchikData.deleteMany({});
+  // 7. Données Plutchik projet (dépendent des projects)
+  const { count: plutchikCount } = await prisma.projectPlutchik.deleteMany({});
   console.log(`  ✅ ${plutchikCount} données Plutchik supprimées`);
 
   // 8. Membres de projet (dépendent des projects)
