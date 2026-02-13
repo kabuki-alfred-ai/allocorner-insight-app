@@ -2,6 +2,11 @@ import { PrismaClient, Role, EmotionalLoad, VerbatimCategory, Priority } from '@
 import * as Minio from 'minio';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Pour ESM: créer équivalent de __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient();
 
@@ -309,7 +314,7 @@ async function uploadAudioFile(filename: string, projectId: string): Promise<str
   const possiblePaths = [
     path.join(process.cwd(), 'data', 'audios', filename),      // Docker: /app/data/audios
     path.join(process.cwd(), '..', 'data', 'audios', filename), // Local: backend/../data/audios
-    path.join(__dirname, '..', '..', 'data', 'audios', filename), // Alternative
+    path.join(__dirname, '..', '..', 'data', 'audios', filename), // Docker depuis prisma/
   ];
   
   let localPath: string | null = null;

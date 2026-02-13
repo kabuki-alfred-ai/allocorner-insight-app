@@ -22,6 +22,7 @@
     "db:generate": "prisma generate",
     "db:seed": "ts-node prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
+    "db:reset-data": "ts-node prisma/reset-data.ts",
     "create:superadmin": "ts-node scripts/create-superadmin.ts",
     "create:superadmin:cli": "ts-node scripts/create-superadmin-cli.ts",
     "create:superadmin:docker": "sh scripts/create-superadmin-docker.sh"
