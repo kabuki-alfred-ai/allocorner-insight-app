@@ -36,6 +36,17 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_AUDIO_BUCKET=${MINIO_AUDIO_BUCKET:-allocorner-audio}
       - MINIO_LOGOS_BUCKET=${MINIO_LOGOS_BUCKET:-allocorner-logos}
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # Google Cloud
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-/app/google-credentials.json}
+      - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID}
+      - GOOGLE_SPEECH_LANGUAGE=${GOOGLE_SPEECH_LANGUAGE:-fr-FR}
+      # Queue
+      - QUEUE_CONCURRENCY=${QUEUE_CONCURRENCY:-5}
+      - QUEUE_MAX_RETRIES=${QUEUE_MAX_RETRIES:-3}
       # App
       - PORT=3000
       - NODE_ENV=production
@@ -46,6 +57,7 @@ services:
     depends_on:
       - postgres
       - minio
+      - redis
     restart: unless-stopped
     # Coolify gère le port et le domaine via SERVICE_FQDN_BACKEND
 
@@ -94,6 +106,16 @@ services:
       "
     restart: "no"
 
+  # Redis - Queue system pour BullMQ
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    # Pas de port exposé - communication interne uniquement
+
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
