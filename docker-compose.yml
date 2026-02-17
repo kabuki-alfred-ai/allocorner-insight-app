@@ -34,6 +34,15 @@ services:
       mc mb --ignore-existing local/allocorner-logos;
       exit 0;"
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass b19d8192e62652df0958df13f3dd5b09a766af72ef08d2e228f78fd30d910755
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
