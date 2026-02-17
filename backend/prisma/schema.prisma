@@ -112,9 +112,19 @@ model Message {
   speaker           String?
   transcriptTxt     String             @default("") @map("transcript_txt")
   emotionalLoad     EmotionalLoad      @default(MEDIUM) @map("emotional_load")
+  tone              Tone               @default(NEUTRAL)
   quote             String             @default("")
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  // Processing status tracking
+  processingStatus  ProcessingStatus   @default(PENDING) @map("processing_status")
+  processingError   String?            @map("processing_error")
+  processedAt       DateTime?          @map("processed_at")
+  retryCount        Int                @default(0) @map("retry_count")
+  gcpJobId          String?            @map("gcp_job_id")
+  gcpDuration       Float?             @map("gcp_duration")
+
   featuredVerbatims FeaturedVerbatim[]
   messageEmotions   MessageEmotion[]
   messageThemes     MessageTheme[]
@@ -270,6 +280,20 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   REVOKED
+}
+
+enum Tone {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+enum ProcessingStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model ProjectObjective {

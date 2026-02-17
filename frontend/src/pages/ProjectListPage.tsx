@@ -25,6 +25,14 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Project } from "@/lib/types";
 
 // ──────────────────────────────────────────────
@@ -44,12 +52,28 @@ function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
     <Card className="shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group border-white/5 overflow-hidden rounded-[2rem] bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-4 pt-8 px-8 relative">
         <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
-        <p className="text-[10px] font-black text-primary/80 uppercase tracking-[0.3em] mb-2">
-          {project.clientName}
-        </p>
-        <h3 className="text-2xl font-extrabold font-heading text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors">
-          {project.title}
-        </h3>
+        <div className="flex items-start gap-4 mb-2">
+          {project.logoKey && (
+            <div className="w-12 h-12 rounded-xl bg-white p-1.5 shadow-sm flex-shrink-0">
+              <img
+                src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                alt={project.clientName}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black text-primary/80 uppercase tracking-[0.3em] mb-1">
+              {project.clientName}
+            </p>
+            <h3 className="text-2xl font-extrabold font-heading text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors">
+              {project.title}
+            </h3>
+          </div>
+        </div>
       </CardHeader>
  
       <CardContent className="flex-1 pb-8 px-8">
@@ -183,25 +207,98 @@ export function ProjectListPage() {
           }
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-          {isLoading &&
-            Array.from({ length: 6 }).map((_, i) => (
-              <ProjectCardSkeleton key={i} />
-            ))}
-
-          {!isLoading && !isError && projects && projects.length === 0 && (
+        <div className="mt-12">
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : !isError && projects && projects.length === 0 ? (
             <EmptyState />
+          ) : (
+            <div className="rounded-[2rem] border border-white/5 overflow-hidden shadow-sm bg-card backdrop-blur-sm">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow className="hover:bg-transparent border-white/5">
+                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Client</TableHead>
+                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Titre du Projet</TableHead>
+                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Dates</TableHead>
+                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Témoignages</TableHead>
+                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {projects?.map((project) => {
+                      const messagesCount = (project as any)._count?.messages;
+                      return (
+                        <TableRow key={project.id} className="group hover:bg-primary/[0.02] transition-colors border-white/5">
+                          <TableCell className="py-4 px-8">
+                            <div className="flex items-center gap-4">
+                              {project.logoKey ? (
+                                <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm flex-shrink-0">
+                                  <img
+                                    src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                                    alt={project.clientName}
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                                  <Briefcase className="h-5 w-5 text-muted-foreground/40" />
+                                </div>
+                              )}
+                              <span className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate max-w-[150px]">
+                                {project.clientName}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4 px-8">
+                            <span className="text-sm font-extrabold font-heading group-hover:text-primary transition-colors">
+                              {project.title}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4 px-8 text-center text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">
+                            {project.dates || "En cours"}
+                          </TableCell>
+                          <TableCell className="py-4 px-8 text-center">
+                            <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black tracking-widest font-heading">
+                              {messagesCount !== undefined && messagesCount !== null ? messagesCount : 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4 px-8 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-9 px-4 rounded-xl border-primary/10 text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-widest transition-all"
+                                onClick={() => navigate(`/projects/${project.id}`)}
+                              >
+                                Board
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="default"
+                                className="h-9 w-9 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-110 active:scale-95"
+                                onClick={() => navigate(`/projects/${project.id}/admin`)}
+                                title="Administrer"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
-
-          {!isLoading &&
-            !isError &&
-            projects?.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project as Project & { _count?: { messages: number } }}
-                isSuperAdmin={isSuperAdmin}
-              />
-            ))}
         </div>
       </div>
     );

@@ -5,13 +5,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Prisma, Tone } from '@prisma/client';
 import AdmZip from 'adm-zip';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
 import { CreateMessageDto } from './dto/create-message.dto.js';
 import { UpdateMessageDto } from './dto/update-message.dto.js';
 import { QueryMessagesDto } from './dto/query-messages.dto.js';
+import { UpdateProcessingDto } from './dto/update-processing.dto.js';
+import { QueueService } from '../queue/queue.service.js';
 
 @Injectable()
 export class MessagesService {
@@ -22,6 +24,7 @@ export class MessagesService {
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
     private readonly config: ConfigService,
+    private readonly queueService: QueueService,
   ) {
     // Construire l'URL de base de l'API pour les URLs absolues
     const port = this.config.get<number>('port') ?? 3000;
@@ -53,7 +56,9 @@ export class MessagesService {
         speaker: dto.speaker,
         transcriptTxt: dto.transcriptTxt,
         emotionalLoad: dto.emotionalLoad,
+        tone: dto.tone,
         quote: dto.quote,
+        processingStatus: 'PENDING', // Set initial status
         messageThemes: dto.themeIds?.length
           ? {
               create: dto.themeIds.map((themeId) => ({ themeId })),
@@ -70,6 +75,20 @@ export class MessagesService {
         messageEmotions: true,
       },
     });
+
+    // Automatically trigger processing job if audio was uploaded
+    if (audioKey) {
+      try {
+        await this.queueService.addProcessingJob(message.id, projectId);
+        this.logger.log(`Triggered processing job for message ${message.id}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to trigger processing job for message ${message.id}`,
+          error.stack,
+        );
+        // Don't fail the create operation if job trigger fails
+      }
+    }
 
     return message;
   }
@@ -90,12 +109,12 @@ export class MessagesService {
     });
 
     // Parse CSV if found
-    const metadataMap = new Map<string, { transcript?: string; speaker?: string }>();
-    
+    const metadataMap = new Map<string, { transcript?: string; speaker?: string; tone?: Tone }>();
+
     if (csvEntry) {
       const csvContent = csvEntry.getData().toString('utf-8');
       const lines = csvContent.split(/\r?\n/).filter(line => line.trim());
-      
+
       // Skip header line
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
@@ -103,7 +122,7 @@ export class MessagesService {
         const parts: string[] = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let j = 0; j < line.length; j++) {
           const char = line[j];
           if (char === '"') {
@@ -116,22 +135,30 @@ export class MessagesService {
           }
         }
         parts.push(current.trim());
-        
+
         if (parts.length >= 3) {
-          const [filename, transcript, speaker] = parts;
+          const [filename, transcript, speaker, tone] = parts;
           const cleanFilename = filename.replace(/^["']|["']$/g, '');
           const cleanTranscript = transcript.replace(/^["']|["']$/g, '');
           const cleanSpeaker = speaker.replace(/^["']|["']$/g, '');
-          
+          const cleanTone = tone?.replace(/^["']|["']$/g, '').toUpperCase();
+
+          // Validate tone value
+          let parsedTone: Tone | undefined = undefined;
+          if (cleanTone && ['POSITIVE', 'NEGATIVE', 'NEUTRAL'].includes(cleanTone)) {
+            parsedTone = cleanTone as Tone;
+          }
+
           if (cleanFilename) {
             metadataMap.set(cleanFilename, {
               transcript: cleanTranscript || undefined,
               speaker: cleanSpeaker || undefined,
+              tone: parsedTone,
             });
           }
         }
       }
-      
+
       this.logger.log(`Parsed CSV with ${metadataMap.size} entries`);
     }
 
@@ -172,8 +199,20 @@ export class MessagesService {
           audioKey,
           transcriptTxt: metadata.transcript || undefined,
           speaker: metadata.speaker || undefined,
+          tone: metadata.tone || undefined,
+          processingStatus: 'PENDING', // Set initial status
         },
       });
+
+      // Trigger processing job for this audio
+      try {
+        await this.queueService.addProcessingJob(message.id, projectId);
+      } catch (error) {
+        this.logger.error(
+          `Failed to trigger processing job for message ${message.id}`,
+          error.stack,
+        );
+      }
 
       results.push({ filename: message.filename, id: message.id });
     }
@@ -420,5 +459,154 @@ export class MessagesService {
       durationDistribution,
       emotionalLoadDistribution,
     };
+  }
+
+  /**
+   * Trigger processing for a specific message
+   */
+  async triggerProcessing(messageId: string): Promise<void> {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with id "${messageId}" not found`);
+    }
+
+    if (!message.audioKey) {
+      throw new BadRequestException('Message has no audio file to process');
+    }
+
+    await this.updateProcessingStatus(messageId, {
+      processingStatus: 'QUEUED',
+      processingError: undefined,
+    });
+
+    await this.queueService.addProcessingJob(messageId, message.projectId);
+
+    this.logger.log(`Triggered processing for message ${messageId}`);
+  }
+
+  /**
+   * Retry processing for a failed message
+   */
+  async retryProcessing(messageId: string): Promise<void> {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with id "${messageId}" not found`);
+    }
+
+    await this.updateProcessingStatus(messageId, {
+      processingStatus: 'QUEUED',
+      processingError: undefined,
+    });
+
+    await this.queueService.retryJob(messageId);
+
+    this.logger.log(`Retrying processing for message ${messageId}`);
+  }
+
+  /**
+   * Update processing status and metadata
+   */
+  async updateProcessingStatus(
+    messageId: string,
+    dto: UpdateProcessingDto,
+  ): Promise<any> {
+    const message = await this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        ...(dto.processingStatus !== undefined && {
+          processingStatus: dto.processingStatus,
+        }),
+        ...(dto.processingError !== undefined && {
+          processingError: dto.processingError,
+        }),
+        ...(dto.processedAt !== undefined && { processedAt: dto.processedAt }),
+        ...(dto.retryCount !== undefined && { retryCount: dto.retryCount }),
+        ...(dto.gcpJobId !== undefined && { gcpJobId: dto.gcpJobId }),
+        ...(dto.gcpDuration !== undefined && { gcpDuration: dto.gcpDuration }),
+        ...(dto.tone !== undefined && { tone: dto.tone }),
+        ...(dto.transcriptTxt !== undefined && {
+          transcriptTxt: dto.transcriptTxt,
+        }),
+        ...(dto.speaker !== undefined && { speaker: dto.speaker }),
+        ...(dto.duration !== undefined && { duration: dto.duration }),
+      },
+    });
+
+    return message;
+  }
+
+  /**
+   * Get all failed messages for a project
+   */
+  async findAllFailed(projectId: string) {
+    return this.prisma.message.findMany({
+      where: {
+        projectId,
+        processingStatus: 'FAILED',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Process all pending messages in bulk
+   */
+  async processBulk(projectId: string): Promise<{ queued: number }> {
+    const pendingMessages = await this.prisma.message.findMany({
+      where: {
+        projectId,
+        processingStatus: 'PENDING',
+        audioKey: { not: null },
+      },
+    });
+
+    let queued = 0;
+
+    for (const message of pendingMessages) {
+      try {
+        await this.triggerProcessing(message.id);
+        queued++;
+      } catch (error) {
+        this.logger.error(
+          `Failed to queue message ${message.id}`,
+          error.stack,
+        );
+      }
+    }
+
+    this.logger.log(`Queued ${queued} messages for processing`);
+
+    return { queued };
+  }
+
+  /**
+   * Retry all failed messages
+   */
+  async retryAllFailed(projectId: string): Promise<{ retried: number }> {
+    const failedMessages = await this.findAllFailed(projectId);
+
+    let retried = 0;
+
+    for (const message of failedMessages) {
+      try {
+        await this.retryProcessing(message.id);
+        retried++;
+      } catch (error) {
+        this.logger.error(
+          `Failed to retry message ${message.id}`,
+          error.stack,
+        );
+      }
+    }
+
+    this.logger.log(`Retried ${retried} failed messages`);
+
+    return { retried };
   }
 }

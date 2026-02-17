@@ -57,12 +57,6 @@ export {
 // Trends
 export { getTrends, upsertTrends } from './trends';
 
-// Featured Verbatims
-export {
-  getFeaturedVerbatims,
-  createFeaturedVerbatim,
-  deleteFeaturedVerbatim,
-} from './featured-verbatims';
 
 // Transversal Analyses
 export {

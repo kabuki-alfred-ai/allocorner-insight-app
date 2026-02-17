@@ -28,6 +28,9 @@
     "create:superadmin:docker": "sh scripts/create-superadmin-docker.sh"
   },
   "dependencies": {
+    "@google-cloud/language": "^7.2.1",
+    "@google-cloud/speech": "^7.2.1",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
@@ -38,8 +41,10 @@
     "@prisma/client": "^6.19.2",
     "adm-zip": "^0.5.16",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.69.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "ioredis": "^5.9.3",
     "minio": "^8.0.6",
     "multer": "^2.0.2",
     "passport": "^0.7.0",

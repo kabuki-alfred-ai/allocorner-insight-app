@@ -17,7 +17,12 @@ import {
   Settings,
   AudioLines,
   Play,
-  Pause
+  Pause,
+  Check,
+  AlertCircle,
+  Clock,
+  RotateCw,
+  FileAudio,
 } from "lucide-react";
 
 import {
@@ -26,8 +31,12 @@ import {
   bulkUploadMessages,
   updateMessage,
   deleteMessage,
+  triggerProcessing,
+  retryProcessing,
+  processBulk,
+  retryAllFailed,
 } from "@/lib/api/messages";
-import type { Message, EmotionalLoad } from "@/lib/types";
+import type { Message, EmotionalLoad, Tone, ProcessingStatus } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
@@ -39,6 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import {
   Card,
   CardContent,
@@ -78,6 +88,12 @@ const EMOTIONAL_LOAD_OPTIONS: { value: EmotionalLoad; label: string }[] = [
   { value: "HIGH", label: "Elevee" },
 ];
 
+const TONE_OPTIONS: { value: Tone; label: string }[] = [
+  { value: "POSITIVE", label: "Positive" },
+  { value: "NEGATIVE", label: "Négative" },
+  { value: "NEUTRAL", label: "Neutre" },
+];
+
 const emotionalLoadColor: Record<EmotionalLoad, string> = {
   LOW: "bg-green-100 text-green-800",
   MEDIUM: "bg-yellow-100 text-yellow-800",
@@ -92,6 +108,7 @@ const editMessageSchema = z.object({
   speaker: z.string().optional().default(""),
   transcriptTxt: z.string().optional().default(""),
   emotionalLoad: z.enum(["LOW", "MEDIUM", "HIGH"]).default("LOW"),
+  tone: z.enum(["POSITIVE", "NEGATIVE", "NEUTRAL"]).default("NEUTRAL"),
   quote: z.string().optional().default(""),
 });
 
@@ -124,6 +141,14 @@ export function AdminMessagesPage() {
   // Bulk upload state
   const [zipFile, setZipFile] = useState<File | null>(null);
 
+  // Multiple files upload state
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadStatuses, setUploadStatuses] = useState<
+    Record<string, "pending" | "uploading" | "success" | "error">
+  >({});
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
+  const multipleInputRef = useRef<HTMLInputElement>(null);
+
   // ── Fetch messages ──
 
   const messagesQuery = useQuery({
@@ -131,10 +156,24 @@ export function AdminMessagesPage() {
     queryFn: () => getMessages(projectId!, { page, limit: PAGE_LIMIT }),
     enabled: !!projectId,
     staleTime: 0, // Force refresh
+    refetchInterval: (query) => {
+      // Auto-refresh every 5 seconds if there are active jobs
+      const hasActive = query.state.data?.data.some((m: Message) =>
+        ["QUEUED", "PROCESSING"].includes(m.processingStatus)
+      );
+      return hasActive ? 5000 : false;
+    },
   });
 
   const messages = messagesQuery.data?.data || [];
   const totalPages = messagesQuery.data?.totalPages || 1;
+
+  // Calculate status counts
+  const pendingCount = messages.filter((m) => m.processingStatus === "PENDING").length;
+  const processingCount = messages.filter((m) =>
+    ["QUEUED", "PROCESSING"].includes(m.processingStatus)
+  ).length;
+  const failedCount = messages.filter((m) => m.processingStatus === "FAILED").length;
 
   // ── Individual upload mutation ──
 
@@ -142,6 +181,7 @@ export function AdminMessagesPage() {
     mutationFn: (formData: FormData) => createMessage(projectId!, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       toast.success("Message importe avec succes");
       setAudioFile(null);
       setSpeaker("");
@@ -159,6 +199,7 @@ export function AdminMessagesPage() {
     mutationFn: (formData: FormData) => bulkUploadMessages(projectId!, formData),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       toast.success(`${result.length} message(s) importe(s) avec succes`);
       setZipFile(null);
       if (zipInputRef.current) zipInputRef.current.value = "";
@@ -175,6 +216,7 @@ export function AdminMessagesPage() {
       updateMessage(projectId!, messageId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       toast.success("Message mis a jour");
       setEditingMessage(null);
     },
@@ -189,11 +231,47 @@ export function AdminMessagesPage() {
     mutationFn: (messageId: string) => deleteMessage(projectId!, messageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       toast.success("Message supprime");
       setDeletingMessage(null);
     },
     onError: (error: Error) => {
       toast.error(`Erreur de suppression : ${error.message}`);
+    },
+  });
+
+  // ── Processing mutations ──
+
+  const retryMutation = useMutation({
+    mutationFn: (messageId: string) => retryProcessing(projectId!, messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      toast.success("Traitement relance");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur : ${error.message}`);
+    },
+  });
+
+  const processBulkMutation = useMutation({
+    mutationFn: () => processBulk(projectId!),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      toast.success(data.message);
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur : ${error.message}`);
+    },
+  });
+
+  const retryAllFailedMutation = useMutation({
+    mutationFn: () => retryAllFailed(projectId!),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+      toast.success(data.message);
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur : ${error.message}`);
     },
   });
 
@@ -233,6 +311,63 @@ export function AdminMessagesPage() {
   const handleZipFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setZipFile(file);
+  };
+
+  // Handle multiple files selection
+  const handleMultipleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    setSelectedFiles(files);
+
+    // Initialize statuses
+    const statuses: Record<string, "pending"> = {};
+    files.forEach((file) => {
+      statuses[file.name] = "pending";
+    });
+    setUploadStatuses(statuses);
+  };
+
+  // Handle multiple files upload
+  const handleUploadMultiple = async () => {
+    const CONCURRENT_UPLOADS = 5; // 5 uploads simultaneously
+    setUploadProgress({ completed: 0, total: selectedFiles.length });
+
+    const uploadFile = async (file: File) => {
+      try {
+        setUploadStatuses((prev) => ({ ...prev, [file.name]: "uploading" }));
+
+        const formData = new FormData();
+        formData.append("audio", file);
+        formData.append("filename", file.name);
+        formData.append("speaker", ""); // Will be filled by Google
+        formData.append("transcriptTxt", ""); // Will be filled by Google
+
+        await createMessage(projectId!, formData);
+
+        setUploadStatuses((prev) => ({ ...prev, [file.name]: "success" }));
+        setUploadProgress((prev) => ({ ...prev, completed: prev.completed + 1 }));
+      } catch (error) {
+        console.error(`Erreur upload ${file.name}:`, error);
+        setUploadStatuses((prev) => ({ ...prev, [file.name]: "error" }));
+        setUploadProgress((prev) => ({ ...prev, completed: prev.completed + 1 }));
+      }
+    };
+
+    // Upload by batch of 5
+    for (let i = 0; i < selectedFiles.length; i += CONCURRENT_UPLOADS) {
+      const batch = selectedFiles.slice(i, i + CONCURRENT_UPLOADS);
+      await Promise.all(batch.map(uploadFile));
+    }
+
+    // Refresh the messages list
+    queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+
+    toast.success(`${uploadProgress.completed} fichiers uploades avec succes`);
+
+    // Reset
+    setSelectedFiles([]);
+    setUploadStatuses({});
+    if (multipleInputRef.current) multipleInputRef.current.value = "";
   };
 
   const formatDuration = (seconds: number | null): string => {
@@ -355,54 +490,103 @@ export function AdminMessagesPage() {
           </CardContent>
         </Card>
 
-        {/* Bulk upload */}
+        {/* Multiple files upload */}
         <Card className="border-white/5 shadow-sm rounded-[2rem] overflow-hidden">
           <CardHeader className="px-8 py-6 bg-muted/20 border-b border-white/5">
             <div className="flex items-center gap-2">
               <FileArchive className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg font-extrabold font-heading">Import en masse</CardTitle>
+              <CardTitle className="text-lg font-extrabold font-heading">Import Multiple</CardTitle>
             </div>
             <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-80">
-              Fichier ZIP compressé
+              Fichiers audio illimités
             </CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Fichier ZIP *</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Fichiers audio (illimité)</Label>
               <Input
-                ref={zipInputRef}
+                ref={multipleInputRef}
                 type="file"
-                accept=".zip"
-                onChange={handleZipFileChange}
+                accept="audio/mp3,audio/wav,audio/m4a,audio/mpeg"
+                multiple
+                onChange={handleMultipleFilesSelect}
                 className="bg-muted/30 border-white/5 rounded-xl h-11"
               />
-              {zipFile && (
-                <p className="text-[10px] font-bold text-primary mt-1">
-                  {zipFile.name} ({(zipFile.size / 1024 / 1024).toFixed(2)} Mo)
-                </p>
-              )}
-            </div>
-
-            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
-              <p className="text-xs font-bold text-primary/80 leading-relaxed">
-                <span className="block mb-2 opacity-60 uppercase tracking-widest text-[9px]">Format attendu :</span>
-                Le ZIP doit contenir :
-                <br/>• Des fichiers audio nommés <code className="bg-primary/10 px-1 py-0.5 rounded">1.mp3</code>, <code className="bg-primary/10 px-1 py-0.5 rounded">2.mp3</code>, etc.
-                <br/>• Un fichier <code className="bg-primary/10 px-1 py-0.5 rounded">data.csv</code> avec 3 colonnes : filename, transcript, speaker
+              <p className="text-xs text-muted-foreground mt-1">
+                Sélectionnez autant de fichiers MP3, WAV ou M4A que nécessaire
               </p>
             </div>
 
-            <Button
-              onClick={handleBulkUpload}
-              disabled={!zipFile || bulkMutation.isPending}
-              size="action"
-              className="w-full shadow-lg shadow-primary/20"
-            >
-              {bulkMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              Importer la bibliothèque
-            </Button>
+            {selectedFiles.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">
+                    {selectedFiles.length} fichier(s) sélectionné(s)
+                  </p>
+                  <Button
+                    onClick={handleUploadMultiple}
+                    disabled={uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total}
+                    size="sm"
+                  >
+                    {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Upload en cours... {uploadProgress.completed}/{uploadProgress.total}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Uploader tous les fichiers
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* File list with status */}
+                <div className="max-h-60 overflow-y-auto border rounded-xl p-2 bg-muted/20">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between py-1.5 px-2 hover:bg-muted/30 rounded">
+                      <div className="flex items-center gap-2 flex-1 truncate">
+                        <FileAudio className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{file.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                      {uploadStatuses[file.name] === "uploading" && (
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                      )}
+                      {uploadStatuses[file.name] === "success" && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
+                      {uploadStatuses[file.name] === "error" && (
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Global progress bar */}
+                {uploadProgress.total > 0 && (
+                  <div className="space-y-1">
+                    <Progress value={(uploadProgress.completed / uploadProgress.total) * 100} />
+                    <p className="text-xs text-center text-muted-foreground">
+                      {uploadProgress.completed} / {uploadProgress.total} fichiers uploadés
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+              <p className="text-xs font-bold text-primary/80 leading-relaxed">
+                <span className="block mb-2 opacity-60 uppercase tracking-widest text-[9px]">Traitement automatique :</span>
+                Les fichiers seront automatiquement traités par Google Cloud :
+                <br/>• Transcription automatique
+                <br/>• Détection du ton (positif/négatif/neutre)
+                <br/>• Identification des intervenants (Speaker 0, Speaker 1, etc.)
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -417,13 +601,61 @@ export function AdminMessagesPage() {
               Verbatimothèque
             </h3>
             <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
-              {messagesQuery.data?.total || 0} messages importés au total 
-              {messagesQuery.data?.totalPages && messagesQuery.data.totalPages > 1 && 
+              {messagesQuery.data?.total || 0} messages importés au total
+              {messagesQuery.data?.totalPages && messagesQuery.data.totalPages > 1 &&
                 ` (Page ${page}/${messagesQuery.data.totalPages})`
               }
             </p>
           </div>
         </div>
+
+        {/* Processing indicator */}
+        {processingCount > 0 && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <div className="flex-1">
+                  <p className="font-bold text-sm">
+                    Traitement en cours...
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {processingCount} fichier(s) en cours de traitement
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Bulk action buttons */}
+        {!messagesQuery.isLoading && messages.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            <Button
+              onClick={() => processBulkMutation.mutate()}
+              disabled={pendingCount === 0 || processBulkMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="rounded-xl"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Traiter tous les fichiers en attente ({pendingCount})
+            </Button>
+
+            {failedCount > 0 && (
+              <Button
+                onClick={() => retryAllFailedMutation.mutate()}
+                disabled={retryAllFailedMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="rounded-xl"
+              >
+                <RotateCw className="h-4 w-4 mr-2" />
+                Réessayer les échecs ({failedCount})
+              </Button>
+            )}
+          </div>
+        )}
 
         {messagesQuery.isLoading ? (
           <div className="space-y-3">
@@ -449,8 +681,10 @@ export function AdminMessagesPage() {
                     <tr className="bg-muted/30 border-b border-white/5">
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 w-16">Audio</th>
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Fichier</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Statut</th>
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Intervenant</th>
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Durée</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Tonalité</th>
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Charge Émotionnelle</th>
                       <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Themes</th>
                       <th className="text-right py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Actions</th>
@@ -489,11 +723,64 @@ export function AdminMessagesPage() {
                             </p>
                           )}
                         </td>
+                        <td className="py-4 px-4">
+                          {msg.processingStatus === "PENDING" && (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-none text-[10px] font-black tracking-widest">
+                              <Clock className="h-3 w-3 mr-1" />
+                              En attente
+                            </Badge>
+                          )}
+                          {msg.processingStatus === "QUEUED" && (
+                            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-none text-[10px] font-black tracking-widest">
+                              <Clock className="h-3 w-3 mr-1" />
+                              En file
+                            </Badge>
+                          )}
+                          {msg.processingStatus === "PROCESSING" && (
+                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-none text-[10px] font-black tracking-widest">
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Traitement
+                            </Badge>
+                          )}
+                          {msg.processingStatus === "COMPLETED" && (
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-none text-[10px] font-black tracking-widest">
+                              <Check className="h-3 w-3 mr-1" />
+                              Traité
+                            </Badge>
+                          )}
+                          {msg.processingStatus === "FAILED" && (
+                            <Badge
+                              variant="outline"
+                              className="bg-red-100 text-red-700 border-none text-[10px] font-black tracking-widest cursor-help"
+                              title={msg.processingError || "Échec du traitement"}
+                            >
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Échec
+                            </Badge>
+                          )}
+                        </td>
                         <td className="py-4 px-4 text-xs font-bold text-muted-foreground/80">
                           {msg.speaker || "-"}
                         </td>
                         <td className="py-4 px-4 text-xs font-bold text-muted-foreground/80">
                           {formatDuration(msg.duration)}
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border-none",
+                              msg.tone === 'POSITIVE' ? "bg-emerald-500/10 text-emerald-500" :
+                              msg.tone === 'NEGATIVE' ? "bg-red-500/10 text-red-500" :
+                              "bg-gray-500/10 text-gray-500"
+                            )}
+                          >
+                            {
+                              TONE_OPTIONS.find(
+                                (o) => o.value === msg.tone
+                              )?.label || msg.tone
+                            }
+                          </Badge>
                         </td>
                         <td className="py-4 px-4">
                           <Badge
@@ -519,6 +806,18 @@ export function AdminMessagesPage() {
                         </td>
                         <td className="py-4 px-4 text-right">
                           <div className="flex items-center justify-end gap-1">
+                            {msg.processingStatus === "FAILED" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-9 h-9 rounded-xl hover:bg-blue-500/10 hover:text-blue-500 transition-all"
+                                onClick={() => retryMutation.mutate(msg.id)}
+                                title={msg.processingError || "Réessayer le traitement"}
+                                disabled={retryMutation.isPending}
+                              >
+                                <RotateCw className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -667,6 +966,7 @@ function EditMessageDialog({
       speaker: "",
       transcriptTxt: "",
       emotionalLoad: "LOW",
+      tone: "NEUTRAL",
       quote: "",
     },
   });
@@ -678,6 +978,7 @@ function EditMessageDialog({
         speaker: message.speaker || "",
         transcriptTxt: message.transcriptTxt || "",
         emotionalLoad: message.emotionalLoad || "LOW",
+        tone: message.tone || "NEUTRAL",
         quote: message.quote || "",
       });
     }
@@ -689,6 +990,7 @@ function EditMessageDialog({
         speaker: "",
         transcriptTxt: "",
         emotionalLoad: "LOW",
+        tone: "NEUTRAL",
         quote: "",
       });
       onClose();
@@ -775,6 +1077,34 @@ function EditMessageDialog({
                   </Select>
                   {form.formState.errors.emotionalLoad && (
                     <p className="text-[10px] font-bold text-destructive mt-1 ml-1">{form.formState.errors.emotionalLoad.message}</p>
+                  )}
+                </div>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tone"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Tonalité</Label>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl bg-background/50 border-white/5">
+                      <SelectValue placeholder="Sélectionnez une tonalité" />
+                    </SelectTrigger>
+                    <SelectContent className="border-white/5 bg-card/95 backdrop-blur-xl rounded-xl">
+                      {TONE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="rounded-lg">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.tone && (
+                    <p className="text-[10px] font-bold text-destructive mt-1 ml-1">{form.formState.errors.tone.message}</p>
                   )}
                 </div>
               )}

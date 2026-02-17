@@ -52,7 +52,14 @@ export class StorageService implements OnModuleInit {
     buffer: Buffer,
     mimetype: string,
   ): Promise<string> {
-    const key = `${projectId}/${uuid()}-${filename}`;
+    // Sanitize filename: remove special characters and spaces
+    const sanitized = filename
+      .normalize('NFD') // Decompose accented characters
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+      .replace(/_{2,}/g, '_'); // Replace multiple underscores with single one
+
+    const key = `${projectId}/${uuid()}-${sanitized}`;
     await this.client.putObject(this.logosBucket, key, buffer, buffer.length, {
       'Content-Type': mimetype,
     });
@@ -91,5 +98,9 @@ export class StorageService implements OnModuleInit {
 
   async getAudioStream(key: string) {
     return this.client.getObject(this.audioBucket, key);
+  }
+
+  async getLogoStream(key: string) {
+    return this.client.getObject(this.logosBucket, key);
   }
 }

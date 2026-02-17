@@ -8,7 +8,11 @@ import {
   Post,
   Put,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
@@ -78,5 +82,32 @@ export class ProjectsController {
     @Body() dto: UpsertPlutchikDto,
   ) {
     return this.projectsService.upsertPlutchik(id, dto);
+  }
+
+  @Post(':id/logo')
+  @UseGuards(RolesGuard)
+  @Roles('SUPERADMIN')
+  @UseInterceptors(FileInterceptor('logo'))
+  async uploadLogo(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No logo file provided');
+    }
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only PNG, JPG, and WEBP are supported.',
+      );
+    }
+
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      throw new BadRequestException('File size exceeds 2MB limit');
+    }
+
+    return this.projectsService.uploadLogo(id, file);
   }
 }

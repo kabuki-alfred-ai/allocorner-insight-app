@@ -172,7 +172,7 @@ export function AudioPlayer({ message, projectId, className = "" }: AudioPlayerP
         <div className="flex-1">
           <h4 className="font-medium text-sm text-foreground mb-1">{message.filename}</h4>
           <p className="text-sm text-muted-foreground/80 italic">
-            "{message.quote || (message.transcriptTxt ? message.transcriptTxt.split(/[.!?]/)[0] + '...' : 'Pas d\'aperçu disponible')}"
+            "{message.quote || (message.transcriptTxt ? (message.transcriptTxt.split(/\s+/).filter(w => w.length > 0).length > 20 ? message.transcriptTxt.split(/\s+/).filter(w => w.length > 0).slice(0, 20).join(' ') + '...' : message.transcriptTxt) : 'Pas d\'aperçu disponible')}"
           </p>
         </div>
         <Sheet>

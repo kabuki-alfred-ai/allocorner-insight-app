@@ -17,6 +17,8 @@ import { ObjectivesModule } from './objectives/objectives.module.js';
 import { StrategicActionsModule } from './strategic-actions/strategic-actions.module.js';
 import { IrcBreakdownModule } from './irc-breakdown/irc-breakdown.module.js';
 import { ResourcesModule } from './resources/resources.module.js';
+import { QueueModule } from './queue/queue.module.js';
+import { GoogleModule } from './google/google.module.js';
 import configuration from './config/configuration.js';
 
 @Module({
@@ -27,6 +29,8 @@ import configuration from './config/configuration.js';
     }),
     PrismaModule,
     StorageModule,
+    QueueModule,
+    GoogleModule,
     AuthModule,
     ProjectsModule,
     ThemesModule,

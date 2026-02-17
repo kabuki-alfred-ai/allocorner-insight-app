@@ -17,4 +17,22 @@ export default () => ({
     audioBucket: process.env.MINIO_AUDIO_BUCKET || 'allocorner-audio',
     logosBucket: process.env.MINIO_LOGOS_BUCKET || 'allocorner-logos',
   },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD,
+  },
+  google: {
+    projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+    credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    speech: {
+      language: process.env.GOOGLE_SPEECH_LANGUAGE || 'fr-FR',
+      model: 'latest_long',
+      enableDiarization: true,
+    },
+  },
+  queue: {
+    concurrency: parseInt(process.env.QUEUE_CONCURRENCY || '5', 10),
+    maxRetries: parseInt(process.env.QUEUE_MAX_RETRIES || '3', 10),
+  },
 });

@@ -96,10 +96,16 @@ export function AppSidebar() {
             />
           </NavLink>
 
-          {/* Project Logo & Selector */}
-          {hasProject && !collapsed && currentProjectDetails?.logoKey && (
-            <div className="px-6 py-4 border-b border-white/5 flex justify-center">
-              <div className="w-16 h-16 rounded-xl bg-white p-2 shadow-sm">
+          {/* Project Logo */}
+          {hasProject && currentProjectDetails?.logoKey && (
+            <div className={cn(
+              "border-b border-white/5 flex justify-center transition-all",
+              collapsed ? "px-2 py-3" : "px-6 py-4"
+            )}>
+              <div className={cn(
+                "rounded-xl bg-white p-2 shadow-sm transition-all",
+                collapsed ? "w-10 h-10" : "w-16 h-16"
+              )}>
                 <img
                   src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${currentProjectDetails.logoKey}`}
                   alt={currentProjectDetails.clientName}

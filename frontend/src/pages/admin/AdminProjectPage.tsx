@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,25 +9,15 @@ import {
   Loader2,
   Upload,
   Plus,
-  MessageSquare,
-  Palette,
-  BarChart3,
-  TrendingUp,
-  Lightbulb,
-  Quote,
-  Layers,
-  Mail,
   ArrowLeft,
   LayoutGrid,
   Settings,
   Target as TargetIcon,
-  SplitSquareHorizontal,
-  FolderOpen,
   GripVertical,
   Trash2
 } from "lucide-react";
 
-import { createProject, updateProject } from "@/lib/api/projects";
+import { createProject, updateProject, uploadLogo } from "@/lib/api/projects";
 import { useProject } from "@/hooks/use-projects";
 import { useObjectives, useCreateObjective, useDeleteObjective } from "@/hooks/use-objectives";
 import { PageHeader } from "@/components/PageHeader";
@@ -75,20 +65,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 // Sub-page navigation links (edit mode only)
 // ──────────────────────────────────────────────
 
-const ADMIN_SUB_PAGES = [
-  { to: "messages", label: "Messages", icon: MessageSquare },
-  { to: "themes", label: "Themes", icon: Palette },
-  { to: "metriques", label: "Metriques", icon: BarChart3 },
-  { to: "irc-breakdown", label: "Decomposition IRC", icon: SplitSquareHorizontal },
-  { to: "tendances", label: "Tendances", icon: TrendingUp },
-  { to: "recommandations", label: "Recommandations", icon: Lightbulb },
-  { to: "strategic-actions", label: "Actions strategiques", icon: Lightbulb },
-  { to: "verbatims", label: "Verbatims marquants", icon: Quote },
-  { to: "transversal", label: "Analyses transversales", icon: Layers },
-  { to: "objectives", label: "Objectifs", icon: TargetIcon },
-  { to: "resources", label: "Ressources", icon: FolderOpen },
-  { to: "invitations", label: "Invitations", icon: Mail },
-];
+
 
 // ──────────────────────────────────────────────
 // Component
@@ -132,6 +109,13 @@ export function AdminProjectPage() {
         methodology: project.methodology || "",
         participantsEstimated: project.participantsEstimated || 0,
       });
+
+      // Set logo preview if exists
+      if (project.logoKey) {
+        setLogoPreview(
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`
+        );
+      }
     }
   }, [project, isCreating, form]);
 
@@ -185,6 +169,20 @@ export function AdminProjectPage() {
     },
   });
 
+  // ── Logo upload mutation ──
+
+  const uploadLogoMutation = useMutation({
+    mutationFn: (file: File) => uploadLogo(projectId!, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      toast.success("Logo uploadé avec succès");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de l'upload : ${error.message}`);
+    },
+  });
+
   // ── Logo handling ──
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,6 +195,13 @@ export function AdminProjectPage() {
       return;
     }
 
+    // Check if we're in edit mode (projectId exists and is not "new")
+    if (projectId && projectId !== "new") {
+      // Upload immediately
+      uploadLogoMutation.mutate(file);
+    }
+
+    // Set preview
     setLogoFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -254,312 +259,318 @@ export function AdminProjectPage() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-12">
-        <div className="lg:col-span-2 space-y-8">
-          <Card>
-            <CardHeader className="px-8 py-6">
-              <CardTitle className="text-lg font-extrabold font-heading">Informations générales</CardTitle>
-              <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-80">
-                Détails principaux de la collecte
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-8 pb-8 pt-0">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* clientName */}
-              <FormField
-                control={form.control}
-                name="clientName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom du client *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex : Acme Corp" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div className="mt-12">
+        <Card className="overflow-hidden border-white/5 shadow-sm bg-card backdrop-blur-sm rounded-[2.5rem]">
+          <CardHeader className="px-10 py-8 border-b border-white/5 bg-muted/30">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Settings className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-extrabold font-heading tracking-tight">Configuration du Projet</CardTitle>
+                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+                  Paramètres, identité visuelle et objectifs
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
 
-              {/* title */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titre du projet *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex : Etude satisfaction Q1 2025"
-                        {...field}
+          <CardContent className="p-0">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                {/* ── Section 1: Informations Générales ── */}
+                <div className="p-10 space-y-10">
+                  <div>
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                       Informations de base
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <FormField
+                        control={form.control}
+                        name="clientName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Nom du client *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex : Acme Corp" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              {/* dates */}
-              <FormField
-                control={form.control}
-                name="dates"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dates</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex : Janvier - Mars 2025" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* context */}
-              <FormField
-                control={form.control}
-                name="context"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contexte</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Decrivez le contexte de l'etude..."
-                        rows={4}
-                        {...field}
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Titre du projet *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex : Etude satisfaction Q1 2025" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              {/* analyst */}
-              <FormField
-                control={form.control}
-                name="analyst"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Analyste</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nom de l'analyste" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* methodology */}
-              <FormField
-                control={form.control}
-                name="methodology"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Methodologie</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Decrivez la methodologie..."
-                        rows={3}
-                        {...field}
+                      <FormField
+                        control={form.control}
+                        name="dates"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Dates</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex : Janvier - Mars 2025" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              {/* participantsEstimated */}
-              <FormField
-                control={form.control}
-                name="participantsEstimated"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Participants estimes</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <FormField
+                        control={form.control}
+                        name="analyst"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Analyste</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nom de l'analyste" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Separator />
-
-                  {/* Submit */}
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      type="submit" 
-                      size="action"
-                      disabled={isSubmitting}
-                      className="shadow-lg shadow-primary/20 px-10"
-                    >
-                      {isSubmitting && (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      )}
-                      {isCreating ? "Créer le projet" : "Enregistrer les modifications"}
-                    </Button>
+                    </div>
                   </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="space-y-8">
-          {/* Logo upload card */}
-          <Card>
-            <CardHeader className="px-8 py-6">
-              <CardTitle className="text-lg font-extrabold font-heading">Identité Visuelle</CardTitle>
-            </CardHeader>
-            <CardContent className="px-8 pb-8 pt-0">
-              <div className="flex flex-col items-center gap-6">
-                <div className="relative group">
-                  <div className="w-32 h-32 rounded-3xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30 overflow-hidden transition-all group-hover:border-primary/30">
-                    {logoPreview ? (
-                      <img
-                        src={logoPreview}
-                        alt="Aperçu logo"
-                        className="w-full h-full object-contain p-4 bg-white"
-                      />
-                    ) : (
-                      <Upload className="h-8 w-8 text-muted-foreground/50" />
-                    )}
+                  <Separator className="bg-white/5" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div className="md:col-span-2 space-y-8">
+                      <div>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                           Contexte & Méthodologie
+                        </h3>
+                        <div className="space-y-8">
+                          <FormField
+                            control={form.control}
+                            name="context"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Contexte de l'étude</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Décrivez le contexte..." 
+                                    className="min-h-[120px] bg-muted/20 border-white/5 rounded-2xl font-medium leading-relaxed italic" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="methodology"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Méthodologie utilisée</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Décrivez la méthodologie..." 
+                                    className="min-h-[100px] bg-muted/20 border-white/5 rounded-2xl font-medium leading-relaxed" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="participantsEstimated"
+                            render={({ field }) => (
+                              <FormItem className="max-w-[200px]">
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Participants estimés</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold"
+                                    {...field}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                           Identité Visuelle
+                        </h3>
+                        <div className="p-8 rounded-3xl bg-muted/10 border border-white/5 flex flex-col items-center gap-6">
+                           <div className="relative group">
+                            <div className="w-40 h-40 rounded-[2.5rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-muted/20 overflow-hidden transition-all group-hover:border-primary/30">
+                              {uploadLogoMutation.isPending ? (
+                                <div className="flex flex-col items-center gap-3">
+                                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                  <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Upload...</p>
+                                </div>
+                              ) : logoPreview ? (
+                                <img
+                                  src={logoPreview}
+                                  alt="Aperçu logo"
+                                  className="w-full h-full object-contain p-6 bg-white"
+                                />
+                              ) : (
+                                <Upload className="h-10 w-10 text-muted-foreground/20" />
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              className="absolute -bottom-2 -right-2 rounded-2xl shadow-xl hover:scale-110 h-12 w-12 bg-white text-black border-none"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploadLogoMutation.isPending || isCreating}
+                            >
+                              <Upload className="h-5 w-5" />
+                            </Button>
+                          </div>
+                          
+                          <div className="text-center space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              Logo Client
+                            </p>
+                            <p className="text-[9px] font-bold text-muted-foreground/40 italic">
+                              PNG, JPG ou WEBP (Max 2Mo)
+                            </p>
+                          </div>
+
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            className="hidden"
+                            onChange={handleLogoChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute -bottom-2 -right-2 rounded-xl shadow-lg hover:scale-110 h-10 w-10"
-                    onClick={() => fileInputRef.current?.click()}
+
+                  {!isCreating && projectId && (
+                    <>
+                      <Separator className="bg-white/5" />
+                      <div>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                           Objectifs du projet
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                          <div className="md:col-span-2 space-y-4">
+                             {objectivesLoading ? (
+                              <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin opacity-20" />
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-3">
+                                {objectives?.map((obj) => (
+                                  <div
+                                    key={obj.id}
+                                    className="flex items-start gap-4 p-5 rounded-2xl bg-muted/20 border border-white/5 group transition-all hover:bg-muted/30"
+                                  >
+                                    <div className="mt-1 h-5 w-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                      <TargetIcon className="h-3 w-3 text-primary" />
+                                    </div>
+                                    <span className="flex-1 text-sm font-bold text-foreground/80 leading-relaxed">{obj.content}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      type="button"
+                                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
+                                      onClick={() => deleteObjective.mutate(obj.id)}
+                                      disabled={deleteObjective.isPending}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                {objectives?.length === 0 && (
+                                  <div className="py-12 text-center rounded-3xl border border-dashed border-white/5 bg-muted/10">
+                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Aucun objectif défini</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="p-6 rounded-3xl bg-primary/[0.02] border border-primary/5 space-y-4">
+                               <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Ajouter un objectif</p>
+                               <div className="flex flex-col gap-3">
+                                  <Textarea
+                                    placeholder="Écrivez l'objectif ici..."
+                                    className="bg-white border-white/5 rounded-xl font-bold text-xs"
+                                    value={newObjective}
+                                    onChange={(e) => setNewObjective(e.target.value)}
+                                  />
+                                  <Button
+                                    type="button"
+                                    className="w-full shadow-lg shadow-primary/10"
+                                    onClick={() => {
+                                      if (newObjective.trim()) {
+                                        createObjective.mutate({ content: newObjective.trim() });
+                                        setNewObjective("");
+                                      }
+                                    }}
+                                    disabled={createObjective.isPending || !newObjective.trim()}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Ajouter
+                                  </Button>
+                               </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* ── Footer / Submit ── */}
+                <div className="px-10 py-8 bg-muted/30 border-t border-white/5 flex justify-end items-center gap-6">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">
+                    Tous les champs marqués d'une * sont requis
+                  </p>
+                  <Button 
+                    type="submit" 
+                    size="premium"
+                    disabled={isSubmitting}
+                    className="shadow-xl shadow-primary/20 px-12 h-12 bg-black text-white hover:bg-black/90 font-black rounded-xl border-none"
                   >
-                    <Upload className="h-4 w-4" />
+                    {isSubmitting && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    {isCreating ? "Initialiser le projet" : "Enregistrer les modifications"}
                   </Button>
                 </div>
-                
-                <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">
-                    Logo Client
-                  </p>
-                  <p className="text-[9px] font-bold text-muted-foreground/60 mt-1">
-                    PNG, JPG ou WEBP (Max 2Mo)
-                  </p>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
-                  onChange={handleLogoChange}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Objectives */}
-          {!isCreating && projectId && (
-            <Card>
-              <CardHeader className="px-8 py-6">
-                <CardTitle className="text-lg font-extrabold font-heading flex items-center gap-2">
-                  <TargetIcon className="h-5 w-5" />
-                  Objectifs du projet
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-8 pb-8 pt-0">
-                <div className="space-y-4">
-                  {/* Add new objective */}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Nouvel objectif..."
-                      value={newObjective}
-                      onChange={(e) => setNewObjective(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && newObjective.trim()) {
-                          createObjective.mutate({ content: newObjective.trim() });
-                          setNewObjective("");
-                        }
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (newObjective.trim()) {
-                          createObjective.mutate({ content: newObjective.trim() });
-                          setNewObjective("");
-                        }
-                      }}
-                      disabled={createObjective.isPending || !newObjective.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Objectives list */}
-                  <div className="space-y-2">
-                    {objectivesLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      </div>
-                    ) : objectives?.length === 0 ? (
-                      <p className="text-sm text-muted-foreground/70 text-center py-4">
-                        Aucun objectif défini
-                      </p>
-                    ) : (
-                      objectives?.map((obj, index) => (
-                        <div
-                          key={obj.id}
-                          className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 group"
-                        >
-                          <GripVertical className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
-                          <span className="flex-1 text-sm">{obj.content}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => deleteObjective.mutate(obj.id)}
-                            disabled={deleteObjective.isPending}
-                          >
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Navigation links to sub-pages (edit mode only) */}
-          {!isCreating && projectId && (
-            <Card>
-              <CardHeader className="px-8 py-6">
-                <CardTitle className="text-lg font-extrabold font-heading">Sections</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 pt-0">
-                <div className="grid grid-cols-1 gap-2">
-                  {ADMIN_SUB_PAGES.map((page) => (
-                    <Link
-                      key={page.to}
-                      to={`/projects/${projectId}/admin/${page.to}`}
-                      className="group flex items-center gap-4 rounded-2xl p-4 text-sm font-extrabold text-muted-foreground/80 transition-all hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
-                    >
-                      <div className="p-2 bg-muted/50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <page.icon className="h-4 w-4" />
-                      </div>
-                      <span className="uppercase tracking-widest text-[10px]">{page.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

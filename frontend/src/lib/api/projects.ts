@@ -60,3 +60,22 @@ export async function upsertPlutchik(
   );
   return response.data;
 }
+
+export async function uploadLogo(
+  projectId: string,
+  file: File,
+): Promise<Project> {
+  const formData = new FormData();
+  formData.append('logo', file);
+
+  const response = await apiClient.post<Project>(
+    `/projects/${projectId}/logo`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  return response.data;
+}

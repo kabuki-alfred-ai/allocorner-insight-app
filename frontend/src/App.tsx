@@ -26,7 +26,6 @@ import AdminThemesPage from "./pages/admin/AdminThemesPage";
 import AdminMetricsPage from "./pages/admin/AdminMetricsPage";
 import AdminTrendsPage from "./pages/admin/AdminTrendsPage";
 import AdminRecommendationsPage from "./pages/admin/AdminRecommendationsPage";
-import AdminFeaturedPage from "./pages/admin/AdminFeaturedPage";
 import AdminTransversalPage from "./pages/admin/AdminTransversalPage";
 import AdminInvitationsPage from "./pages/admin/AdminInvitationsPage";
 import AdminObjectivesPage from "./pages/admin/AdminObjectivesPage";
@@ -77,7 +76,6 @@ const App = () => (
                   <Route path="metriques" element={<AdminMetricsPage />} />
                   <Route path="tendances" element={<AdminTrendsPage />} />
                   <Route path="recommandations" element={<AdminRecommendationsPage />} />
-                  <Route path="verbatims" element={<AdminFeaturedPage />} />
                   <Route path="transversal" element={<AdminTransversalPage />} />
                   <Route path="invitations" element={<AdminInvitationsPage />} />
                   <Route path="objectives" element={<AdminObjectivesPage />} />

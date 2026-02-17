@@ -27,7 +27,7 @@ export async function createObjective(projectId: string, data: CreateObjectiveDt
   return response.data;
 }
 
-export async function updateObjective(id: string, data: UpdateObjectiveDto): Promise<Objective> {
+export async function updateObjective(projectId: string, id: string, data: UpdateObjectiveDto): Promise<Objective> {
   const response = await apiClient.patch<Objective>(`/projects/${projectId}/objectives/${id}`, data);
   return response.data;
 }

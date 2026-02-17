@@ -92,4 +92,62 @@ export class MessagesController {
   ) {
     return this.messagesService.remove(id);
   }
+
+  // ========== PROCESSING ENDPOINTS ==========
+
+  @Post(':id/process')
+  @Roles(Role.SUPERADMIN)
+  async triggerProcessing(
+    @Param('pid') _projectId: string,
+    @Param('id') id: string,
+  ) {
+    await this.messagesService.triggerProcessing(id);
+    return { message: 'Processing triggered', messageId: id };
+  }
+
+  @Post(':id/retry')
+  @Roles(Role.SUPERADMIN)
+  async retryProcessing(
+    @Param('pid') _projectId: string,
+    @Param('id') id: string,
+  ) {
+    await this.messagesService.retryProcessing(id);
+    return { message: 'Processing retry triggered', messageId: id };
+  }
+
+  @Post('process-bulk')
+  @Roles(Role.SUPERADMIN)
+  async processBulk(@Param('pid') projectId: string) {
+    const result = await this.messagesService.processBulk(projectId);
+    return { message: `Queued ${result.queued} messages for processing`, ...result };
+  }
+
+  @Post('retry-all-failed')
+  @Roles(Role.SUPERADMIN)
+  async retryAllFailed(@Param('pid') projectId: string) {
+    const result = await this.messagesService.retryAllFailed(projectId);
+    return { message: `Retried ${result.retried} failed messages`, ...result };
+  }
+
+  @Get('failed')
+  @UseGuards(ProjectMemberGuard)
+  async getFailedMessages(@Param('pid') projectId: string) {
+    return this.messagesService.findAllFailed(projectId);
+  }
+
+  @Get(':id/status')
+  @UseGuards(ProjectMemberGuard)
+  async getProcessingStatus(
+    @Param('pid') _projectId: string,
+    @Param('id') id: string,
+  ) {
+    const message = await this.messagesService.findOne(id);
+    return {
+      messageId: id,
+      processingStatus: message.processingStatus,
+      processingError: message.processingError,
+      processedAt: message.processedAt,
+      retryCount: message.retryCount,
+    };
+  }
 }

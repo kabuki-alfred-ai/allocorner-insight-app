@@ -125,36 +125,37 @@ export default function Dashboard() {
                   <p className="text-sm font-bold text-foreground tracking-tight">Répartition des thématiques</p>
                 </div>
                 <div className="space-y-6 px-2">
-                  {[
-                    { name: 'LA "DOSE DE LOVE"', sub: "(L'Énergie Collective)", count: 35, color: "var(--theme-fierte)" },
-                    { name: 'LA RÉPARATION IDENTITAIRE', sub: '(Le "Care" Profond)', count: 20, color: "var(--theme-transmission)" },
-                    { name: "L'EMPOWERMENT ET L'AMBITION", sub: '("Black Queen")', count: 15, color: "var(--theme-identite)" },
-                    { name: "L'HÉRITAGE ET L'ÉDUCATION", sub: "(Les Enfants Savants)", count: 15, color: "var(--chart-positive)" },
-                    { name: 'LE CULTE BIENVEILLANT DE LA "PRÉSIDENTE"', sub: "", count: 15, color: "var(--theme-centralisation)" },
-                  ].map((theme) => (
-                    <div key={theme.name} className="space-y-2 group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-black text-foreground/80 uppercase tracking-wide group-hover:text-primary transition-colors">
-                            {theme.name}
-                          </span>
-                          {theme.sub && <span className="text-[9px] font-bold text-muted-foreground/60 italic">{theme.sub}</span>}
+                  {themes.length > 0 ? (
+                    themes.map((theme) => {
+                      const percentage = totalThemeCount > 0 ? Math.round((theme.count / totalThemeCount) * 100) : 0;
+                      return (
+                        <div key={theme.id} className="space-y-2 group">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black text-foreground/80 uppercase tracking-wide group-hover:text-primary transition-colors">
+                                {theme.name}
+                              </span>
+                              {theme.analysis && <span className="text-[9px] font-bold text-muted-foreground/60 italic line-clamp-1">{theme.analysis}</span>}
+                            </div>
+                            <span className="text-[10px] font-black text-primary">
+                              {percentage}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-black/[0.03] rounded-full h-1 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-1000 ease-out"
+                              style={{
+                                backgroundColor: theme.color || "hsl(var(--primary))",
+                                width: `${percentage}%`
+                              }}
+                            />
+                          </div>
                         </div>
-                        <span className="text-[10px] font-black text-primary">
-                          {theme.count}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-black/[0.03] rounded-full h-1 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-1000 ease-out"
-                          style={{
-                            backgroundColor: theme.color,
-                            width: `${theme.count}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Aucune donnée thématique disponible</p>
+                  )}
                 </div>
               </div>
 
@@ -162,38 +163,39 @@ export default function Dashboard() {
               <div className="space-y-6">
                 <div className="px-2">
                   <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-0.5">Chronologie</h3>
-                  <p className="text-sm font-bold text-foreground tracking-tight">Intensité des témoignages</p>
+                  <p className="text-sm font-bold text-foreground tracking-tight">Durée des témoignages</p>
                 </div>
                 <div className="h-[220px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={[
-                        { range: "0-30s", count: 18 },
-                        { range: "30-60s", count: 25 },
-                        { range: "60-90s", count: 12 },
-                        { range: "90s+", count: 8 },
-                      ]} 
-                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                    >
-                      <XAxis 
-                        dataKey="range" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: 'currentColor', opacity: 0.4, fontSize: 9, fontWeight: 'black' }} 
-                      />
-                      <Bar 
-                        dataKey="count" 
-                        fill="hsl(var(--primary))" 
-                        radius={[4, 4, 4, 4]} 
-                        barSize={32}
-                        opacity={0.8}
-                      />
-                      <RechartsTooltip 
-                        cursor={{ fill: 'rgba(0,0,0,0.02)' }}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', fontSize: '10px' }}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {durationDistribution.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={durationDistribution}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <XAxis
+                          dataKey="range"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: 'currentColor', opacity: 0.4, fontSize: 9, fontWeight: 'black' }}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="hsl(var(--primary))"
+                          radius={[4, 4, 4, 4]}
+                          barSize={32}
+                          opacity={0.8}
+                        />
+                        <RechartsTooltip
+                          cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', fontSize: '10px' }}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-xs text-muted-foreground italic">Aucune donnée de durée disponible</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -207,8 +209,16 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-1">
                     <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Charge Émotionnelle</h4>
-                    <div className="text-3xl font-black text-foreground">70%</div>
-                    <p className="text-[10px] font-bold text-primary italic uppercase tracking-widest">Impact affectif fort</p>
+                    <div className="text-3xl font-black text-foreground">
+                      {Math.round((project.metrics?.highEmotionShare ?? 0) * 100)}%
+                    </div>
+                    <p className="text-[10px] font-bold text-primary italic uppercase tracking-widest">
+                      {(project.metrics?.highEmotionShare ?? 0) > 0.6
+                        ? "Impact affectif fort"
+                        : (project.metrics?.highEmotionShare ?? 0) > 0.3
+                          ? "Impact affectif modéré"
+                          : "Impact affectif faible"}
+                    </p>
                   </div>
                 </div>
                 <div className="bg-black/[0.02] border border-black/[0.03] rounded-[2rem] p-8 flex items-center gap-6">
@@ -217,8 +227,16 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-1">
                     <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Tonalité Globale</h4>
-                    <div className="text-3xl font-black text-foreground">4.2/5</div>
-                    <p className="text-[10px] font-bold text-muted-foreground/60 italic uppercase tracking-widest">Sentiment majoritairement positif</p>
+                    <div className="text-3xl font-black text-foreground">
+                      {(project.metrics?.tonalityAvg ?? 0).toFixed(1)}/5
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground/60 italic uppercase tracking-widest">
+                      {(project.metrics?.tonalityAvg ?? 0) >= 4
+                        ? "Sentiment majoritairement positif"
+                        : (project.metrics?.tonalityAvg ?? 0) >= 3
+                          ? "Sentiment neutre"
+                          : "Sentiment négatif"}
+                    </p>
                   </div>
                 </div>
               </div>

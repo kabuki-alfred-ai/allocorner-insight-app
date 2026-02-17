@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
+import { useProject } from "@/hooks/use-projects";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +43,6 @@ const adminMenuItems = [
     { title: "Métriques", path: "metriques", icon: BarChart3 },
     { title: "Tendances", path: "tendances", icon: TrendingUp },
     { title: "Recommandations", path: "recommandations", icon: Lightbulb },
-    { title: "Verbatims", path: "verbatims", icon: Quote },
     { title: "Transversal", path: "transversal", icon: Layers },
     { title: "Invitations", path: "invitations", icon: Mail },
   ]}
@@ -52,6 +52,7 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const { projectId } = useParams<{ projectId: string }>();
   const { user, logout } = useAuth();
+  const { data: currentProjectDetails } = useProject(projectId || "");
   const location = useLocation();
   const collapsed = state === "collapsed";
 
@@ -68,16 +69,38 @@ export function AdminSidebar() {
       <SidebarContent className="bg-sidebar-background border-none">
         <div className="flex flex-col h-full">
           {/* Sidebar Logo Header */}
-          <NavLink 
-            to="/admin" 
+          <NavLink
+            to="/admin"
             className="px-4 py-4 mb-0 flex items-center justify-center border-b border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all"
           >
-            <img 
-              src="https://www.allocorner.fr/wp-content/uploads/2024/01/Logo-Allo-Corner-4.png" 
-              alt="Allo Corner Logo" 
+            <img
+              src="https://www.allocorner.fr/wp-content/uploads/2024/01/Logo-Allo-Corner-4.png"
+              alt="Allo Corner Logo"
               className="h-6 w-auto object-contain transition-all duration-300 hover:scale-110 brightness-110"
             />
           </NavLink>
+
+          {/* Project Logo */}
+          {isProjectSpecific && currentProjectDetails?.logoKey && (
+            <div className={cn(
+              "border-b border-white/5 flex justify-center transition-all",
+              collapsed ? "px-2 py-4" : "px-6 py-6"
+            )}>
+              <div className={cn(
+                "transition-all",
+                collapsed ? "w-14 h-14" : "w-24 h-24"
+              )}>
+                <img
+                  src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${currentProjectDetails.logoKey}`}
+                  alt={currentProjectDetails.clientName}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           <SidebarGroup className="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar">
             <SidebarGroupContent>

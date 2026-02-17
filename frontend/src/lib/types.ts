@@ -6,6 +6,8 @@ export type Role = 'SUPERADMIN' | 'MEMBER';
 
 export type EmotionalLoad = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export type Tone = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+
 export type VerbatimCategory =
   | 'CONTRASTE'
   | 'ORIGINALITE'
@@ -16,6 +18,13 @@ export type VerbatimCategory =
 export type Priority = 'HAUTE' | 'MOYENNE' | 'BASSE';
 
 export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED';
+
+export type ProcessingStatus =
+  | 'PENDING'
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED';
 
 // ──────────────────────────────────────────────
 // User
@@ -123,11 +132,18 @@ export interface Message {
   speaker: string | null;
   transcriptTxt: string;
   emotionalLoad: EmotionalLoad;
+  tone: Tone;
   quote: string;
   createdAt: string;
   updatedAt: string;
   messageThemes?: { theme: Theme }[];
   messageEmotions?: { emotionName: string }[];
+  // Processing status fields
+  processingStatus: ProcessingStatus;
+  processingError?: string | null;
+  processedAt?: string | null;
+  retryCount: number;
+  gcpJobId?: string | null;
 }
 
 // ──────────────────────────────────────────────
@@ -322,7 +338,7 @@ export type CreateTransversalAnalysisDto = Omit<
 export type UpdateTransversalAnalysisDto = Partial<CreateTransversalAnalysisDto>;
 
 export type UpdateMessageDto = Partial<
-  Pick<Message, 'speaker' | 'transcriptTxt' | 'emotionalLoad' | 'quote'>
+  Pick<Message, 'speaker' | 'transcriptTxt' | 'emotionalLoad' | 'tone' | 'quote'>
 >;
 
 // Extension pour l'association theme-messages

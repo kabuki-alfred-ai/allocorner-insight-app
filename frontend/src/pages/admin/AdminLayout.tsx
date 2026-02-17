@@ -26,7 +26,6 @@ export function AdminLayout() {
       "metriques": "Données & Scores",
       "tendances": "Synthèse & Tendances",
       "recommandations": "Recommandations",
-      "verbatims": "Verbatims à la une",
       "transversal": "Analyse Transversale",
       "invitations": "Gestion des accès",
       "objectives": "Objectifs du projet",

@@ -18,8 +18,18 @@ import {
   Volume2,
   ArrowLeft,
   Settings,
-  Palette
+  Palette,
+  Star
 } from "lucide-react";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
@@ -83,7 +93,7 @@ import {
   associateMessagesBatch,
   setThemeTotemMessage,
 } from "@/lib/api/themes";
-import { Star } from "lucide-react";
+
 import { getAudioUrl } from "@/lib/api/storage";
 import { ThemeKeywordsEditor } from "@/components/admin/ThemeKeywordsEditor";
 import type { Theme, MessageWithAssociation } from "@/lib/types";
@@ -143,7 +153,8 @@ export function AdminThemesPage() {
       analysis: data.analysis || "",
       verbatimTotem: data.verbatimTotem || "",
       count: data.count || 0,
-      totemMessageId: null
+      totemMessageId: null,
+      keywords: []
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
@@ -277,18 +288,9 @@ export function AdminThemesPage() {
 
       {/* Loading skeleton */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-20" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4 mt-2" />
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
           ))}
         </div>
       )}
@@ -316,82 +318,106 @@ export function AdminThemesPage() {
         </Card>
       )}
 
-      {/* Themes list */}
+      {/* Themes table */}
       {!isLoading && themes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {themes.map((theme) => (
-            <Card key={theme.id} className="relative group overflow-hidden flex flex-col transition-all duration-300">
-              <div 
-                className="h-2 w-full"
-                style={{ backgroundColor: theme.color }}
-              />
-              <CardHeader className="px-8 pt-8 pb-4">
-                <div className="flex items-center justify-between gap-4 mb-4">
-                  <Badge variant="outline" className="text-[10px] font-black py-0 h-5 border-primary/10 bg-primary/5 text-primary rounded-lg uppercase tracking-widest">
-                    {theme.count} témoignages
-                  </Badge>
-                  {theme.totemMessageId && (
-                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest">
-                      <Star className="h-2.5 w-2.5 fill-current" />
-                      Totem
-                    </div>
-                  )}
-                </div>
-                <CardTitle className="text-xl font-extrabold font-heading group-hover:text-primary transition-colors">
-                  {theme.name}
-                </CardTitle>
-                <CardDescription className="flex items-center gap-2 mt-2 flex-wrap">
-                  {theme.emotionLabel && (
-                    <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none text-[9px] font-black uppercase tracking-widest">
-                      {theme.emotionLabel}
-                    </Badge>
-                  )}
-                  {theme.temporality && (
-                    <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none text-[9px] font-black uppercase tracking-widest">
-                      {theme.temporality}
-                    </Badge>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-8 pb-8 flex-1 flex flex-col">
-                <div className="mt-4 flex-1">
-                  {theme.analysis && (
-                    <p className="text-xs font-bold text-muted-foreground/60 leading-relaxed line-clamp-3 italic">
-                      "{theme.analysis}"
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-8 pt-6 border-t border-white/5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 font-bold text-[10px] uppercase tracking-widest rounded-xl h-10 border-primary/10 text-primary hover:bg-primary/5"
-                    onClick={() => openEditDialog(theme)}
-                  >
-                    <Pencil className="mr-2 h-3 w-3" />
-                    Éditer
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1 font-black text-[10px] uppercase tracking-widest rounded-xl h-10"
-                    onClick={() => setAssociatingTheme(theme)}
-                  >
-                    <Link2 className="mr-2 h-3.5 w-3.5" />
-                    Verbatims
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-10 h-10 rounded-xl text-destructive hover:bg-destructive/5"
-                    onClick={() => setDeletingTheme(theme)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="rounded-[2rem] border border-white/5 overflow-hidden shadow-sm bg-card backdrop-blur-sm">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-white/5">
+                  <TableHead className="w-4 py-6 px-4"></TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Thème</TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Analyse</TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Détails</TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Témoignages</TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Totem</TableHead>
+                  <TableHead className="py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {themes.map((theme) => (
+                  <TableRow key={theme.id} className="group hover:bg-primary/[0.02] transition-colors border-white/5">
+                    <TableCell className="py-4 px-4 pr-0">
+                      <div 
+                        className="w-1.5 h-10 rounded-full"
+                        style={{ backgroundColor: theme.color }}
+                      />
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
+                      <span className="text-sm font-extrabold font-heading group-hover:text-primary transition-colors">
+                        {theme.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
+                      <p className="text-xs font-bold text-muted-foreground/60 leading-relaxed line-clamp-2 italic max-w-sm">
+                        {theme.analysis ? `"${theme.analysis}"` : "-"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
+                      <div className="flex flex-col gap-1">
+                        {theme.emotionLabel && (
+                          <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none text-[8px] font-black uppercase tracking-widest w-fit">
+                            {theme.emotionLabel}
+                          </Badge>
+                        )}
+                        {theme.temporality && (
+                          <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none text-[8px] font-black uppercase tracking-widest w-fit">
+                            {theme.temporality}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-center">
+                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black tracking-widest font-heading">
+                        {theme.count}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-center">
+                      {theme.totemMessageId ? (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[8px] font-black uppercase tracking-widest mx-auto">
+                          <Star className="h-2.5 w-2.5 fill-current" />
+                          Totem
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/20 italic text-[10px]">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-9 h-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                          onClick={() => openEditDialog(theme)}
+                          title="Éditer"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-9 h-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                          onClick={() => setAssociatingTheme(theme)}
+                          title="Associer des Verbatims"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-9 h-9 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all"
+                          onClick={() => setDeletingTheme(theme)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
@@ -628,6 +654,14 @@ function ThemeAssociationDialog({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   // ---- Query ----
+  // Récupérer les données du thème en temps réel pour refléter les changements
+  const { data: currentTheme } = useQuery({
+    queryKey: ["themes", projectId],
+    queryFn: () => getThemes(projectId),
+    enabled: !!projectId,
+    select: (themes) => themes.find((t) => t.id === theme.id) || theme,
+  });
+
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["theme-messages", projectId, theme.id],
     queryFn: () => getAvailableMessagesForTheme(projectId, theme.id),
@@ -636,31 +670,39 @@ function ThemeAssociationDialog({
 
   // ---- Mutations ----
   const associateMutation = useMutation({
-    mutationFn: (messageId: string) =>
-      associateMessageToTheme(projectId, theme.id, messageId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    mutationFn: (messageId: string) => {
+      console.log('[Association] Associating message:', messageId, 'to theme:', theme.id);
+      return associateMessageToTheme(projectId, theme.id, messageId);
+    },
+    onSuccess: async (data) => {
+      console.log('[Association] Success:', data);
+      await queryClient.refetchQueries({
         queryKey: ["theme-messages", projectId, theme.id],
       });
-      queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
+      await queryClient.refetchQueries({ queryKey: ["themes", projectId] });
       toast.success("Verbatim associe");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[Association] Error:', error);
       toast.error("Erreur lors de l'association");
     },
   });
 
   const dissociateMutation = useMutation({
-    mutationFn: (messageId: string) =>
-      dissociateMessageFromTheme(projectId, theme.id, messageId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    mutationFn: (messageId: string) => {
+      console.log('[Dissociation] Dissociating message:', messageId, 'from theme:', theme.id);
+      return dissociateMessageFromTheme(projectId, theme.id, messageId);
+    },
+    onSuccess: async (data) => {
+      console.log('[Dissociation] Success:', data);
+      await queryClient.refetchQueries({
         queryKey: ["theme-messages", projectId, theme.id],
       });
-      queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
+      await queryClient.refetchQueries({ queryKey: ["themes", projectId] });
       toast.success("Verbatim dissocie");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[Dissociation] Error:', error);
       toast.error("Erreur lors de la dissociation");
     },
   });
@@ -668,11 +710,11 @@ function ThemeAssociationDialog({
   const batchAssociateMutation = useMutation({
     mutationFn: (messageIds: string[]) =>
       associateMessagesBatch(projectId, theme.id, messageIds),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      await queryClient.refetchQueries({
         queryKey: ["theme-messages", projectId, theme.id],
       });
-      queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
+      await queryClient.refetchQueries({ queryKey: ["themes", projectId] });
       toast.success(`${result.associated} verbatims associes`);
     },
     onError: () => {
@@ -681,13 +723,20 @@ function ThemeAssociationDialog({
   });
 
   const setTotemMutation = useMutation({
-    mutationFn: (messageId: string | null) =>
-      setThemeTotemMessage(projectId, theme.id, messageId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
+    mutationFn: (messageId: string | null) => {
+      console.log('[Totem] Setting totem message:', messageId, 'for theme:', theme.id);
+      return setThemeTotemMessage(projectId, theme.id, messageId);
+    },
+    onSuccess: async (data) => {
+      console.log('[Totem] Success:', data);
+      await queryClient.refetchQueries({
+        queryKey: ["theme-messages", projectId, theme.id],
+      });
+      await queryClient.refetchQueries({ queryKey: ["themes", projectId] });
       toast.success("Verbatim totem mis a jour");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[Totem] Error:', error);
       toast.error("Erreur lors de la mise a jour du verbatim totem");
     },
   });
@@ -708,6 +757,7 @@ function ThemeAssociationDialog({
 
   // ---- Handlers ----
   const handleToggleAssociation = (message: MessageWithAssociation) => {
+    console.log('[Toggle] Message:', message.id, 'isAssociated:', message.isAssociated);
     if (message.isAssociated) {
       dissociateMutation.mutate(message.id);
     } else {
@@ -768,14 +818,14 @@ function ThemeAssociationDialog({
             {associatedCount} associe(s) / {unassociatedCount} non associe(s) /{" "}
             {messages.length} total
           </DialogDescription>
-          {theme.totemMessage && (
+          {currentTheme?.totemMessage && (
             <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-md">
               <div className="flex items-center gap-2 text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
                 <Star className="h-4 w-4 fill-current" />
                 Verbatim Totem
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {theme.totemMessage.transcriptTxt || theme.totemMessage.filename}
+                {currentTheme.totemMessage.transcriptTxt || currentTheme.totemMessage.filename}
               </p>
             </div>
           )}
@@ -920,20 +970,20 @@ function ThemeAssociationDialog({
                               variant="ghost"
                               size="icon"
                               className={`flex-shrink-0 ${
-                                theme.totemMessageId === message.id
+                                currentTheme?.totemMessageId === message.id
                                   ? "text-yellow-500 hover:text-yellow-600"
                                   : "text-muted-foreground hover:text-yellow-500"
                               }`}
                               onClick={() =>
                                 setTotemMutation.mutate(
-                                  theme.totemMessageId === message.id
+                                  currentTheme?.totemMessageId === message.id
                                     ? null
                                     : message.id
                                 )
                               }
                               disabled={setTotemMutation.isPending}
                               title={
-                                theme.totemMessageId === message.id
+                                currentTheme?.totemMessageId === message.id
                                   ? "Retirer le statut de verbatim totem"
                                   : "Definir comme verbatim totem"
                               }
@@ -941,7 +991,7 @@ function ThemeAssociationDialog({
                               <Star
                                 className="h-4 w-4"
                                 fill={
-                                  theme.totemMessageId === message.id
+                                  currentTheme?.totemMessageId === message.id
                                     ? "currentColor"
                                     : "none"
                                 }
