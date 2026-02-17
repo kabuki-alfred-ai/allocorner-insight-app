@@ -42,6 +42,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       # Google Cloud
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-/app/google-credentials.json}
+      - GOOGLE_CREDENTIALS_BASE64=${GOOGLE_CREDENTIALS_BASE64}
       - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID}
       - GOOGLE_SPEECH_LANGUAGE=${GOOGLE_SPEECH_LANGUAGE:-fr-FR}
       # Queue
@@ -58,6 +59,14 @@ services:
       - postgres
       - minio
       - redis
+    command: >
+      sh -c "
+        if [ -n \"\$\${GOOGLE_CREDENTIALS_BASE64}\" ]; then
+          echo \"\$\${GOOGLE_CREDENTIALS_BASE64}\" | base64 -d > /app/google-credentials.json;
+          echo '✓ Google credentials decoded';
+        fi;
+        node dist/main.js
+      "
     restart: unless-stopped
     # Coolify gère le port et le domaine via SERVICE_FQDN_BACKEND
 
