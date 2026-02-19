@@ -151,7 +151,7 @@ export function LoginPage() {
                       <Input
                         type="email"
                         placeholder="nom@exemple.com"
-                        className="bg-white/[0.03] border-white/5 h-14 rounded-2xl focus:bg-white/[0.06] focus:border-primary/50 transition-all text-white placeholder:text-white/20 px-5"
+                        className="bg-white/5 border-white/20 focus:bg-white/10 focus:border-primary/50 transition-all text-white placeholder:text-white/20 px-5"
                         {...field}
                       />
                     </FormControl>
@@ -172,7 +172,7 @@ export function LoginPage() {
                       <Input
                         type="password"
                         placeholder="••••••••"
-                        className="bg-white/[0.03] border-white/5 h-14 rounded-2xl focus:bg-white/[0.06] focus:border-primary/50 transition-all text-white placeholder:text-white/20 px-5"
+                        className="bg-white/5 border-white/20 focus:bg-white/10 focus:border-primary/50 transition-all text-white placeholder:text-white/20 px-5"
                         {...field}
                       />
                     </FormControl>

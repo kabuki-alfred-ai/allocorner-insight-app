@@ -293,7 +293,7 @@ export function AdminProjectPage() {
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Nom du client *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex : Acme Corp" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                              <Input placeholder="Ex : Acme Corp" className="bg-muted/30 border-input font-bold" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -307,7 +307,7 @@ export function AdminProjectPage() {
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Titre du projet *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex : Etude satisfaction Q1 2025" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                              <Input placeholder="Ex : Etude satisfaction Q1 2025" className="bg-muted/30 border-input font-bold" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -321,7 +321,7 @@ export function AdminProjectPage() {
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Dates</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex : Janvier - Mars 2025" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                              <Input placeholder="Ex : Janvier - Mars 2025" className="bg-muted/30 border-input font-bold" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -335,7 +335,7 @@ export function AdminProjectPage() {
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Analyste</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nom de l'analyste" className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold" {...field} />
+                              <Input placeholder="Nom de l'analyste" className="bg-muted/30 border-input font-bold" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -363,7 +363,7 @@ export function AdminProjectPage() {
                                 <FormControl>
                                   <Textarea 
                                     placeholder="Décrivez le contexte..." 
-                                    className="min-h-[120px] bg-muted/20 border-white/5 rounded-2xl font-medium leading-relaxed italic" 
+                                    className="min-h-[120px] bg-muted/30 border-input font-medium leading-relaxed italic" 
                                     {...field} 
                                   />
                                 </FormControl>
@@ -381,7 +381,7 @@ export function AdminProjectPage() {
                                 <FormControl>
                                   <Textarea 
                                     placeholder="Décrivez la méthodologie..." 
-                                    className="min-h-[100px] bg-muted/20 border-white/5 rounded-2xl font-medium leading-relaxed" 
+                                    className="min-h-[100px] bg-muted/30 border-input font-medium leading-relaxed" 
                                     {...field} 
                                   />
                                 </FormControl>
@@ -400,7 +400,7 @@ export function AdminProjectPage() {
                                   <Input
                                     type="number"
                                     min={0}
-                                    className="h-12 bg-muted/20 border-white/5 rounded-xl font-bold"
+                                    className="bg-muted/30 border-input font-bold"
                                     {...field}
                                     onChange={(e) => field.onChange(Number(e.target.value))}
                                   />
@@ -523,7 +523,7 @@ export function AdminProjectPage() {
                                <div className="flex flex-col gap-3">
                                   <Textarea
                                     placeholder="Écrivez l'objectif ici..."
-                                    className="bg-white border-white/5 rounded-xl font-bold text-xs"
+                                    className="bg-white/50 border-input font-bold text-xs"
                                     value={newObjective}
                                     onChange={(e) => setNewObjective(e.target.value)}
                                   />

@@ -92,7 +92,7 @@ function DynamicStringList({
               value={value}
               onChange={(e) => handleChange(index, e.target.value)}
               placeholder={`Element ${index + 1}`}
-              className="h-10 rounded-xl bg-background/50 border-white/5"
+              className="bg-muted/30 border-input"
             />
             <Button
               type="button"
@@ -172,13 +172,13 @@ function DynamicTrendList({
                   value={item.title}
                   onChange={(e) => handleChange(index, 'title', e.target.value)}
                   placeholder="Titre"
-                  className="h-10 rounded-xl bg-background border-white/5 font-bold"
+                  className="bg-muted/30 border-input font-bold"
                 />
                 <Textarea
                   value={item.content}
                   onChange={(e) => handleChange(index, 'content', e.target.value)}
                   placeholder="Description..."
-                  className="rounded-xl bg-background border-white/5 text-xs min-h-[60px]"
+                  className="bg-muted/30 border-input text-xs min-h-[60px]"
                 />
               </div>
               <Button

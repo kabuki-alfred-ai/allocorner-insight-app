@@ -32,8 +32,8 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 6% 94%;
-    --input: 240 6% 94%;
+    --border: 240 6% 88%;
+    --input: 240 6% 88%;
     --ring: 18 100% 75%;
 
     /* Theme Colors */
@@ -96,8 +96,8 @@ All colors MUST be HSL.
     --destructive: 0 75% 65%;
     --destructive-foreground: 213 27% 8%;
 
-    --border: 213 27% 15%;
-    --input: 213 27% 15%;
+    --border: 213 27% 20%;
+    --input: 213 27% 20%;
     --ring: 217 91% 70%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
