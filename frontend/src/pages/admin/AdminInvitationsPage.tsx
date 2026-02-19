@@ -155,22 +155,11 @@ export function AdminInvitationsPage() {
         title="Collaborateurs"
         description="Gérez les invitations et les accès des membres du projet"
         icon={<Users className="h-6 w-6" />}
-        actions={
-           <Button 
-            variant="outline"
-            size="action"
-            onClick={() => navigate(`/projects/${projectId}/admin`)}
-            className="border-primary/10 text-primary hover:bg-primary/5"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
-          </Button>
-        }
       />
 
       <div className="mt-12 space-y-12">
         {/* Invite form */}
-        <Card className="border-white/5 shadow-sm rounded-[2rem] overflow-hidden bg-card/50 backdrop-blur-sm">
+        <Card className="premium-card">
           <CardHeader className="px-8 pt-8 pb-4">
             <CardTitle className="text-lg font-extrabold font-heading flex items-center gap-2">
               <Mail className="h-5 w-5 text-primary" />

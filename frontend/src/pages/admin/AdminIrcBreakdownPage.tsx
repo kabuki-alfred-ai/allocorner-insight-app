@@ -70,7 +70,7 @@ export default function AdminIrcBreakdownPage() {
         icon={<BarChart3 className="h-6 w-6" />}
       />
 
-      <Card className="shadow-card max-w-2xl">
+      <Card className="premium-card max-w-2xl">
         <CardHeader>
           <CardTitle>Critères IRC</CardTitle>
         </CardHeader>

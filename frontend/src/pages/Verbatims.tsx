@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +13,14 @@ import {
 } from "@/components/ui/select";
 import { useMessages } from "@/hooks/use-messages";
 import { useThemes } from "@/hooks/use-themes";
+import { useProject } from "@/hooks/use-projects";
 import type { Message } from "@/lib/types";
 import { Search, Filter, Download, Loader2, AudioLines } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 
 export default function Verbatims() {
   const { projectId } = useParams<{ projectId: string }>();
+  const { data: project } = useProject(projectId!);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
   const [selectedEmotion, setSelectedEmotion] = useState<string>("all");
@@ -63,9 +64,10 @@ export default function Verbatims() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <PageHeader 
         title="Verbatims"
+        description={project?.title}
         badge={`${filteredMessages.length} messages`}
         icon={<AudioLines className="h-5 w-5" />}
         actions={
@@ -78,27 +80,27 @@ export default function Verbatims() {
 
       <div className="space-y-12">
 
-        {/* Filters - Minimalist row */}
-        <Card className="flex flex-col md:flex-row gap-4 items-center p-2">
+        {/* Filters - Seamless premium row */}
+        <div className="premium-card p-3 flex flex-col md:flex-row gap-2 items-center">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-foreground/40" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-foreground/30" />
             <Input
               placeholder="Rechercher par mot-clé..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-10 border-none bg-transparent focus-visible:ring-0 text-sm font-medium placeholder:text-foreground/30"
+              className="pl-11 h-11 border-none bg-black/[0.03] focus-visible:ring-1 focus-visible:ring-primary/10 text-sm font-bold placeholder:text-foreground/30 rounded-[1.25rem] transition-all"
             />
           </div>
           
-          <div className="flex items-center gap-2 w-full md:w-auto px-2">
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
             <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-              <SelectTrigger className="h-10 w-full md:w-[180px] border-none bg-black/[0.02] hover:bg-black/[0.05] transition-colors rounded-xl text-[11px] font-black uppercase tracking-widest px-4 pr-3">
+              <SelectTrigger className="h-11 w-full md:w-[180px] border-none bg-black/[0.03] hover:bg-black/[0.05] transition-all rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.15em] px-5">
                 <SelectValue placeholder="Thème" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-black/5 shadow-elevated">
-                <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tous les thèmes</SelectItem>
+                <SelectItem value="all" className="label-uppercase !text-muted-foreground/40">Tous les thèmes</SelectItem>
                 {themes.map(theme => (
-                  <SelectItem key={theme.name} value={theme.name} className="text-xs font-bold">
+                  <SelectItem key={theme.id} value={theme.name} className="text-xs font-bold">
                     {theme.name}
                   </SelectItem>
                 ))}
@@ -106,11 +108,11 @@ export default function Verbatims() {
             </Select>
 
             <Select value={selectedEmotion} onValueChange={setSelectedEmotion}>
-              <SelectTrigger className="h-10 w-full md:w-[180px] border-none bg-black/[0.02] hover:bg-black/[0.05] transition-colors rounded-xl text-[11px] font-black uppercase tracking-widest px-4 pr-3">
+              <SelectTrigger className="h-11 w-full md:w-[180px] border-none bg-black/[0.03] hover:bg-black/[0.05] transition-all rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.15em] px-5">
                 <SelectValue placeholder="Émotion" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-black/5 shadow-elevated">
-                <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Toutes les émotions</SelectItem>
+                <SelectItem value="all" className="label-uppercase !text-muted-foreground/40">Toutes les émotions</SelectItem>
                 {allEmotions.map(emotion => (
                   <SelectItem key={emotion} value={emotion} className="text-xs font-bold">
                     {emotion}
@@ -124,13 +126,13 @@ export default function Verbatims() {
                 variant="ghost" 
                 size="premium"
                 onClick={clearFilters}
-                className="text-destructive hover:bg-destructive/5 transition-all"
+                className="h-11 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 transition-all"
               >
                 Reset
               </Button>
             )}
           </div>
-        </Card>
+        </div>
 
         {/* Results */}
         <div className="space-y-6">

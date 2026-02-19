@@ -94,15 +94,22 @@ export default function AdminStrategicActionsPage() {
         title="Actions stratégiques"
         description="Gérer les actions stratégiques du projet"
         icon={<Lightbulb className="h-6 w-6" />}
+        actions={
+          <Button 
+            variant="default"
+            size="premium"
+            onClick={() => setIsCreating(true)} 
+            disabled={isCreating}
+            className="shadow-md shadow-primary/20"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle action
+          </Button>
+        }
       />
 
-      <Button onClick={() => setIsCreating(true)} className="mb-6" disabled={isCreating}>
-        <Plus className="h-4 w-4 mr-2" />
-        Nouvelle action
-      </Button>
-
       {isCreating && (
-        <Card className="shadow-card mb-6">
+        <Card className="premium-card mb-6">
           <CardHeader>
             <CardTitle>Nouvelle action stratégique</CardTitle>
           </CardHeader>
@@ -155,7 +162,7 @@ export default function AdminStrategicActionsPage() {
 
       <div className="space-y-4">
         {actions?.map((action) => (
-          <Card key={action.id} className="shadow-card">
+          <Card key={action.id} className="premium-card">
             <CardContent className="p-4">
               {editingId === action.id ? (
                 <div className="space-y-4">

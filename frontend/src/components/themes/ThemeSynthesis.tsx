@@ -15,27 +15,27 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
   const keywords = theme.keywords?.map(k => k.keyword) || [];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-700">
       {/* Title & Selected theme */}
-      <div className="flex items-center gap-4 px-2">
+      <div className="flex items-center gap-6 px-2">
         <div
-          className="w-3 h-3 rounded-full shadow-sm"
+          className="w-4 h-4 rounded-full"
           style={{ backgroundColor: theme.color }}
         />
-        <div className="space-y-0.5">
-          <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Thématique sélectionnée</h3>
-          <p className="text-2xl font-black text-foreground tracking-tighter">{theme.name}</p>
+        <div className="space-y-1">
+          <h3 className="label-uppercase">Thématique sélectionnée</h3>
+          <p className="text-4xl font-black text-foreground tracking-tighter leading-none">{theme.name}</p>
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {/* Synthesis Section */}
         <div className="space-y-4">
           <div className="px-2">
-            <h4 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Synthèse de l'analyse</h4>
+            <h4 className="label-uppercase">Synthèse de l'analyse</h4>
           </div>
-          <Card className="p-8">
-            <p className="text-lg font-medium leading-[1.6] text-foreground">
+          <Card className="premium-card p-10">
+            <p className="text-xl font-medium leading-[1.6] text-foreground/90">
               {theme.analysis || "Ce thème révèle un fort attachement des participants à leur patrimoine local. Les témoignages expriment une fierté territoriale marquée et un sentiment d'appartenance profond qui transcende les générations."}
             </p>
           </Card>
@@ -44,8 +44,9 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
         {/* Verbatim Totem */}
         {theme.totemMessage && (
           <div className="space-y-4">
-            <div className="px-2">
-              <h4 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Verbatim Totem</h4>
+            <div className="px-2 flex items-center justify-between">
+              <h4 className="label-uppercase">Verbatim Totem</h4>
+              <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-primary/5 text-primary border-none">Référence</Badge>
             </div>
             <AudioPlayer 
               message={{
@@ -66,14 +67,14 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
         {/* Mots-clés */}
         <div className="space-y-4">
           <div className="px-2">
-            <h4 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Mots-clés associés</h4>
+            <h4 className="label-uppercase">Univers Sémantique</h4>
           </div>
           <div className="flex flex-wrap gap-2 px-2">
             {keywords.map((keyword) => (
               <Badge
                 key={keyword}
                 variant="outline"
-                className="text-[10px] font-black py-0.5 px-3 border-black/[0.1] bg-white text-foreground/60 uppercase tracking-widest rounded-lg hover:text-primary hover:border-primary/20 transition-all duration-300"
+                className="text-[10px] font-black py-1 px-4 border-black/[0.03] bg-black/[0.02] text-foreground/60 uppercase tracking-widest rounded-full hover:bg-primary/5 hover:text-primary transition-all duration-300"
               >
                 {keyword}
               </Badge>

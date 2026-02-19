@@ -112,6 +112,7 @@ export default function EmotionsPage() {
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
       <PageHeader 
         title="IRC & Plutchik"
+        description={project?.title}
         icon={<Sparkles className="h-5 w-5" />}
       />
 

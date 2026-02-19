@@ -65,7 +65,7 @@ export default function AdminObjectivesPage() {
         icon={<Target className="h-6 w-6" />}
       />
 
-      <Card className="shadow-card">
+      <Card className="premium-card mb-6">
         <CardHeader>
           <CardTitle>Ajouter un objectif</CardTitle>
         </CardHeader>
@@ -87,7 +87,7 @@ export default function AdminObjectivesPage() {
 
       <div className="mt-6 space-y-2">
         {objectives?.map((objective, index) => (
-          <Card key={objective.id} className="shadow-card">
+          <Card key={objective.id} className="premium-card !rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />

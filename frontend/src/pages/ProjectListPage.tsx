@@ -49,12 +49,12 @@ function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
   const messagesCount = project._count?.messages;
 
   return (
-    <Card className="shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group border-white/5 overflow-hidden rounded-[2rem] bg-card/50 backdrop-blur-sm">
+    <Card className="premium-card group hover:scale-[1.02] transition-all duration-500 flex flex-col">
       <CardHeader className="pb-4 pt-8 px-8 relative">
         <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
         <div className="flex items-start gap-4 mb-2">
           {project.logoKey && (
-            <div className="w-12 h-12 rounded-xl bg-white p-1.5 shadow-sm flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-white p-1.5 flex-shrink-0 border border-black/5">
               <img
                 src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
                 alt={project.clientName}
@@ -66,7 +66,7 @@ function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black text-primary/80 uppercase tracking-[0.3em] mb-1">
+            <p className="label-uppercase mb-1">
               {project.clientName}
             </p>
             <h3 className="text-2xl font-extrabold font-heading text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors">
@@ -198,8 +198,10 @@ export function ProjectListPage() {
           icon={<Briefcase className="h-6 w-6" />}
           actions={
             <Button
+              variant="default"
+              size="premium"
               onClick={() => navigate("/projects/new/admin")}
-              className="shadow-lg shadow-primary/20 font-black text-xs uppercase tracking-widest px-8 rounded-xl h-11"
+              className="shadow-md shadow-primary/20"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nouveau projet
@@ -307,24 +309,27 @@ export function ProjectListPage() {
   // When in layout (not standalone), show simplified version
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Description and actions */}
-      <div className="mb-8">
-        <p className="text-muted-foreground/80 text-sm mb-6">
-          Sélectionnez un projet dans le menu latéral ou cliquez sur un projet ci-dessous pour accéder à son tableau de bord.
-        </p>
-        
-        {isSuperAdmin && (
-          <Button
-            onClick={() => navigate("/projects/new/admin")}
-            className="shadow-lg shadow-primary/20 font-black text-xs uppercase tracking-widest px-8 rounded-xl h-11"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau projet
-          </Button>
-        )}
-      </div>
+      <PageHeader 
+        title="Mes Projets"
+        description="Sélectionnez un projet pour accéder à son tableau de bord"
+        icon={<Briefcase className="h-6 w-6" />}
+        actions={
+          isSuperAdmin && (
+            <Button
+              variant="default"
+              size="premium"
+              onClick={() => navigate("/projects/new/admin")}
+              className="shadow-md shadow-primary/20"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau projet
+            </Button>
+          )
+        }
+      />
 
-      {isError && (
+      <div className="mt-12">
+        {isError && (
         <div className="text-center py-12">
           <p className="text-destructive font-medium">
             Erreur lors du chargement des projets.
@@ -356,6 +361,7 @@ export function ProjectListPage() {
           ))}
       </div>
     </div>
+  </div>
   );
 }
 

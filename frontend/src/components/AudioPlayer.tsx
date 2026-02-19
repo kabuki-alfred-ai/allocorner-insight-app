@@ -3,6 +3,7 @@ import { Play, Pause, Volume2, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
@@ -166,7 +167,7 @@ export function AudioPlayer({ message, projectId, className = "" }: AudioPlayerP
   };
 
   return (
-    <div className={`p-6 rounded-[2rem] bg-black/[0.03] transition-all duration-500 hover:bg-black/[0.05] ${className}`}>
+    <div className={cn("premium-card p-6 h-full hover:scale-[1.01]", className)}>
       {/* Audio Info */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -217,24 +218,24 @@ export function AudioPlayer({ message, projectId, className = "" }: AudioPlayerP
           </Button>
         )}
 
-        <div className="flex-1">
+        <div className="flex-1 px-1">
           <Slider
             value={[progress]}
             onValueChange={handleSeek}
             max={100}
-            step={1}
-            className="w-full"
+            step={0.1}
+            className="w-full cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center gap-1">
-          <Volume2 className="h-3 w-3 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <Volume2 className="h-3.5 w-3.5 text-muted-foreground/50" />
           <Slider
             value={[volume]}
             onValueChange={(value) => setVolume(value[0])}
             max={100}
             step={1}
-            className="w-16"
+            className="w-20 cursor-pointer"
           />
         </div>
       </div>

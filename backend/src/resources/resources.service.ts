@@ -13,6 +13,10 @@ export class ResourcesService {
     });
   }
 
+  async findOne(id: string) {
+    return this.prisma.projectResource.findUnique({ where: { id } });
+  }
+
   async create(projectId: string, dto: CreateResourceDto) {
     return this.prisma.projectResource.create({
       data: {

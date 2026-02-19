@@ -15,33 +15,6 @@ export function AdminLayout() {
   const isWorkspace = !projectId;
   const { data: project } = useProject(!projectId || isNewProject ? "" : projectId);
 
-  // Find the current page title from the path
-  const getPageTitle = () => {
-    const segments = location.pathname.split("/").filter(Boolean);
-    const lastSegment = segments[segments.length - 1];
-    
-    const titleMap: Record<string, string> = {
-      "messages": "Gestion des messages",
-      "themes": "Configuration des thèmes",
-      "metriques": "Données & Scores",
-      "tendances": "Synthèse & Tendances",
-      "recommandations": "Recommandations",
-      "transversal": "Analyse Transversale",
-      "invitations": "Gestion des accès",
-      "objectives": "Objectifs du projet",
-      "irc-breakdown": "Détail du score IRC",
-      "strategic-actions": "Actions stratégiques"
-    };
-
-    if (lastSegment === "admin" || lastSegment === projectId) return "Configuration du Projet";
-    if (isNewProject) return "Nouveau Projet";
-    if (isWorkspace) return "Workspace";
-    
-    return titleMap[lastSegment] || "Administration";
-  };
-
-  const pageTitle = getPageTitle();
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-white">
@@ -51,16 +24,8 @@ export function AdminLayout() {
           {/* Main Header */}
           <header className="h-16 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 flex items-center px-6 transition-all duration-300 shrink-0">
             <SidebarTrigger className="mr-4 lg:hidden" />
-            <div className="flex flex-col min-w-0">
-              <h1 className="text-sm font-black font-heading uppercase tracking-[0.2em] text-foreground truncate">
-                {pageTitle}
-              </h1>
-              {project && !isWorkspace && (
-                <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.1em] truncate">
-                  Admin • {project.title}
-                </p>
-              )}
-            </div>
+            
+            <div id="header-title" className="flex-1 min-w-0" />
 
             <div className="ml-auto flex items-center gap-4">
               {/* Dynamic portal node for admin actions */}
@@ -81,7 +46,7 @@ export function AdminLayout() {
             </div>
           </header>
 
-          <main className="flex-1 p-4 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <main className="flex-1 p-8 md:p-12 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
             <div className="max-w-7xl mx-auto">
               <Outlet />
             </div>

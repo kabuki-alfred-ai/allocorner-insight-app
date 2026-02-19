@@ -3,12 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useTrends } from "@/hooks/use-trends";
 import { useThemes } from "@/hooks/use-themes";
+import { useProject } from "@/hooks/use-projects";
 import { useParams } from "react-router-dom";
 import { TrendingUp, AlertTriangle, Zap, Eye, Target, Loader2, LineChart } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 
 export default function TendancesPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const { data: project } = useProject(projectId!);
   const { data: trendsData, isLoading: trendsLoading } = useTrends(projectId!);
   const { data: themesData, isLoading: themesLoading } = useThemes(projectId!);
 
@@ -50,9 +52,10 @@ export default function TendancesPage() {
         })}
       </script>
 
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <PageHeader 
         title="Synthèse & Tendances"
+        description={project?.title}
         icon={<LineChart className="h-5 w-5" />}
       />
 
@@ -61,17 +64,17 @@ export default function TendancesPage() {
         {/* Tendances principales */}
         <div className="space-y-4">
           <div className="px-2">
-            <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Tendances principales</h3>
+            <h3 className="label-uppercase">Tendances principales</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {mainTrends.slice(0, 3).map((trend, index) => {
               const trendTitle = typeof trend === 'string' ? trend : trend.title;
               const trendContent = typeof trend === 'string' ? '' : trend.content;
               return (
-                <Card key={index} className="p-8">
+                <Card key={index} className="premium-card p-8 hover:scale-[1.02] transition-all duration-500">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">Axe {index + 1}</span>
+                      <span className="label-uppercase !text-primary/60">Axe {index + 1}</span>
                       <TrendingUp className="h-3.5 w-3.5 text-primary/40" />
                     </div>
                     <div className="space-y-2">
@@ -105,7 +108,7 @@ export default function TendancesPage() {
           {/* Points forts */}
           <div className="space-y-6">
             <div className="px-2">
-              <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Points forts</h3>
+              <h3 className="label-uppercase">Points forts</h3>
             </div>
             <div className="space-y-4 px-2">
               {strengths.map((strength, index) => {
@@ -138,9 +141,9 @@ export default function TendancesPage() {
           {/* Signal faible */}
           <div className="space-y-6">
             <div className="px-2">
-              <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Signal faible</h3>
+              <h3 className="label-uppercase">Signal faible</h3>
             </div>
-            <div className="mx-2 p-8 rounded-[2.5rem] bg-black text-white shadow-xl shadow-black/10">
+            <Card className="premium-card bg-black text-white p-8">
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/20 rounded-xl">
@@ -162,14 +165,14 @@ export default function TendancesPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
 
         {/* Analyse Sémantique */}
         <div className="space-y-6 pt-12 border-t border-black/5">
           <div className="px-2">
-            <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Analyse Sémantique</h3>
+            <h3 className="label-uppercase">Analyse Sémantique</h3>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 px-2">

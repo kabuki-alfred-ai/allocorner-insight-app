@@ -61,11 +61,11 @@ export function AdminSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? "bg-primary/10 text-primary font-black shadow-[0_0_20px_rgba(255,100,0,0.1)] translate-x-1"
-      : "hover:bg-white/10 text-sidebar-foreground/80 hover:text-sidebar-foreground font-bold";
+      ? "bg-primary/5 text-primary font-black shadow-[inset_0_0_20px_rgba(255,100,0,0.02)] premium-border"
+      : "hover:bg-white/5 text-sidebar-foreground/70 hover:text-sidebar-foreground font-bold";
 
   return (
-    <Sidebar className="z-[100] border-r border-white/5" collapsible="icon">
+    <Sidebar className="z-[100] border-r border-input" collapsible="icon">
       <SidebarContent className="bg-sidebar-background border-none">
         <div className="flex flex-col h-full">
           {/* Sidebar Logo Header */}
@@ -133,16 +133,16 @@ export function AdminSidebar() {
                                   to={fullPath}
                                   end={item.path === ""}
                                   className={({ isActive }) => `
-                                    group flex items-center gap-2.5 px-3 py-1 rounded-lg transition-all duration-300 relative
+                                    group flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-300 relative
                                     ${getNavCls({ isActive })}
                                   `}
                                 >
                                   {({ isActive }) => (
                                     <>
                                       {isActive && (
-                                        <div className="absolute left-0 w-1.5 h-6 bg-primary rounded-r-full shadow-[0_0_10px_rgba(255,100,0,0.5)]" />
+                                        <div className="absolute left-0 w-1 h-6 premium-gradient rounded-r-full shadow-[0_0_15px_rgba(255,100,0,0.4)]" />
                                       )}
-                                      <item.icon className={`h-4 w-4 flex-shrink-0 transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                      <item.icon className={`h-4 w-4 flex-shrink-0 transition-all duration-300 ${isActive ? 'scale-110 text-primary' : 'group-hover:scale-110'}`} />
                                       {!collapsed && (
                                         <>
                                           <span className="text-xs tracking-tight font-bold">{item.title}</span>

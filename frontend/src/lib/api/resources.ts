@@ -48,3 +48,10 @@ export async function updateResource(projectId: string, id: string, data: Update
 export async function deleteResource(projectId: string, id: string): Promise<void> {
   await apiClient.delete(`/projects/${projectId}/resources/${id}`);
 }
+
+export async function downloadResource(projectId: string, id: string): Promise<Blob> {
+  const response = await apiClient.get(`/projects/${projectId}/resources/${id}/download`, {
+    responseType: 'blob',
+  });
+  return response.data as Blob;
+}

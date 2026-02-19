@@ -110,6 +110,79 @@ All colors MUST be HSL.
   }
 }
 
+@layer utilities {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+
+  .glass-card-dark {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .premium-border {
+    @apply border border-primary/10 transition-all duration-300;
+  }
+
+  .premium-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, #FF8A00 100%);
+  }
+
+  .gloss-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gloss-effect::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 45%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 55%,
+        transparent 100%);
+    transform: rotate(30deg);
+    transition: transform 0.8s ease;
+    pointer-events: none;
+  }
+
+  .gloss-effect:hover::after {
+    transform: rotate(30deg) translate(20%, 20%);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/20 transition-colors;
+  }
+
+  .shadow-premium {
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.02),
+      0 12px 24px rgba(0, 0, 0, 0.03),
+      0 32px 64px -12px rgba(0, 0, 0, 0.08);
+  }
+
+  .premium-card {
+    @apply rounded-[2rem] border-black/[0.01] bg-black/[0.03] backdrop-blur-sm overflow-hidden shadow-none transition-all duration-300;
+  }
+
+  .label-uppercase {
+    @apply text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

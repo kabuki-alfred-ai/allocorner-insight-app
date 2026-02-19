@@ -63,9 +63,10 @@ export default function Dashboard() {
   const durationDistribution = statsData?.durationDistribution || [];
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <PageHeader 
-        title="Dashboard"
+        title="Tableau de Bord"
+        description={project.title}
         badge={project.dates}
         icon={<LayoutDashboard className="h-5 w-5" />}
         actions={
@@ -162,7 +163,7 @@ export default function Dashboard() {
               {/* Duration Chart */}
               <div className="space-y-6">
                 <div className="px-2">
-                  <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-0.5">Chronologie</h3>
+                  <h3 className="label-uppercase mb-0.5">Chronologie</h3>
                   <p className="text-sm font-bold text-foreground tracking-tight">Durée des témoignages</p>
                 </div>
                 <div className="h-[220px] w-full mt-4">
@@ -203,12 +204,12 @@ export default function Dashboard() {
             {/* Emotional & Tonality Row */}
             <div className="pt-8 border-t border-black/[0.03]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-primary/[0.02] border border-primary/5 rounded-[2rem] p-8 flex items-center gap-6">
-                  <div className="h-16 w-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary border border-black/5">
+                <div className="premium-card bg-primary/[0.02] border-primary/5 p-8 flex items-center gap-6">
+                  <div className="h-16 w-16 rounded-2xl bg-white flex items-center justify-center text-primary border border-black/5">
                     <Heart className="h-8 w-8" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Charge Émotionnelle</h4>
+                    <h4 className="label-uppercase">Charge Émotionnelle</h4>
                     <div className="text-3xl font-black text-foreground">
                       {Math.round((project.metrics?.highEmotionShare ?? 0) * 100)}%
                     </div>
@@ -221,12 +222,12 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-black/[0.02] border border-black/[0.03] rounded-[2rem] p-8 flex items-center gap-6">
-                  <div className="h-16 w-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-foreground border border-black/5">
+                <div className="premium-card bg-black/[0.02] border-black/[0.03] p-8 flex items-center gap-6">
+                  <div className="h-16 w-16 rounded-2xl bg-white flex items-center justify-center text-foreground border border-black/5">
                     <TrendingUp className="h-8 w-8" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Tonalité Globale</h4>
+                    <h4 className="label-uppercase">Tonalité Globale</h4>
                     <div className="text-3xl font-black text-foreground">
                       {(project.metrics?.tonalityAvg ?? 0).toFixed(1)}/5
                     </div>
@@ -246,16 +247,16 @@ export default function Dashboard() {
           {/* Sidebar Engagement Card */}
           <div className="lg:col-span-4 space-y-4">
             <div className="px-2">
-              <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-0.5">Engagement</h3>
+              <h3 className="label-uppercase mb-0.5">Engagement</h3>
               <p className="text-sm font-bold text-foreground">Taux de participation</p>
             </div>
-            <Card className="p-8 flex flex-col items-center justify-center min-h-[400px] border-black/[0.03] shadow-sm rounded-[2rem] bg-card/50 backdrop-blur-sm">
+            <Card className="premium-card p-8 flex flex-col items-center justify-center min-h-[400px]">
               <div className="relative w-full flex items-center justify-center">
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-[-10px]">
                   <span className="text-5xl font-black tracking-tighter text-foreground">
                     {Math.round((project.metrics?.participationRate ?? 0) * 100)}%
                   </span>
-                  <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] mt-1">Engagement</span>
+                  <span className="label-uppercase mt-1">Engagement</span>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
@@ -297,7 +298,7 @@ export default function Dashboard() {
         <div className="space-y-6 pt-8 border-t border-black/[0.03]">
           <div className="flex items-center justify-between px-2">
             <div className="space-y-1">
-              <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em]">Derniers verbatims</h3>
+              <h3 className="label-uppercase">Derniers verbatims</h3>
               <p className="text-xl font-black text-foreground tracking-tight">Matière brute</p>
             </div>
             <Button 

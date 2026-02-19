@@ -55,12 +55,12 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
 
 function priorityBadge(priority: Priority) {
   const map: Record<Priority, string> = {
-    HAUTE: "bg-red-100 text-red-800 border-red-300",
-    MOYENNE: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    BASSE: "bg-green-100 text-green-800 border-green-300",
+    HAUTE: "bg-red-500/10 text-red-500 border-none",
+    MOYENNE: "bg-amber-500/10 text-amber-500 border-none",
+    BASSE: "bg-emerald-500/10 text-emerald-500 border-none",
   };
   return (
-    <Badge variant="outline" className={map[priority]}>
+    <Badge variant="outline" className={cn("text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest", map[priority])}>
       {priority}
     </Badge>
   );
@@ -194,24 +194,15 @@ export function AdminRecommendationsPage() {
         description="Stratégies et actions correctives issues de l'analyse"
         icon={<Lightbulb className="h-6 w-6" />}
         actions={
-          <div className="flex items-center gap-3">
-             <Button 
-              variant="outline"
-              onClick={() => navigate(`/projects/${projectId}/admin`)}
-              className="font-bold text-[10px] uppercase tracking-widest rounded-xl h-11 px-6 border-primary/10 text-primary hover:bg-primary/5"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configuration
-            </Button>
-            <Button 
-              variant="default" 
-              onClick={openCreateDialog}
-              className="shadow-lg shadow-primary/20 font-black text-xs uppercase tracking-widest px-8 rounded-xl h-11"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Recommandation
-            </Button>
-          </div>
+          <Button
+            variant="default"
+            size="premium"
+            onClick={openCreateDialog}
+            className="shadow-md shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle Recommandation
+          </Button>
         }
       />
 
@@ -233,59 +224,73 @@ export function AdminRecommendationsPage() {
 
       {/* Empty state */}
       {!isLoading && sorted.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            Aucune recommandation pour le moment.
-          </CardContent>
-        </Card>
+        <div className="py-24 flex flex-col items-center justify-center rounded-[3rem] border-2 border-dashed border-input bg-muted/5 text-center px-6">
+          <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
+            <Lightbulb className="h-8 w-8 text-primary/40" />
+          </div>
+          <h3 className="text-lg font-black font-heading uppercase tracking-widest text-foreground/80 mb-2">Aucune recommandation</h3>
+          <p className="text-xs font-bold text-muted-foreground/60 max-w-[280px] leading-relaxed mb-8">
+            Commencez par ajouter une stratégie ou une action corrective issue de votre analyse.
+          </p>
+          <Button 
+            onClick={openCreateDialog}
+            size="premium"
+            className="premium-gradient border-none shadow-lg shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter la première
+          </Button>
+        </div>
       )}
 
       {/* List */}
       {!isLoading && sorted.length > 0 && (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-6">
           {sorted.map((rec, index) => (
-            <Card key={rec.id} className="overflow-hidden">
-              <CardContent className="p-6 flex items-center justify-between gap-6">
-                <div className="flex items-center gap-6 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-sm shrink-0 border border-primary/10">
+            <Card key={rec.id} className="group overflow-hidden premium-border bg-card/50 backdrop-blur-sm rounded-[2rem] hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
+              <div className={cn(
+                "absolute top-0 left-0 w-1.5 h-full",
+                rec.priority === "HAUTE" ? "bg-red-500" :
+                rec.priority === "MOYENNE" ? "bg-amber-500" :
+                "bg-emerald-500"
+              )} />
+              <CardContent className="p-8 flex items-start justify-between gap-8">
+                <div className="flex items-start gap-8 flex-1 min-w-0">
+                  <div className="w-14 h-14 rounded-[1.25rem] bg-muted/30 flex items-center justify-center text-foreground font-black text-lg shrink-0 border border-input shadow-inner group-hover:scale-110 transition-all duration-500">
                     {index + 1}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-base font-bold text-foreground truncate">{rec.title}</h3>
-                      <Badge variant="outline" className={cn(
-                        "text-[9px] font-black px-2 py-0 h-5 border-none rounded-lg uppercase tracking-widest",
-                        rec.priority === "HAUTE" ? "bg-red-500/10 text-red-500" :
-                        rec.priority === "MOYENNE" ? "bg-amber-500/10 text-amber-500" :
-                        "bg-green-500/10 text-green-500"
-                      )}>
-                        {rec.priority}
-                      </Badge>
+                  <div className="min-w-0 flex-1 space-y-3 pt-1">
+                    <div className="flex items-center gap-4">
+                      <h3 className="text-xl font-black font-heading text-foreground tracking-tight">{rec.title}</h3>
+                      {priorityBadge(rec.priority)}
                     </div>
                     {rec.objective && (
-                      <p className="text-xs font-bold text-muted-foreground/60 leading-relaxed truncate">
-                        {rec.objective}
-                      </p>
+                      <div className="relative">
+                        <span className="absolute -left-4 top-0 w-1 h-full bg-primary/10 rounded-full" />
+                        <p className="text-sm font-bold text-muted-foreground/70 leading-relaxed italic">
+                          {rec.objective}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 pt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-4 group-hover:translate-x-0">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="icon"
-                    className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors"
+                    className="h-11 w-11 rounded-xl bg-white text-black shadow-lg hover:scale-110 transition-all duration-300"
                     onClick={() => openEditDialog(rec)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    className="h-11 w-11 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
                     onClick={() => deleteMutation.mutate(rec.id)}
                     disabled={deleteMutation.isPending}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
               </CardContent>
@@ -296,80 +301,86 @@ export function AdminRecommendationsPage() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Modifier la recommandation" : "Nouvelle recommandation"}
-            </DialogTitle>
-            <DialogDescription>
-              {editing
-                ? "Modifiez les champs ci-dessous puis enregistrez."
-                : "Remplissez les champs pour creer une recommandation."}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-xl border-none bg-card/95 backdrop-blur-xl rounded-[2.5rem] p-0 overflow-hidden shadow-2xl">
+          <div className="p-10">
+            <DialogHeader className="mb-8">
+              <DialogTitle className="text-2xl font-black font-heading">
+                {editing ? "Modifier la recommandation" : "Nouvelle recommandation"}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                {editing
+                  ? "Ajustez les détails de votre recommandation."
+                  : "Définissez une nouvelle action stratégique."}
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="rec-title">Titre *</Label>
-              <Input
-                id="rec-title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Titre de la recommandation"
-                required
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="rec-title" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Titre de l'action *</Label>
+                <Input
+                  id="rec-title"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="Ex : Optimisation du tunnel de vente"
+                  className="bg-muted/30 border-input font-bold"
+                  required
+                />
+              </div>
 
-            {/* Objective */}
-            <div className="space-y-2">
-              <Label htmlFor="rec-objective">Objectif</Label>
-              <Textarea
-                id="rec-objective"
-                value={form.objective}
-                onChange={(e) => setForm({ ...form, objective: e.target.value })}
-                placeholder="Objectif de la recommandation"
-                rows={3}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="rec-objective" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Objectif détaillé</Label>
+                <Textarea
+                  id="rec-objective"
+                  value={form.objective}
+                  onChange={(e) => setForm({ ...form, objective: e.target.value })}
+                  placeholder="Décrivez l'objectif et les résultats attendus..."
+                  className="min-h-[120px] bg-muted/30 border-input font-medium leading-relaxed italic"
+                  rows={3}
+                />
+              </div>
 
-            {/* Priority */}
-            <div className="space-y-2">
-              <Label>Priorite</Label>
-              <Select
-                value={form.priority}
-                onValueChange={(v) =>
-                  setForm({ ...form, priority: v as Priority })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Priorite" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRIORITY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Niveau de priorité</Label>
+                <Select
+                  value={form.priority}
+                  onValueChange={(v) =>
+                    setForm({ ...form, priority: v as Priority })
+                  }
+                >
+                  <SelectTrigger className="bg-muted/30 border-input font-bold">
+                    <SelectValue placeholder="Priorité" />
+                  </SelectTrigger>
+                  <SelectContent className="border-input bg-card/95 backdrop-blur-xl rounded-xl">
+                    {PRIORITY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="rounded-lg">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeDialog}
-                disabled={isMutating}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={isMutating}>
-                {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editing ? "Enregistrer" : "Creer"}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="mt-10 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeDialog}
+                  disabled={isMutating}
+                  className="h-12 rounded-xl border-input font-bold text-[10px] uppercase tracking-widest px-8"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isMutating}
+                  className="h-12 rounded-xl shadow-lg shadow-primary/20 premium-gradient border-none font-black text-xs uppercase tracking-widest px-10 gloss-effect"
+                >
+                  {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editing ? "Enregistrer les modifications" : "Créer la recommandation"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
       </div>

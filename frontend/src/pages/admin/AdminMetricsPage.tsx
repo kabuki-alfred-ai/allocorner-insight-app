@@ -206,21 +206,11 @@ export function AdminMetricsPage() {
         title="Métriques & Émotions"
         description="Configuration des indicateurs IRC et de la roue de Plutchik"
         icon={<BarChart3 className="h-6 w-6" />}
-        actions={
-          <Button 
-            variant="outline"
-            onClick={() => navigate(`/projects/${projectId}/admin`)}
-            className="font-bold text-[10px] uppercase tracking-widest rounded-xl h-11 px-6 border-primary/10 text-primary hover:bg-primary/5"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
-          </Button>
-        }
       />
 
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* ---- Section 1: Metriques IRC ---- */}
-        <Card>
+        <Card className="premium-card">
           <CardHeader className="px-8 pt-8 pb-4">
             <CardTitle className="text-lg font-extrabold font-heading flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
@@ -418,7 +408,7 @@ export function AdminMetricsPage() {
         </Card>
 
         {/* ---- Section 2: Roue de Plutchik ---- */}
-        <Card>
+        <Card className="premium-card">
           <CardHeader className="px-8 pt-8 pb-4">
             <CardTitle className="text-lg font-extrabold font-heading flex items-center gap-2">
               <Heart className="h-5 w-5 text-primary" />

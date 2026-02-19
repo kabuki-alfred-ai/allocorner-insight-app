@@ -104,12 +104,13 @@ export default function Themes() {
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
       <PageHeader 
         title="Analyse Thématique"
+        description={project?.title}
         badge={`${themesList.length} thèmes`}
         icon={<Tags className="h-5 w-5" />}
       />
 
       <div className="space-y-12">
-        <div className="grid gap-12 lg:grid-cols-12">
+        <div className="grid gap-16 lg:grid-cols-12">
           {/* Left column - Theme selector */}
           <aside className="lg:col-span-3">
             <div className="sticky top-24">
@@ -131,7 +132,7 @@ export default function Themes() {
 
           {/* Right column - Messages list */}
           <section className="lg:col-span-4">
-            <div className="sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar pr-2">
+            <div className="sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar pr-4">
               {selectedTheme && (
                 <MessageList
                   theme={selectedTheme}

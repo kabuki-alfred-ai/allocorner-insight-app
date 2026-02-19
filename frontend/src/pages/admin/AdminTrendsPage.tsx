@@ -31,6 +31,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 import { getTrends, upsertTrends } from "@/lib/api/trends";
 import { UpsertTrendsDto } from "@/lib/types";
@@ -305,111 +311,123 @@ export function AdminTrendsPage() {
         title="Tendances & Synthèse"
         description="Analysez les dynamiques globales et les signaux émergents"
         icon={<TrendingUp className="h-6 w-6" />}
-        actions={
-          <Button 
-            variant="outline"
-            onClick={() => navigate(`/projects/${projectId}/admin`)}
-            className="font-bold text-[10px] uppercase tracking-widest rounded-xl h-11 px-6 border-primary/10 text-primary hover:bg-primary/5"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
-          </Button>
-        }
       />
 
       <div className="mt-12">
 
-      <Card>
-        <CardHeader className="px-8 pt-8 pb-4">
-          <CardTitle className="text-lg font-extrabold font-heading flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Synthèse globale
-          </CardTitle>
-          <CardDescription className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">
-            Complétez les différentes sections ci-dessous
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-8 pb-8">
+      <Card className="premium-card overflow-hidden">
+        <CardContent className="p-0">
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit((v) => upsertMutation.mutate(v))}
-              className="space-y-8"
-            >
-              {/* Dynamic list: Tendances principales */}
-              <DynamicTrendList
-                label="Tendances principales"
-                values={mainTrends}
-                onChange={(v) => form.setValue("mainTrends", v, { shouldDirty: true })}
-              />
+            <form onSubmit={form.handleSubmit((v) => upsertMutation.mutate(v))}>
+              <Tabs defaultValue="trends" className="w-full">
+                <div className="px-10 pt-6 border-b border-input bg-muted/10">
+                  <TabsList className="bg-transparent h-auto p-0 gap-8">
+                    <TabsTrigger 
+                      value="trends" 
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                    >
+                      Synthèse Dynamique
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="semantic" 
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                    >
+                      Analyse Sémantique
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="signals" 
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                    >
+                      Signaux Faibles
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-              <Separator />
+                <TabsContent value="trends" className="m-0 focus-visible:ring-0">
+                  <div className="p-10 space-y-12">
+                    <DynamicTrendList
+                      label="Tendances principales"
+                      values={mainTrends}
+                      onChange={(v) => form.setValue("mainTrends", v, { shouldDirty: true })}
+                    />
 
-              {/* Dynamic list: Points forts */}
-              <DynamicTrendList
-                label="Points forts"
-                values={strengths}
-                onChange={(v) => form.setValue("strengths", v, { shouldDirty: true })}
-              />
+                    <Separator className="bg-input/50" />
 
-              <Separator />
+                    <DynamicTrendList
+                      label="Points forts identifiés"
+                      values={strengths}
+                      onChange={(v) => form.setValue("strengths", v, { shouldDirty: true })}
+                    />
+                  </div>
+                </TabsContent>
 
-              {/* Dynamic list: Mots recurrents */}
-              <DynamicStringList
-                label="Mots recurrents"
-                values={recurringWords}
-                onChange={(v) => form.setValue("recurringWords", v, { shouldDirty: true })}
-              />
+                <TabsContent value="semantic" className="m-0 focus-visible:ring-0">
+                  <div className="p-10">
+                    <div className="max-w-2xl">
+                      <DynamicStringList
+                        label="Mots récurrents & Verbatim clés"
+                        values={recurringWords}
+                        onChange={(v) => form.setValue("recurringWords", v, { shouldDirty: true })}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
 
-              <Separator />
+                <TabsContent value="signals" className="m-0 focus-visible:ring-0">
+                  <div className="p-10 space-y-10">
+                    <div className="max-w-3xl space-y-8">
+                      <FormField
+                        control={form.control}
+                        name="weakSignal"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Signal faible identifié</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Quel est le signal émergent ?"
+                                className="bg-muted/30 border-input font-bold"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-              {/* Signal faible */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="weakSignal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Signal faible</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Identifiez le signal faible..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <FormField
+                        control={form.control}
+                        name="weakSignalDetail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Analyse détaillée du signal</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Décrivez en détail les implications..."
+                                className="min-h-[160px] bg-muted/30 border-input font-medium leading-relaxed italic"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
 
-                <FormField
-                  control={form.control}
-                  name="weakSignalDetail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Detail du signal faible</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Decrivez en detail le signal faible detecte..."
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={upsertMutation.isPending}
-                className="w-full h-12 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 mt-12"
-              >
-                {upsertMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Enregistrer la synthèse
-              </Button>
+                <div className="px-10 py-8 bg-muted/30 border-t border-input flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={upsertMutation.isPending}
+                    className="h-12 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 premium-gradient border-none px-12"
+                  >
+                    {upsertMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Enregistrer la synthèse
+                  </Button>
+                </div>
+              </Tabs>
             </form>
           </Form>
         </CardContent>

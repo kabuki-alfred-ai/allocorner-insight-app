@@ -261,26 +261,15 @@ export function AdminThemesPage() {
         description="Structuration des enseignements et regroupement des verbatims"
         icon={<Palette className="h-6 w-6" />}
         actions={
-          <div className="flex items-center gap-3">
-             <Button 
-              variant="outline"
-              size="action"
-              onClick={() => navigate(`/projects/${projectId}/admin`)}
-              className="border-primary/10 text-primary hover:bg-primary/5"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configuration
-            </Button>
-            <Button 
-              variant="default" 
-              size="action"
-              onClick={openCreateDialog}
-              className="shadow-lg shadow-primary/20"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nouveau Thème
-            </Button>
-          </div>
+          <Button
+            variant="default"
+            size="premium"
+            onClick={openCreateDialog}
+            className="shadow-md shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouveau Thème
+          </Button>
         }
       />
 

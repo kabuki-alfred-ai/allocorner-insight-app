@@ -12,13 +12,31 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, badge, actions, icon }: PageHeaderProps) {
   const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
+  const [titleNode, setTitleNode] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     setPortalNode(document.getElementById("header-portal"));
+    setTitleNode(document.getElementById("header-title"));
   }, []);
 
   return (
     <>
+      {/* Teleport title to the layout header */}
+      {titleNode &&
+        createPortal(
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-sm font-black font-heading uppercase tracking-[0.2em] text-foreground truncate">
+              {title}
+            </h1>
+            {description && (
+              <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.1em] truncate mt-0.5">
+                {description}
+              </p>
+            )}
+          </div>,
+          titleNode
+        )}
+
       {/* Teleport actions and badge to the layout header */}
       {portalNode &&
         createPortal(
@@ -36,15 +54,8 @@ export function PageHeader({ title, description, badge, actions, icon }: PageHea
           portalNode
         )}
 
-      {/* Main content header - kept for description and additional context, but title is now in top bar */}
-      <div className="flex flex-col gap-4 mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
-        {description && (
-          <div className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.3em] flex items-center gap-3">
-            <span className="w-8 h-px bg-primary/20" />
-            {description}
-          </div>
-        )}
-      </div>
+      {/* Main content vertical spacer for consistency */}
+      <div className="mb-10" />
     </>
   );
 }

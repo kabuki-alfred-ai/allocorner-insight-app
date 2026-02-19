@@ -164,24 +164,15 @@ export function AdminTransversalPage() {
         description="Analyses systémiques et sociologiques croisées"
         icon={<Network className="h-6 w-6" />}
         actions={
-          <div className="flex items-center gap-3">
-             <Button 
-              variant="outline"
-              onClick={() => navigate(`/projects/${projectId}/admin`)}
-              className="font-bold text-[10px] uppercase tracking-widest rounded-xl h-11 px-6 border-primary/10 text-primary hover:bg-primary/5"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configuration
-            </Button>
-            <Button 
-              variant="default" 
-              onClick={openCreateDialog}
-              className="shadow-lg shadow-primary/20 font-black text-xs uppercase tracking-widest px-8 rounded-xl h-11"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Analyse
-            </Button>
-          </div>
+          <Button
+            variant="default"
+            size="premium"
+            onClick={openCreateDialog}
+            className="shadow-md shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle Analyse
+          </Button>
         }
       />
 
@@ -203,53 +194,68 @@ export function AdminTransversalPage() {
 
       {/* Empty state */}
       {!isLoading && analyses.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            Aucune analyse transversale pour le moment.
-          </CardContent>
-        </Card>
+        <div className="py-24 flex flex-col items-center justify-center rounded-[3rem] border-2 border-dashed border-input bg-muted/5 text-center px-6">
+          <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
+            <Network className="h-8 w-8 text-primary/40" />
+          </div>
+          <h3 className="text-lg font-black font-heading uppercase tracking-widest text-foreground/80 mb-2">Aucune analyse transversale</h3>
+          <p className="text-xs font-bold text-muted-foreground/60 max-w-[280px] leading-relaxed mb-8">
+            Ajoutez des analyses systémiques et sociologiques croisées pour enrichir le rapport.
+          </p>
+          <Button 
+            onClick={openCreateDialog}
+            size="premium"
+            className="premium-gradient border-none shadow-lg shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Créer la première analyse
+          </Button>
+        </div>
       )}
 
       {/* List */}
       {!isLoading && analyses.length > 0 && (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {analyses.map((a) => (
-            <Card key={a.id}>
-              <CardContent className="p-6 flex items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] font-black py-0 h-5 border-primary/20 bg-primary/5 text-primary rounded-lg uppercase tracking-widest">
+            <Card key={a.id} className="premium-card group h-full">
+              <CardContent className="p-8 flex flex-col gap-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge variant="outline" className="text-[10px] font-black py-0.5 px-3 border-none bg-primary/10 text-primary rounded-lg uppercase tracking-widest">
                       {a.axis}
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] font-black py-0 h-5 rounded-lg uppercase tracking-widest bg-muted/50 text-muted-foreground/80">
+                    <Badge variant="secondary" className="text-[10px] font-black py-0.5 px-3 rounded-lg uppercase tracking-widest bg-muted/50 text-muted-foreground/80">
                       {a.category}
                     </Badge>
                   </div>
-                  {a.content && (
-                    <p className="text-xs font-bold text-muted-foreground/60 leading-relaxed line-clamp-2">
-                       {truncate(a.content)}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary"
+                      onClick={() => openEditDialog(a)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => deleteMutation.mutate(a.id)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                {a.content && (
+                  <div className="relative pl-6">
+                    <span className="absolute left-0 top-0 w-1.5 h-full bg-primary/5 rounded-full" />
+                    <p className="text-sm font-bold text-muted-foreground/70 leading-relaxed italic">
+                       {truncate(a.content, 200)}
                     </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors"
-                    onClick={() => openEditDialog(a)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    onClick={() => deleteMutation.mutate(a.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -259,74 +265,83 @@ export function AdminTransversalPage() {
     </div>
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editing
-                ? "Modifier l'analyse transversale"
-                : "Nouvelle analyse transversale"}
-            </DialogTitle>
-            <DialogDescription>
-              {editing
-                ? "Modifiez les champs ci-dessous puis enregistrez."
-                : "Remplissez les champs pour creer une analyse transversale."}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-xl border-none bg-card/95 backdrop-blur-xl rounded-[2.5rem] p-0 overflow-hidden shadow-2xl">
+          <div className="p-10">
+            <DialogHeader className="mb-8">
+              <DialogTitle className="text-2xl font-black font-heading">
+                {editing
+                  ? "Modifier l'analyse"
+                  : "Nouvelle analyse transversale"}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                {editing
+                  ? "Ajustez les paramètres de votre analyse croisée."
+                  : "Définissez un nouvel axe d'analyse systémique."}
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Axis */}
-            <div className="space-y-2">
-              <Label htmlFor="ta-axis">Axe d'analyse *</Label>
-              <Input
-                id="ta-axis"
-                value={form.axis}
-                onChange={(e) => setForm({ ...form, axis: e.target.value })}
-                placeholder="Ex : SOCIOLOGIE, NON-DITS, SYSTEMIQUE"
-                required
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ta-axis" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Axe d'analyse *</Label>
+                  <Input
+                    id="ta-axis"
+                    value={form.axis}
+                    onChange={(e) => setForm({ ...form, axis: e.target.value })}
+                    placeholder="Ex : SOCIOLOGIE"
+                    className="bg-muted/30 border-input font-bold"
+                    required
+                  />
+                </div>
 
-            {/* Category */}
-            <div className="space-y-2">
-              <Label htmlFor="ta-category">Categorie *</Label>
-              <Input
-                id="ta-category"
-                value={form.category}
-                onChange={(e) =>
-                  setForm({ ...form, category: e.target.value })
-                }
-                placeholder="Categorie de l'analyse"
-                required
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ta-category" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Catégorie *</Label>
+                  <Input
+                    id="ta-category"
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({ ...form, category: e.target.value })
+                    }
+                    placeholder="Ex : Non-dits"
+                    className="bg-muted/30 border-input font-bold"
+                    required
+                  />
+                </div>
+              </div>
 
-            {/* Content */}
-            <div className="space-y-2">
-              <Label htmlFor="ta-content">Contenu de l'analyse</Label>
-              <Textarea
-                id="ta-content"
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                placeholder="Contenu detaille de l'analyse transversale"
-                rows={4}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="ta-content" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Contenu détaillé</Label>
+                <Textarea
+                  id="ta-content"
+                  value={form.content}
+                  onChange={(e) => setForm({ ...form, content: e.target.value })}
+                  placeholder="Décrivez votre analyse transversale..."
+                  className="min-h-[160px] bg-muted/30 border-input font-medium leading-relaxed italic"
+                  rows={4}
+                />
+              </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeDialog}
-                disabled={isMutating}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={isMutating}>
-                {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editing ? "Enregistrer" : "Creer"}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter className="mt-10 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeDialog}
+                  disabled={isMutating}
+                  className="h-12 rounded-xl border-input font-bold text-[10px] uppercase tracking-widest px-8"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isMutating}
+                  className="h-12 rounded-xl shadow-lg shadow-primary/20 premium-gradient border-none font-black text-xs uppercase tracking-widest px-10 gloss-effect"
+                >
+                  {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editing ? "Enregistrer les modifications" : "Créer l'analyse"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -44,6 +44,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 // ──────────────────────────────────────────────
 // Schema
@@ -244,114 +250,115 @@ export function AdminProjectPage() {
         title={isCreating ? "Créer un projet" : `Configuration : ${project?.title}`}
         description={isCreating ? "Initialisation d'une nouvelle collecte audio" : "Paramètres et administration du projet"}
         icon={<Settings className="h-6 w-6" />}
-        actions={
-          !isCreating && (
-            <Button
-              variant="outline"
-              size="action"
-              onClick={() => navigate(`/projects/${projectId}`)}
-              className="border-primary/10 text-primary hover:bg-primary/5"
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Voir le Board
-            </Button>
-          )
-        }
       />
 
       <div className="mt-12">
-        <Card className="overflow-hidden border-white/5 shadow-sm bg-card backdrop-blur-sm rounded-[2.5rem]">
-          <CardHeader className="px-10 py-8 border-b border-white/5 bg-muted/30">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <Settings className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-extrabold font-heading tracking-tight">Configuration du Projet</CardTitle>
-                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
-                  Paramètres, identité visuelle et objectifs
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-
+        <Card className="premium-card overflow-hidden">
           <CardContent className="p-0">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                {/* ── Section 1: Informations Générales ── */}
-                <div className="p-10 space-y-10">
-                  <div>
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                       Informations de base
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <FormField
-                        control={form.control}
-                        name="clientName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Nom du client *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex : Acme Corp" className="bg-muted/30 border-input font-bold" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Titre du projet *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex : Etude satisfaction Q1 2025" className="bg-muted/30 border-input font-bold" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="dates"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Dates</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex : Janvier - Mars 2025" className="bg-muted/30 border-input font-bold" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="analyst"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Analyste</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nom de l'analyste" className="bg-muted/30 border-input font-bold" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                <Tabs defaultValue="general" className="w-full">
+                  <div className="px-10 pt-6 border-b border-white/5 bg-muted/10">
+                    <TabsList className="bg-transparent h-auto p-0 gap-8">
+                      <TabsTrigger 
+                        value="general" 
+                        className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 label-uppercase data-[state=active]:text-primary transition-all"
+                      >
+                        Informations Générales
+                      </TabsTrigger>
+                      {!isCreating && (
+                        <>
+                          <TabsTrigger 
+                            value="identity" 
+                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                          >
+                            Identité Visuelle
+                          </TabsTrigger>
+                          <TabsTrigger 
+                            value="objectives" 
+                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                          >
+                            Objectifs stratégiques
+                          </TabsTrigger>
+                        </>
+                      )}
+                    </TabsList>
                   </div>
 
-                  <Separator className="bg-white/5" />
+                  <TabsContent value="general" className="m-0 focus-visible:ring-0">
+                    <div className="p-10 space-y-12">
+                      {/* informations de base */}
+                      <div>
+                        <h3 className="label-uppercase mb-6 flex items-center gap-2 !text-primary">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          Informations de base
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <FormField
+                            control={form.control}
+                            name="clientName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Nom du client *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ex : Acme Corp" className="bg-muted/30 border-input font-bold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    <div className="md:col-span-2 space-y-8">
+                          <FormField
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Titre du projet *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ex : Etude satisfaction Q1 2025" className="bg-muted/30 border-input font-bold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="dates"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Dates</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ex : Janvier - Mars 2025" className="bg-muted/30 border-input font-bold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="analyst"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Analyste</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nom de l'analyste" className="bg-muted/30 border-input font-bold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <Separator className="bg-white/5" />
+
+                      {/* Contexte & Méthodologie */}
                       <div>
                         <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                           Contexte & Méthodologie
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          Contexte & Méthodologie
                         </h3>
                         <div className="space-y-8">
                           <FormField
@@ -372,183 +379,187 @@ export function AdminProjectPage() {
                             )}
                           />
 
-                          <FormField
-                            control={form.control}
-                            name="methodology"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Méthodologie utilisée</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    placeholder="Décrivez la méthodologie..." 
-                                    className="min-h-[100px] bg-muted/30 border-input font-medium leading-relaxed" 
-                                    {...field} 
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <FormField
+                              control={form.control}
+                              name="methodology"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Méthodologie utilisée</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Décrivez la méthodologie..." 
+                                      className="min-h-[100px] bg-muted/30 border-input font-medium leading-relaxed" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                          <FormField
-                            control={form.control}
-                            name="participantsEstimated"
-                            render={({ field }) => (
-                              <FormItem className="max-w-[200px]">
-                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Participants estimés</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    className="bg-muted/30 border-input font-bold"
-                                    {...field}
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                            <FormField
+                              control={form.control}
+                              name="participantsEstimated"
+                              render={({ field }) => (
+                                <FormItem className="max-w-[240px]">
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Participants estimés</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      className="bg-muted/30 border-input h-12 font-bold"
+                                      {...field}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </TabsContent>
 
-                    <div className="space-y-8">
-                      <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                           Identité Visuelle
-                        </h3>
-                        <div className="p-8 rounded-3xl bg-muted/10 border border-white/5 flex flex-col items-center gap-6">
-                           <div className="relative group">
-                            <div className="w-40 h-40 rounded-[2.5rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-muted/20 overflow-hidden transition-all group-hover:border-primary/30">
-                              {uploadLogoMutation.isPending ? (
-                                <div className="flex flex-col items-center gap-3">
-                                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                  <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Upload...</p>
+                  <TabsContent value="identity" className="m-0 focus-visible:ring-0">
+                    <div className="p-10">
+                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-8 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        Identité Visuelle
+                      </h3>
+                      
+                      <div className="max-w-xl mx-auto p-12 rounded-[2.5rem] bg-muted/10 border border-white/5 flex flex-col items-center gap-8">
+                        <div className="relative group">
+                          <div className="w-48 h-48 rounded-[3rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-muted/20 overflow-hidden transition-all group-hover:border-primary/30 shadow-inner">
+                            {uploadLogoMutation.isPending ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Upload...</p>
+                              </div>
+                            ) : logoPreview ? (
+                              <img
+                                src={logoPreview}
+                                alt="Aperçu logo"
+                                className="w-full h-full object-contain p-8 bg-white"
+                              />
+                            ) : (
+                              <Upload className="h-12 w-12 text-muted-foreground/20" />
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="absolute -bottom-2 -right-2 rounded-2xl shadow-xl hover:scale-110 h-14 w-14 bg-white text-black border-none gloss-effect"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploadLogoMutation.isPending || isCreating}
+                          >
+                            <Upload className="h-6 w-6" />
+                          </Button>
+                        </div>
+                        
+                        <div className="text-center space-y-2">
+                          <p className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
+                            Logo du Client
+                          </p>
+                          <p className="text-xs font-bold text-muted-foreground/50 max-w-[240px] leading-relaxed">
+                            Le logo apparaîtra sur tous les rapports et le dashboard principal.
+                          </p>
+                        </div>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="hidden"
+                          onChange={handleLogoChange}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="objectives" className="m-0 focus-visible:ring-0">
+                    <div className="p-10">
+                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-8 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        Objectifs stratégiques
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                        <div className="lg:col-span-3 space-y-4">
+                           {objectivesLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                              <Loader2 className="h-8 w-8 animate-spin opacity-20" />
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-4">
+                              {objectives?.map((obj) => (
+                                <div
+                                  key={obj.id}
+                                  className="flex items-start gap-5 p-6 rounded-2xl bg-muted/20 border border-white/5 group transition-all hover:bg-muted/30 hover:shadow-sm"
+                                >
+                                  <div className="mt-1 h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                    <TargetIcon className="h-3.5 w-3.5 text-primary" />
+                                  </div>
+                                  <span className="flex-1 text-sm font-bold text-foreground/80 leading-relaxed">{obj.content}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                    className="h-9 w-9 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
+                                    onClick={() => deleteObjective.mutate(obj.id)}
+                                    disabled={deleteObjective.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                              ) : logoPreview ? (
-                                <img
-                                  src={logoPreview}
-                                  alt="Aperçu logo"
-                                  className="w-full h-full object-contain p-6 bg-white"
-                                />
-                              ) : (
-                                <Upload className="h-10 w-10 text-muted-foreground/20" />
+                              ))}
+                              {objectives?.length === 0 && (
+                                <div className="py-20 text-center rounded-[2rem] border-2 border-dashed border-white/5 bg-muted/5">
+                                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">Aucun objectif défini au projet</p>
+                                </div>
                               )}
                             </div>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="icon"
-                              className="absolute -bottom-2 -right-2 rounded-2xl shadow-xl hover:scale-110 h-12 w-12 bg-white text-black border-none"
-                              onClick={() => fileInputRef.current?.click()}
-                              disabled={uploadLogoMutation.isPending || isCreating}
-                            >
-                              <Upload className="h-5 w-5" />
-                            </Button>
-                          </div>
-                          
-                          <div className="text-center space-y-1">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Logo Client
-                            </p>
-                            <p className="text-[9px] font-bold text-muted-foreground/40 italic">
-                              PNG, JPG ou WEBP (Max 2Mo)
-                            </p>
-                          </div>
+                          )}
+                        </div>
 
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                            className="hidden"
-                            onChange={handleLogoChange}
-                          />
+                        <div className="lg:col-span-2 space-y-4">
+                          <div className="p-8 rounded-[2rem] bg-primary/[0.03] border border-primary/10 space-y-6 sticky top-24">
+                             <div className="space-y-1">
+                               <p className="text-[10px] font-black uppercase tracking-widest text-primary">Ajouter un objectif</p>
+                               <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">Soyez précis et concis</p>
+                             </div>
+                             <div className="space-y-4">
+                                <Textarea
+                                  placeholder="Ex : Identifier les leviers de croissance..."
+                                  className="min-h-[120px] bg-white/50 border-input font-bold text-xs p-4 leading-relaxed"
+                                  value={newObjective}
+                                  onChange={(e) => setNewObjective(e.target.value)}
+                                />
+                                <Button
+                                  type="button"
+                                  size="premium"
+                                  className="w-full shadow-lg shadow-primary/20 premium-gradient border-none rounded-xl h-12"
+                                  onClick={() => {
+                                    if (newObjective.trim()) {
+                                      createObjective.mutate({ content: newObjective.trim() });
+                                      setNewObjective("");
+                                    }
+                                  }}
+                                  disabled={createObjective.isPending || !newObjective.trim()}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Ajouter l'objectif
+                                </Button>
+                             </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {!isCreating && projectId && (
-                    <>
-                      <Separator className="bg-white/5" />
-                      <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                           Objectifs du projet
-                        </h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                          <div className="md:col-span-2 space-y-4">
-                             {objectivesLoading ? (
-                              <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin opacity-20" />
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-1 gap-3">
-                                {objectives?.map((obj) => (
-                                  <div
-                                    key={obj.id}
-                                    className="flex items-start gap-4 p-5 rounded-2xl bg-muted/20 border border-white/5 group transition-all hover:bg-muted/30"
-                                  >
-                                    <div className="mt-1 h-5 w-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                      <TargetIcon className="h-3 w-3 text-primary" />
-                                    </div>
-                                    <span className="flex-1 text-sm font-bold text-foreground/80 leading-relaxed">{obj.content}</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      type="button"
-                                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
-                                      onClick={() => deleteObjective.mutate(obj.id)}
-                                      disabled={deleteObjective.isPending}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                                {objectives?.length === 0 && (
-                                  <div className="py-12 text-center rounded-3xl border border-dashed border-white/5 bg-muted/10">
-                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Aucun objectif défini</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="p-6 rounded-3xl bg-primary/[0.02] border border-primary/5 space-y-4">
-                               <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Ajouter un objectif</p>
-                               <div className="flex flex-col gap-3">
-                                  <Textarea
-                                    placeholder="Écrivez l'objectif ici..."
-                                    className="bg-white/50 border-input font-bold text-xs"
-                                    value={newObjective}
-                                    onChange={(e) => setNewObjective(e.target.value)}
-                                  />
-                                  <Button
-                                    type="button"
-                                    className="w-full shadow-lg shadow-primary/10"
-                                    onClick={() => {
-                                      if (newObjective.trim()) {
-                                        createObjective.mutate({ content: newObjective.trim() });
-                                        setNewObjective("");
-                                      }
-                                    }}
-                                    disabled={createObjective.isPending || !newObjective.trim()}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Ajouter
-                                  </Button>
-                               </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                  </TabsContent>
+                </Tabs>
 
                 {/* ── Footer / Submit ── */}
                 <div className="px-10 py-8 bg-muted/30 border-t border-white/5 flex justify-end items-center gap-6">

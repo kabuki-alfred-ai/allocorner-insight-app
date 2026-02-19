@@ -36,6 +36,7 @@ import {
   processBulk,
   retryAllFailed,
 } from "@/lib/api/messages";
+import { useProject } from "@/hooks/use-projects";
 import type { Message, EmotionalLoad, Tone, ProcessingStatus } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
@@ -115,6 +116,24 @@ const editMessageSchema = z.object({
 type EditMessageValues = z.infer<typeof editMessageSchema>;
 
 // ──────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────
+
+function FeatureItem({ icon, label, desc }: { icon: React.ReactNode; label: string; desc: string }) {
+  return (
+    <div className="flex gap-4 group/item">
+      <div className="w-10 h-10 rounded-xl bg-white border border-input flex items-center justify-center text-muted-foreground group-hover/item:text-primary group-hover/item:border-primary/20 transition-all duration-300 flex-shrink-0 shadow-sm">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/80 mb-0.5">{label}</p>
+        <p className="text-[9px] font-bold text-muted-foreground/50 leading-relaxed uppercase tracking-widest">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────
 
@@ -122,6 +141,7 @@ export function AdminMessagesPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: project } = useProject(projectId!);
 
   const [page, setPage] = useState(1);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
@@ -130,23 +150,17 @@ export function AdminMessagesPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Upload refs
-  const audioInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
-
-  // Individual upload state
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [speaker, setSpeaker] = useState("");
-  const [transcriptTxt, setTranscriptTxt] = useState("");
 
   // Bulk upload state
   const [zipFile, setZipFile] = useState<File | null>(null);
 
-  // Multiple files upload state
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadStatuses, setUploadStatuses] = useState<
     Record<string, "pending" | "uploading" | "success" | "error">
   >({});
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const multipleInputRef = useRef<HTMLInputElement>(null);
 
   // ── Fetch messages ──
@@ -175,23 +189,7 @@ export function AdminMessagesPage() {
   ).length;
   const failedCount = messages.filter((m) => m.processingStatus === "FAILED").length;
 
-  // ── Individual upload mutation ──
 
-  const createMutation = useMutation({
-    mutationFn: (formData: FormData) => createMessage(projectId!, formData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
-      toast.success("Message importe avec succes");
-      setAudioFile(null);
-      setSpeaker("");
-      setTranscriptTxt("");
-      if (audioInputRef.current) audioInputRef.current.value = "";
-    },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de l'import : ${error.message}`);
-    },
-  });
 
   // ── Bulk upload mutation ──
 
@@ -277,19 +275,7 @@ export function AdminMessagesPage() {
 
   // ── Handlers ──
 
-  const handleIndividualUpload = useCallback(() => {
-    if (!audioFile) {
-      toast.error("Veuillez selectionner un fichier audio");
-      return;
-    }
 
-    const formData = new FormData();
-    formData.append("audio", audioFile);
-    if (speaker.trim()) formData.append("speaker", speaker.trim());
-    if (transcriptTxt.trim()) formData.append("transcriptTxt", transcriptTxt.trim());
-
-    createMutation.mutate(formData);
-  }, [audioFile, speaker, transcriptTxt, createMutation]);
 
   const handleBulkUpload = useCallback(() => {
     if (!zipFile) {
@@ -303,24 +289,48 @@ export function AdminMessagesPage() {
     bulkMutation.mutate(formData);
   }, [zipFile, bulkMutation]);
 
-  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setAudioFile(file);
-  };
+
 
   const handleZipFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setZipFile(file);
   };
 
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.includes('audio') || 
+      ['.mp3', '.wav', '.m4a'].some(ext => file.name.toLowerCase().endsWith(ext))
+    );
+
+    if (files.length > 0) {
+      setSelectedFiles(prev => [...prev, ...files]);
+      const statuses = { ...uploadStatuses };
+      files.forEach(file => { statuses[file.name] = "pending"; });
+      setUploadStatuses(statuses);
+    }
+  };
+
   // Handle multiple files selection
   const handleMultipleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-
-    setSelectedFiles(files);
+    setSelectedFiles(prev => [...prev, ...files]);
 
     // Initialize statuses
-    const statuses: Record<string, "pending"> = {};
+    const statuses = { ...uploadStatuses };
     files.forEach((file) => {
       statuses[file.name] = "pending";
     });
@@ -329,8 +339,11 @@ export function AdminMessagesPage() {
 
   // Handle multiple files upload
   const handleUploadMultiple = async () => {
-    const CONCURRENT_UPLOADS = 5; // 5 uploads simultaneously
-    setUploadProgress({ completed: 0, total: selectedFiles.length });
+    const filesToUpload = selectedFiles.filter(f => uploadStatuses[f.name] === "pending" || uploadStatuses[f.name] === "error");
+    if (filesToUpload.length === 0) return;
+
+    const CONCURRENT_UPLOADS = 5;
+    setUploadProgress({ completed: 0, total: filesToUpload.length });
 
     const uploadFile = async (file: File) => {
       try {
@@ -339,8 +352,8 @@ export function AdminMessagesPage() {
         const formData = new FormData();
         formData.append("audio", file);
         formData.append("filename", file.name);
-        formData.append("speaker", ""); // Will be filled by Google
-        formData.append("transcriptTxt", ""); // Will be filled by Google
+        formData.append("speaker", ""); 
+        formData.append("transcriptTxt", ""); 
 
         await createMessage(projectId!, formData);
 
@@ -353,21 +366,25 @@ export function AdminMessagesPage() {
       }
     };
 
-    // Upload by batch of 5
-    for (let i = 0; i < selectedFiles.length; i += CONCURRENT_UPLOADS) {
-      const batch = selectedFiles.slice(i, i + CONCURRENT_UPLOADS);
+    for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
+      const batch = filesToUpload.slice(i, i + CONCURRENT_UPLOADS);
       await Promise.all(batch.map(uploadFile));
     }
 
-    // Refresh the messages list
     queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
-
-    toast.success(`${uploadProgress.completed} fichiers uploades avec succes`);
-
-    // Reset
-    setSelectedFiles([]);
-    setUploadStatuses({});
+    toast.success("Upload des fichiers terminé");
+    
+    // Clear only successful uploads
+    setSelectedFiles(prev => prev.filter(f => uploadStatuses[f.name] !== "success"));
     if (multipleInputRef.current) multipleInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    const fileToRemove = selectedFiles[index];
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    const newStatuses = { ...uploadStatuses };
+    delete newStatuses[fileToRemove.name];
+    setUploadStatuses(newStatuses);
   };
 
   const formatDuration = (seconds: number | null): string => {
@@ -410,195 +427,219 @@ export function AdminMessagesPage() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader 
-        title="Gestion des Verbatims"
-        description="Administration et import des données audio pour ce projet"
+        title="Verbatimothèque"
+        description={project?.title}
         icon={<AudioLines className="h-6 w-6" />}
-        actions={
-          <Button
-            variant="outline"
-            size="action"
-            onClick={() => navigate(`/projects/${projectId}/admin`)}
-            className="border-primary/10 text-primary hover:bg-primary/5"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
-          </Button>
-        }
       />
 
-      <div className="grid gap-12 md:grid-cols-2 mt-12">
-        {/* Individual upload */}
-        <Card className="border-white/5 shadow-sm rounded-[2rem] overflow-hidden">
-          <CardHeader className="px-8 py-6 bg-muted/20 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg font-extrabold font-heading">Import individuel</CardTitle>
-            </div>
-            <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-80">
-              Format MP3, WAV ou M4A
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Fichier audio *</Label>
-              <Input
-                ref={audioInputRef}
-                type="file"
-                accept=".mp3,.wav,.m4a"
-                onChange={handleAudioFileChange}
-                className="bg-muted/30 border-white/5 rounded-xl h-11"
-              />
-              {audioFile && (
-                <p className="text-[10px] font-bold text-primary mt-1">
-                  {audioFile.name} ({(audioFile.size / 1024 / 1024).toFixed(2)} Mo)
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Intervenant</Label>
-              <Input
-                placeholder="Nom de l'intervenant"
-                value={speaker}
-                onChange={(e) => setSpeaker(e.target.value)}
-                className="bg-muted/30 border-white/5 rounded-xl h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Transcription</Label>
-              <Textarea
-                placeholder="Transcription du message (optionnel)"
-                value={transcriptTxt}
-                onChange={(e) => setTranscriptTxt(e.target.value)}
-                rows={3}
-                className="bg-muted/30 border-white/5 rounded-xl"
-              />
-            </div>
-
-            <Button
-              onClick={handleIndividualUpload}
-              disabled={!audioFile || createMutation.isPending}
-              size="action"
-              className="w-full shadow-lg shadow-primary/20"
-            >
-              {createMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              Importer le message
-            </Button>
-          </CardContent>
-        </Card>
-
+      <div className="max-w-4xl mx-auto mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Multiple files upload */}
-        <Card className="border-white/5 shadow-sm rounded-[2rem] overflow-hidden">
-          <CardHeader className="px-8 py-6 bg-muted/20 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <FileArchive className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg font-extrabold font-heading">Import Multiple</CardTitle>
-            </div>
-            <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-80">
-              Fichiers audio illimités
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Fichiers audio (illimité)</Label>
-              <Input
-                ref={multipleInputRef}
-                type="file"
-                accept="audio/mp3,audio/wav,audio/m4a,audio/mpeg"
-                multiple
-                onChange={handleMultipleFilesSelect}
-                className="bg-muted/30 border-white/5 rounded-xl h-11"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Sélectionnez autant de fichiers MP3, WAV ou M4A que nécessaire
-              </p>
-            </div>
-
-            {selectedFiles.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">
-                    {selectedFiles.length} fichier(s) sélectionné(s)
-                  </p>
+        <div className="lg:col-span-12">
+          <Card className="premium-card group">
+            <CardHeader className="px-10 py-8 bg-muted/10 border-b border-input">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <FileArchive className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black font-heading tracking-tight text-foreground">Administration</p>
+                    <CardDescription className="label-uppercase mt-1">
+                      Import multiple • {selectedFiles.length} fichiers sélectionnés
+                    </CardDescription>
+                  </div>
+                </div>
+                {selectedFiles.length > 0 && (
                   <Button
                     onClick={handleUploadMultiple}
                     disabled={uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total}
-                    size="sm"
+                    size="premium"
+                    className="premium-gradient shadow-lg shadow-primary/20"
                   >
                     {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Upload en cours... {uploadProgress.completed}/{uploadProgress.total}
+                        <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                        Traitement en cours...
                       </>
                     ) : (
                       <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Uploader tous les fichiers
+                        <Upload className="h-3.5 w-3.5 mr-2" />
+                        Uploader tout
                       </>
                     )}
                   </Button>
-                </div>
-
-                {/* File list with status */}
-                <div className="max-h-60 overflow-y-auto border rounded-xl p-2 bg-muted/20">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between py-1.5 px-2 hover:bg-muted/30 rounded">
-                      <div className="flex items-center gap-2 flex-1 truncate">
-                        <FileAudio className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm truncate">{file.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                        </span>
-                      </div>
-                      {uploadStatuses[file.name] === "uploading" && (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                      )}
-                      {uploadStatuses[file.name] === "success" && (
-                        <Check className="h-4 w-4 text-green-500" />
-                      )}
-                      {uploadStatuses[file.name] === "error" && (
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Global progress bar */}
-                {uploadProgress.total > 0 && (
-                  <div className="space-y-1">
-                    <Progress value={(uploadProgress.completed / uploadProgress.total) * 100} />
-                    <p className="text-xs text-center text-muted-foreground">
-                      {uploadProgress.completed} / {uploadProgress.total} fichiers uploadés
-                    </p>
-                  </div>
                 )}
               </div>
-            )}
+            </CardHeader>
+            <CardContent className="p-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div 
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={cn(
+                      "relative group flex flex-col items-center justify-center py-16 border-2 border-dashed rounded-[2rem] transition-all duration-500 cursor-pointer overflow-hidden",
+                      isDragging 
+                        ? "border-primary bg-primary/[0.03] scale-[0.99]" 
+                        : "border-input hover:border-primary/40 hover:bg-muted/30"
+                    )}
+                    onClick={() => multipleInputRef.current?.click()}
+                  >
+                    <input
+                      ref={multipleInputRef}
+                      type="file"
+                      accept="audio/mp3,audio/wav,audio/m4a,audio/mpeg"
+                      multiple
+                      onChange={handleMultipleFilesSelect}
+                      className="hidden"
+                    />
+                    
+                    <div className={cn(
+                      "w-16 h-16 rounded-3xl flex items-center justify-center mb-6 transition-all duration-500",
+                      isDragging ? "bg-primary text-white scale-110 rotate-12" : "bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                    )}>
+                      <Upload className="h-8 w-8" />
+                    </div>
+                    
+                    <div className="text-center space-y-2 px-6">
+                      <p className="font-black text-xs uppercase tracking-widest text-foreground">
+                        Glissez-déposez vos audios
+                      </p>
+                      <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest leading-relaxed">
+                        ou cliquez pour parcourir vos fichiers
+                      </p>
+                    </div>
 
-            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
-              <p className="text-xs font-bold text-primary/80 leading-relaxed">
-                <span className="block mb-2 opacity-60 uppercase tracking-widest text-[9px]">Traitement automatique :</span>
-                Les fichiers seront automatiquement traités par Google Cloud :
-                <br/>• Transcription automatique
-                <br/>• Détection du ton (positif/négatif/neutre)
-                <br/>• Identification des intervenants (Speaker 0, Speaker 1, etc.)
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                    {isDragging && (
+                      <div className="absolute inset-0 bg-primary/5 animate-pulse" />
+                    )}
+                  </div>
+
+                  <div className="bg-white/50 backdrop-blur-md rounded-[2rem] p-8 border border-input space-y-6 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <RotateCw className="h-4 w-4" />
+                      </div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/80">Intelligence Artificielle</h4>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <FeatureItem 
+                        icon={<FileAudio className="h-4 w-4" />} 
+                        label="Transcription Automatique" 
+                        desc="Conversion audio vers texte haute fidélité via Google Cloud"
+                      />
+                      <FeatureItem 
+                        icon={<Clock className="h-4 w-4" />} 
+                        label="Segmentation Speakers" 
+                        desc="Identification des différents intervenants dans l'échange"
+                      />
+                      <FeatureItem 
+                        icon={<Check className="h-4 w-4" />} 
+                        label="Analyse de Ton" 
+                        desc="Détection automatique des sentiments (Positif / Négatif)"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col h-full min-h-[400px]">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                      File d'attente
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-3 py-1 rounded-full">
+                      {selectedFiles.length} Fichiers
+                    </span>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto max-h-[500px] pr-2 space-y-3 custom-scrollbar">
+                    {selectedFiles.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-8 border border-dashed border-input rounded-[2rem] bg-muted/5">
+                        <div className="w-12 h-12 rounded-2xl bg-muted/20 flex items-center justify-center text-muted-foreground/40 mb-4">
+                          <AudioLines className="h-6 w-6" />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">
+                          Aucun fichier prêt pour l'envoi
+                        </p>
+                      </div>
+                    ) : (
+                      selectedFiles.map((file, index) => (
+                        <div key={`${file.name}-${index}`} className="group relative bg-white/40 hover:bg-white/80 border border-input hover:border-primary/20 p-4 rounded-2xl transition-all duration-300">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={cn(
+                                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                uploadStatuses[file.name] === "success" ? "bg-green-500/10 text-green-600" :
+                                uploadStatuses[file.name] === "error" ? "bg-red-500/10 text-red-600" :
+                                "bg-muted/50 text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary"
+                              )}>
+                                {uploadStatuses[file.name] === "uploading" ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : uploadStatuses[file.name] === "success" ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <FileAudio className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-foreground truncate">{file.name}</p>
+                                <p className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-0.5">
+                                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {uploadStatuses[file.name] === "pending" && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeFile(index)}
+                                  className="h-8 w-8 rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {uploadStatuses[file.name] === "error" && (
+                                <AlertCircle className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          {uploadStatuses[file.name] === "uploading" && (
+                            <div className="absolute bottom-0 left-0 h-1 bg-primary/20 rounded-full animate-pulse" />
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total && (
+                    <div className="mt-6 pt-4 border-t border-input">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Upload global</span>
+                        <span className="text-[10px] font-black text-primary">{Math.round((uploadProgress.completed / uploadProgress.total) * 100)}%</span>
+                      </div>
+                      <Progress value={(uploadProgress.completed / uploadProgress.total) * 100} className="h-1.5" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      <Separator />
+      <Separator className="my-24 opacity-50" />
 
       {/* Messages list */}
       <div className="mt-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h3 className="text-2xl font-black font-heading">
-              Verbatimothèque
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary/40">
+              Liste des messages
             </h3>
             <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
               {messagesQuery.data?.total || 0} messages importés au total
@@ -674,26 +715,26 @@ export function AdminMessagesPage() {
         ) : (
           <>
             {/* Table */}
-            <div className="rounded-[2rem] border border-white/5 overflow-hidden shadow-sm bg-card backdrop-blur-sm">
+            <div className="rounded-[2rem] border border-input overflow-hidden shadow-sm bg-card backdrop-blur-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-muted/30 border-b border-white/5">
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 w-16">Audio</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Fichier</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Statut</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Intervenant</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Durée</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Tonalité</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Charge Émotionnelle</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Themes</th>
-                      <th className="text-right py-6 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Actions</th>
+                    <tr className="bg-muted/10 border-b border-input">
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60 w-16">Audio</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Fichier</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Statut</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Intervenant</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Durée</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Tonalité</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Charge</th>
+                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Thèmes</th>
+                      <th className="text-right py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-input">
                     {messages.map((msg) => (
-                      <tr key={msg.id} className="group hover:bg-primary/[0.02] transition-colors">
-                        <td className="py-4 px-4">
+                      <tr key={msg.id} className="group hover:bg-muted/30 transition-all duration-300">
+                        <td className="py-5 px-4">
                           <Button
                             variant="ghost"
                             size="icon"
