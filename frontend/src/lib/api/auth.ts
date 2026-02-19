@@ -37,3 +37,17 @@ export async function getMe(): Promise<User> {
   const response = await apiClient.get<User>('/auth/me');
   return response.data;
 }
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const response = await apiClient.post<{ message: string }>('/auth/forgot-password', { email });
+  return response.data;
+}
+
+export async function resetPassword(data: {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Promise<{ message: string }> {
+  const response = await apiClient.post<{ message: string }>('/auth/reset-password', data);
+  return response.data;
+}

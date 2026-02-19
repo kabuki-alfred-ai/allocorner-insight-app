@@ -17,8 +17,8 @@ export function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-white">
-        <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center px-6 sticky top-0 z-30 transition-all duration-300 shrink-0">
+      <SidebarInset className="bg-gradient-soft">
+        <header className="glass-header h-16 flex items-center px-6 transition-all duration-300 shrink-0">
           <SidebarTrigger className="mr-4" />
           
           <div id="header-title" className="flex-1 min-w-0" />

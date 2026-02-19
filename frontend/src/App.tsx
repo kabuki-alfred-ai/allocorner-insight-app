@@ -8,6 +8,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import AcceptInvitationPage from "./pages/AcceptInvitationPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProjectListPage from "./pages/ProjectListPage";
 import Dashboard from "./pages/Dashboard";
 import Verbatims from "./pages/Verbatims";
@@ -31,6 +33,7 @@ import AdminInvitationsPage from "./pages/admin/AdminInvitationsPage";
 import AdminObjectivesPage from "./pages/admin/AdminObjectivesPage";
 import AdminIrcBreakdownPage from "./pages/admin/AdminIrcBreakdownPage";
 import AdminStrategicActionsPage from "./pages/admin/AdminStrategicActionsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +48,8 @@ const App = () => (
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
@@ -62,6 +67,11 @@ const App = () => (
                 <Route path="emotions" element={<EmotionsPage />} />
                 <Route path="recommandations" element={<RecommandationsPage />} />
                 <Route path="ressources" element={<RessourcesPage />} />
+              </Route>
+
+              {/* Profile route */}
+              <Route path="/profile" element={<Layout />}>
+                <Route index element={<ProfilePage />} />
               </Route>
 
               {/* Admin routes */}

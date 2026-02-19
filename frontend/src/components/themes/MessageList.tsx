@@ -53,32 +53,22 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
   }, [themeMessages, searchTerm, showPositiveOnly, showNegativeOnly]);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-4 duration-700">
-      {/* Sticky Header & Filters */}
-      <div className="sticky top-0 bg-white z-20 pb-6 space-y-8">
-        {/* Header */}
-        <div className="px-2 pt-2">
-          <h3 className="label-uppercase mb-0.5">Témoignages</h3>
-          <p className="text-sm font-black text-foreground">
-            {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''} indexé{filteredMessages.length > 1 ? 's' : ''}
-          </p>
+    <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
+      {/* Header & Filters in a single premium row */}
+      <div className="adl-card p-4 flex flex-col xl:flex-row items-center gap-4">
+        <div className="flex-1 relative w-full">
+          <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-muted-foreground/40 w-4 h-4" />
+          <Input
+            placeholder="Rechercher dans les témoignages..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-12 h-14 border-none bg-black/[0.04] hover:bg-black/[0.06] rounded-full text-sm font-bold placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all w-full"
+          />
         </div>
 
-        {/* Filters */}
-        <Card className="premium-card p-6 space-y-6">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/30 w-3.5 h-3.5" />
-            <Input
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-10 border-none bg-black/[0.03] rounded-xl text-sm font-medium placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-6 px-1">
-            <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-4 w-full xl:w-auto">
+          <div className="flex items-center gap-6 px-5 py-2 bg-black/[0.02] rounded-full h-14 border border-black/[0.03] flex-1 xl:flex-none justify-center">
+            <div className="flex items-center gap-3">
               <Switch
                 id="positive-only"
                 checked={showPositiveOnly}
@@ -86,14 +76,16 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
                   setShowPositiveOnly(checked);
                   if (checked) setShowNegativeOnly(false);
                 }}
-                className="data-[state=checked]:bg-primary"
+                className="data-[state=checked]:bg-chart-positive"
               />
-              <Label htmlFor="positive-only" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 cursor-pointer">
+              <Label htmlFor="positive-only" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 cursor-pointer">
                 Positifs
               </Label>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="w-[1px] h-6 bg-black/[0.05]" />
+
+            <div className="flex items-center gap-3">
               <Switch
                 id="negative-only"
                 checked={showNegativeOnly}
@@ -101,9 +93,9 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
                   setShowNegativeOnly(checked);
                   if (checked) setShowPositiveOnly(false);
                 }}
-                className="data-[state=checked]:bg-primary"
+                className="data-[state=checked]:bg-chart-negative"
               />
-              <Label htmlFor="negative-only" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 cursor-pointer">
+              <Label htmlFor="negative-only" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 cursor-pointer">
                 Négatifs
               </Label>
             </div>
@@ -112,26 +104,38 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
           {(searchTerm || showPositiveOnly || showNegativeOnly) && (
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => {
                 setSearchTerm("");
                 setShowPositiveOnly(false);
                 setShowNegativeOnly(false);
               }}
-              className="w-full h-8 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 transition-all"
+              className="h-14 px-8 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all w-full xl:w-auto"
             >
               Réinitialiser
             </Button>
           )}
-        </Card>
+        </div>
       </div>
 
-      {/* Messages - Scrollable content */}
-      <div className="space-y-6 pt-2">
+      <div className="flex items-center justify-between px-2 pt-4">
+        <h3 className="text-2xl font-black tracking-tighter">
+          Témoignages associés
+        </h3>
+        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/5 text-primary border-none px-4 py-1.5 rounded-full">
+          {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''}
+        </Badge>
+      </div>
+
+      {/* Messages List - Grid for desktop */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {filteredMessages.length === 0 ? (
-          <div className="premium-card p-12 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-              Aucun résultat
+          <div className="col-span-full adl-card-flat py-20 text-center flex flex-col items-center justify-center">
+             <div className="p-5 bg-black/[0.02] rounded-full mb-6 relative">
+               <Filter className="h-6 w-6 text-muted-foreground/30 relative z-10" />
+               <div className="absolute inset-0 bg-primary/5 rounded-full scale-150 blur-xl"></div>
+             </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+              Aucun résultat pour ces filtres
             </p>
           </div>
         ) : (

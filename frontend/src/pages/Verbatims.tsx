@@ -64,43 +64,37 @@ export default function Verbatims() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+    <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-24">
       <PageHeader 
         title="Verbatims"
         description={project?.title}
         badge={`${filteredMessages.length} messages`}
         icon={<AudioLines className="h-5 w-5" />}
-        actions={
-          <Button variant="outline" size="premium" className="border-black/5 bg-white shadow-sm hover:bg-muted/50 transition-all">
-            <Download className="h-3.5 w-3.5 mr-2 opacity-60" />
-            Exporter
-          </Button>
-        }
       />
 
-      <div className="space-y-12">
+      <div className="space-y-16">
 
         {/* Filters - Seamless premium row */}
-        <div className="premium-card p-3 flex flex-col md:flex-row gap-2 items-center">
+        <div className="adl-card p-4 flex flex-col lg:flex-row gap-3 items-center">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-foreground/30" />
+            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-foreground/30" />
             <Input
               placeholder="Rechercher par mot-clé..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-11 border-none bg-black/[0.03] focus-visible:ring-1 focus-visible:ring-primary/10 text-sm font-bold placeholder:text-foreground/30 rounded-[1.25rem] transition-all"
+              className="pl-12 h-14 border-none bg-black/[0.04] focus-visible:ring-1 focus-visible:ring-primary/10 text-sm font-bold placeholder:text-foreground/20 rounded-full transition-all"
             />
           </div>
           
-          <div className="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full lg:w-auto">
             <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-              <SelectTrigger className="h-11 w-full md:w-[180px] border-none bg-black/[0.03] hover:bg-black/[0.05] transition-all rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.15em] px-5">
+              <SelectTrigger className="h-14 w-full md:w-[220px] border-none bg-black/[0.04] hover:bg-black/[0.06] transition-all rounded-full text-[10px] font-black uppercase tracking-[0.2em] px-8">
                 <SelectValue placeholder="Thème" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-black/5 shadow-elevated">
-                <SelectItem value="all" className="label-uppercase !text-muted-foreground/40">Tous les thèmes</SelectItem>
+              <SelectContent className="rounded-[1.5rem] border-none bg-white/90 backdrop-blur-2xl">
+                <SelectItem value="all" className="label-uppercase !text-primary/50">Tous les thèmes</SelectItem>
                 {themes.map(theme => (
-                  <SelectItem key={theme.id} value={theme.name} className="text-xs font-bold">
+                  <SelectItem key={theme.id} value={theme.name} className="text-[11px] font-black uppercase tracking-widest py-3">
                     {theme.name}
                   </SelectItem>
                 ))}
@@ -108,13 +102,13 @@ export default function Verbatims() {
             </Select>
 
             <Select value={selectedEmotion} onValueChange={setSelectedEmotion}>
-              <SelectTrigger className="h-11 w-full md:w-[180px] border-none bg-black/[0.03] hover:bg-black/[0.05] transition-all rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.15em] px-5">
+              <SelectTrigger className="h-14 w-full md:w-[220px] border-none bg-black/[0.04] hover:bg-black/[0.06] transition-all rounded-full text-[10px] font-black uppercase tracking-[0.2em] px-8">
                 <SelectValue placeholder="Émotion" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-black/5 shadow-elevated">
-                <SelectItem value="all" className="label-uppercase !text-muted-foreground/40">Toutes les émotions</SelectItem>
+              <SelectContent className="rounded-[1.5rem] border-none bg-white/90 backdrop-blur-2xl">
+                <SelectItem value="all" className="label-uppercase !text-primary/50">Toutes les émotions</SelectItem>
                 {allEmotions.map(emotion => (
-                  <SelectItem key={emotion} value={emotion} className="text-xs font-bold">
+                  <SelectItem key={emotion} value={emotion} className="text-[11px] font-black uppercase tracking-widest py-3">
                     {emotion}
                   </SelectItem>
                 ))}
@@ -126,32 +120,34 @@ export default function Verbatims() {
                 variant="ghost" 
                 size="premium"
                 onClick={clearFilters}
-                className="h-11 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 transition-all"
+                className="h-14 px-8 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all"
               >
-                Reset
+                Réinitialiser
               </Button>
             )}
           </div>
         </div>
 
         {/* Results */}
-        <div className="space-y-6">
-          <div className="px-2 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Résultats</h3>
-              <p className="text-sm font-bold text-foreground">
-                {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''} trouvé{filteredMessages.length > 1 ? 's' : ''}
+        <div className="space-y-8">
+          <div className="px-6 flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="label-uppercase">Bibliothèque</h3>
+              <p className="text-2xl font-black text-foreground tracking-tighter">
+                {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''} identifié{filteredMessages.length > 1 ? 's' : ''}
               </p>
             </div>
           </div>
 
           {filteredMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-black/[0.01] rounded-[2.5rem] border border-dashed border-black/10">
-              <AudioLines className="h-10 w-10 text-black/10 mb-4" />
-              <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Aucun message trouvé</p>
+            <div className="adl-card-flat py-32 flex flex-col items-center justify-center mx-2">
+              <div className="p-6 bg-gradient-soft rounded-[2rem] mb-6">
+                <AudioLines className="h-8 w-8 text-primary/20" />
+              </div>
+              <p className="text-xs font-black text-muted-foreground/30 uppercase tracking-[0.3em]">Aucun message trouvé pour ces critères</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 px-2">
               {filteredMessages.map((message) => (
                 <AudioPlayer key={message.id} message={message} projectId={projectId!} />
               ))}

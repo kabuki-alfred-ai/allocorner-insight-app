@@ -55,12 +55,12 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
 
 function priorityBadge(priority: Priority) {
   const map: Record<Priority, string> = {
-    HAUTE: "bg-red-500/10 text-red-500 border-none",
-    MOYENNE: "bg-amber-500/10 text-amber-500 border-none",
-    BASSE: "bg-emerald-500/10 text-emerald-500 border-none",
+    HAUTE: "text-chart-negative bg-chart-negative/5",
+    MOYENNE: "text-chart-neutral bg-chart-neutral/5",
+    BASSE: "text-chart-positive bg-chart-positive/5",
   };
   return (
-    <Badge variant="outline" className={cn("text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest", map[priority])}>
+    <Badge variant="outline" className={cn("text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border-none", map[priority])}>
       {priority}
     </Badge>
   );
@@ -206,7 +206,7 @@ export function AdminRecommendationsPage() {
         }
       />
 
-      <div className="mt-12 space-y-6">
+      <div className="mt-8 space-y-4">
 
       {/* Loading skeleton */}
       {isLoading && (
@@ -245,56 +245,53 @@ export function AdminRecommendationsPage() {
 
       {/* List */}
       {!isLoading && sorted.length > 0 && (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-3">
           {sorted.map((rec, index) => (
-            <Card key={rec.id} className="group overflow-hidden premium-border bg-card/50 backdrop-blur-sm rounded-[2rem] hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
+            <div key={rec.id} className="adl-card p-4 group relative overflow-hidden flex items-center justify-between gap-4">
               <div className={cn(
-                "absolute top-0 left-0 w-1.5 h-full",
-                rec.priority === "HAUTE" ? "bg-red-500" :
-                rec.priority === "MOYENNE" ? "bg-amber-500" :
-                "bg-emerald-500"
+                "absolute top-0 left-0 w-1 h-full opacity-60",
+                rec.priority === "HAUTE" ? "bg-chart-negative" :
+                rec.priority === "MOYENNE" ? "bg-chart-neutral" :
+                "bg-chart-positive"
               )} />
-              <CardContent className="p-8 flex items-start justify-between gap-8">
-                <div className="flex items-start gap-8 flex-1 min-w-0">
-                  <div className="w-14 h-14 rounded-[1.25rem] bg-muted/30 flex items-center justify-center text-foreground font-black text-lg shrink-0 border border-input shadow-inner group-hover:scale-110 transition-all duration-500">
-                    {index + 1}
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-3 pt-1">
-                    <div className="flex items-center gap-4">
-                      <h3 className="text-xl font-black font-heading text-foreground tracking-tight">{rec.title}</h3>
-                      {priorityBadge(rec.priority)}
-                    </div>
-                    {rec.objective && (
-                      <div className="relative">
-                        <span className="absolute -left-4 top-0 w-1 h-full bg-primary/10 rounded-full" />
-                        <p className="text-sm font-bold text-muted-foreground/70 leading-relaxed italic">
-                          {rec.objective}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+              
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-black/[0.03] flex items-center justify-center text-foreground font-black text-xs shrink-0 group-hover:bg-primary/10 transition-colors">
+                  {index + 1}
                 </div>
-                <div className="flex items-center gap-2 pt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-4 group-hover:translate-x-0">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-11 w-11 rounded-xl bg-white text-black shadow-lg hover:scale-110 transition-all duration-300"
-                    onClick={() => openEditDialog(rec)}
-                  >
-                    <Pencil className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
-                    onClick={() => deleteMutation.mutate(rec.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-black text-foreground tracking-tight truncate">{rec.title}</h3>
+                    {priorityBadge(rec.priority)}
+                  </div>
+                  {rec.objective && (
+                    <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed truncate max-w-2xl mt-0.5 italic">
+                      {rec.objective}
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg text-foreground/40 hover:text-foreground hover:bg-black/[0.04] transition-all"
+                  onClick={() => openEditDialog(rec)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg text-destructive/40 hover:text-destructive hover:bg-destructive/5 transition-all"
+                  onClick={() => deleteMutation.mutate(rec.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}

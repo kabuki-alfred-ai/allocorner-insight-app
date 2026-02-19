@@ -91,6 +91,7 @@ export default {
 			fontFamily: {
 				heading: ['var(--font-heading)'],
 				sans: ['var(--font-body)'],
+				mono: ['var(--font-mono)'],
 			},
 			keyframes: {
 				'accordion-down': {

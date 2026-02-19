@@ -82,3 +82,6 @@ export type {
 // Storage
 export { getAudioUrl, getLogoUrl } from './storage';
 export type { SignedUrlResponse } from './storage';
+
+// Users
+export { updateProfile, updatePassword } from './users';

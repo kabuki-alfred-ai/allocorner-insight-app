@@ -110,10 +110,10 @@ export default function Themes() {
       />
 
       <div className="space-y-12">
-        <div className="grid gap-16 lg:grid-cols-12">
-          {/* Left column - Theme selector */}
-          <aside className="lg:col-span-3">
-            <div className="sticky top-24">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
+          {/* Left Sidebar - Theme selector */}
+          <aside className="lg:col-span-4 xl:col-span-3">
+            <div className="sticky top-24 h-[calc(100vh-140px)] flex flex-col">
               <ThemeSelector
                 themes={themesList}
                 selectedTheme={selectedTheme}
@@ -123,26 +123,23 @@ export default function Themes() {
             </div>
           </aside>
 
-          {/* Center column - Theme synthesis */}
-          <section className="lg:col-span-5">
-            <div className="sticky top-24">
-              {selectedTheme && <ThemeSynthesis theme={selectedTheme} projectId={projectId!} />}
-            </div>
-          </section>
-
-          {/* Right column - Messages list */}
-          <section className="lg:col-span-4">
-            <div className="sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar pr-4">
-              {selectedTheme && (
-                <MessageList
-                  theme={selectedTheme}
-                  onThemeSelect={setSelectedTheme}
-                  messages={allMessages}
-                  allThemes={themesList}
-                  projectId={projectId!}
-                />
-              )}
-            </div>
+          {/* Right Content */}
+          <section className="lg:col-span-8 xl:col-span-9 space-y-16 pt-2">
+            {selectedTheme && (
+              <>
+                <ThemeSynthesis theme={selectedTheme} projectId={projectId!} />
+                
+                <div className="pt-12 border-t border-black/[0.05]">
+                  <MessageList
+                    theme={selectedTheme}
+                    onThemeSelect={setSelectedTheme}
+                    messages={allMessages}
+                    allThemes={themesList}
+                    projectId={projectId!}
+                  />
+                </div>
+              </>
+            )}
           </section>
         </div>
       </div>

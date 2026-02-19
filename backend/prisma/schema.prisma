@@ -13,8 +13,10 @@ model User {
   passwordHash    String          @map("password_hash")
   name            String
   role            Role            @default(MEMBER)
-  refreshToken    String?         @map("refresh_token")
-  createdAt       DateTime        @default(now()) @map("created_at")
+  refreshToken           String?         @map("refresh_token")
+  passwordResetToken     String?         @unique @map("password_reset_token")
+  passwordResetExpiresAt DateTime?       @map("password_reset_expires_at")
+  createdAt              DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
   invitedMembers  ProjectMember[] @relation("MemberInviter")
   projectMembers  ProjectMember[] @relation("MemberUser")

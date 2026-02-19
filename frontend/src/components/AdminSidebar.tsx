@@ -12,7 +12,8 @@ import {
   LogOut,
   ChevronRight,
   PlusCircle,
-  Briefcase
+  Briefcase,
+  UserCog,
 } from "lucide-react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
@@ -167,20 +168,36 @@ export function AdminSidebar() {
           {/* Sidebar Footer / User Section Compacted */}
           <div className={`p-4 mt-auto border-t border-white/5 ${collapsed ? 'items-center' : ''} flex flex-col gap-3`}>
             {!collapsed && user && (
-              <div className="px-1 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shadow-sm shadow-primary/20">
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `px-1 flex items-center gap-2.5 rounded-xl p-2 transition-all cursor-pointer hover:bg-white/5 ${isActive ? 'bg-primary/5' : ''}`
+                }
+              >
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shadow-sm shadow-primary/20 flex-shrink-0">
                   {user.name.charAt(0)}
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-xs font-bold text-sidebar-foreground truncate">{user.name}</span>
                   <span className="text-[9px] font-bold text-sidebar-foreground/80 uppercase tracking-wider truncate">
                     {user.role}
                   </span>
                 </div>
-              </div>
+                <UserCog className="h-3.5 w-3.5 text-sidebar-foreground/40 flex-shrink-0" />
+              </NavLink>
             )}
-            <Button 
-              variant="ghost" 
+            {collapsed && user && (
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 mx-auto transition-all ${isActive ? 'ring-2 ring-primary/40' : ''}`
+                }
+              >
+                {user.name.charAt(0)}
+              </NavLink>
+            )}
+            <Button
+              variant="ghost"
               onClick={() => logout()}
               className={`w-full h-8 justify-start text-sidebar-foreground/90 hover:text-destructive hover:bg-destructive/10 font-bold rounded-lg transition-all duration-300 text-xs ${collapsed ? 'px-0 justify-center' : 'px-3'}`}
             >

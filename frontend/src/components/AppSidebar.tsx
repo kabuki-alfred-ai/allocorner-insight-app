@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Building2,
   ChevronDown,
-  ShieldCheck
+  ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
@@ -77,17 +78,17 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? "bg-primary/10 text-primary font-black shadow-[0_0_20px_rgba(255,100,0,0.1)] translate-x-1"
-      : "hover:bg-white/10 text-sidebar-foreground/80 hover:text-sidebar-foreground font-bold";
+      ? "bg-primary/10 text-primary font-black translate-x-1 border-l-2 border-primary"
+      : "hover:bg-white/10 text-sidebar-foreground/80 hover:text-sidebar-foreground font-bold border-l-2 border-transparent";
 
   return (
-    <Sidebar className="z-[100] border-r border-white/5" collapsible="icon">
+    <Sidebar className="z-[100] border-none" collapsible="icon">
       <SidebarContent className="bg-sidebar-background border-none">
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full uppercase">
           {/* Sidebar Logo Header - Compacted */}
           <NavLink 
             to={user?.role === "SUPERADMIN" ? "/admin" : "/projects"} 
-            className="px-4 py-4 mb-0 flex items-center justify-center border-b border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all"
+            className="px-4 py-4 mb-0 flex items-center justify-center bg-white/[0.02] hover:bg-white/[0.04] transition-all"
           >
             <img 
               src="https://www.allocorner.fr/wp-content/uploads/2024/01/Logo-Allo-Corner-4.png" 
@@ -99,11 +100,11 @@ export function AppSidebar() {
           {/* Project Logo */}
           {hasProject && currentProjectDetails?.logoKey && (
             <div className={cn(
-              "border-b border-white/5 flex justify-center transition-all",
+              "flex justify-center transition-all",
               collapsed ? "px-2 py-3" : "px-6 py-4"
             )}>
               <div className={cn(
-                "rounded-xl bg-white p-2 shadow-sm transition-all",
+                "rounded-xl bg-white p-2 transition-all",
                 collapsed ? "w-10 h-10" : "w-16 h-16"
               )}>
                 <img
@@ -120,7 +121,7 @@ export function AppSidebar() {
 
           {/* Project Selector */}
           {!collapsed && (
-            <div className="px-3 py-3 border-b border-white/5">
+            <div className="px-3 py-3">
               {isLoading ? (
                 <Skeleton className="h-8 w-full rounded-lg" />
               ) : (
@@ -192,7 +193,7 @@ export function AppSidebar() {
                           {({ isActive }) => (
                             <>
                               {isActive && (
-                                <div className="absolute left-0 w-1.5 h-6 bg-primary rounded-r-full shadow-[0_0_10px_rgba(255,100,0,0.5)]" />
+                                <div className="absolute left-0 w-1.5 h-6 bg-primary rounded-r-full" />
                               )}
                               <item.icon className={`h-4 w-4 flex-shrink-0 transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                               {!collapsed && (
@@ -223,7 +224,7 @@ export function AppSidebar() {
                       className={({ isActive }) => `
                         flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-500
                         ${isActive 
-                          ? "bg-primary text-primary-foreground font-black shadow-lg shadow-primary/20" 
+                          ? "bg-primary text-primary-foreground font-black" 
                           : "bg-primary/5 text-primary hover:bg-primary/10 font-bold"}
                       `}
                     >
@@ -251,22 +252,38 @@ export function AppSidebar() {
           )}
 
           {/* Sidebar Footer / User Section */}
-          <div className={`p-4 mt-auto border-t border-white/5 ${collapsed ? 'items-center' : ''} flex flex-col gap-3`}>
+          <div className={`p-4 mt-auto ${collapsed ? 'items-center' : ''} flex flex-col gap-3`}>
             {!collapsed && user && (
-              <div className="px-1 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shadow-sm shadow-primary/20">
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `px-1 flex items-center gap-2.5 rounded-xl p-2 transition-all cursor-pointer hover:bg-white/10 ${isActive ? 'bg-primary/10' : ''}`
+                }
+              >
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
                   {user.name.charAt(0)}
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-xs font-bold text-sidebar-foreground truncate">{user.name}</span>
                   <span className="text-[9px] font-bold text-sidebar-foreground/80 uppercase tracking-wider truncate">
                     {user.role}
                   </span>
                 </div>
-              </div>
+                <UserCog className="h-3.5 w-3.5 text-sidebar-foreground/40 flex-shrink-0" />
+              </NavLink>
             )}
-            <Button 
-              variant="ghost" 
+            {collapsed && user && (
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold mx-auto transition-all ${isActive ? 'ring-2 ring-primary/40' : ''}`
+                }
+              >
+                {user.name.charAt(0)}
+              </NavLink>
+            )}
+            <Button
+              variant="ghost"
               onClick={() => logout()}
               className={`w-full h-8 justify-start text-sidebar-foreground/90 hover:text-destructive hover:bg-destructive/10 font-bold rounded-lg transition-all duration-300 text-xs ${collapsed ? 'px-0 justify-center' : 'px-3'}`}
             >

@@ -19,6 +19,7 @@ import { IrcBreakdownModule } from './irc-breakdown/irc-breakdown.module.js';
 import { ResourcesModule } from './resources/resources.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { GoogleModule } from './google/google.module.js';
+import { UsersModule } from './users/users.module.js';
 import configuration from './config/configuration.js';
 
 @Module({
@@ -32,6 +33,7 @@ import configuration from './config/configuration.js';
     QueueModule,
     GoogleModule,
     AuthModule,
+    UsersModule,
     ProjectsModule,
     ThemesModule,
     MessagesModule,

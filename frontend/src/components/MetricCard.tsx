@@ -31,23 +31,23 @@ export function MetricCard({
   };
 
   return (
-    <Card className={cn("premium-card group", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-6 px-8">
-        <CardTitle className="label-uppercase group-hover:text-primary/60 transition-colors">
+    <div className={cn("adl-card-flat group relative overflow-hidden", className)}>
+      <div className="pt-8 pb-3 px-8 flex items-center justify-between">
+        <h3 className="label-uppercase transition-colors group-hover:text-primary/70">
           {title}
-        </CardTitle>
-        <div className="text-muted-foreground/30 group-hover:text-primary/60 transition-colors duration-500 scale-90 group-hover:scale-110">
+        </h3>
+        <div className="text-muted-foreground/20 group-hover:text-primary transition-all duration-700 group-hover:scale-110">
           {icon}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pb-8 px-8">
-        <div className="flex items-baseline gap-2">
-          <div className="text-3xl font-black font-heading tracking-tight text-foreground group-hover:scale-[1.02] transition-transform duration-500 origin-left">
+      </div>
+      <div className="px-8 pb-8 space-y-3">
+        <div className="flex items-baseline gap-3">
+          <div className="text-4xl font-black tracking-tighter text-foreground group-hover:scale-[1.03] transition-transform duration-700 origin-left">
             {value}
           </div>
           {trend && (
             <span className={cn(
-              "text-[9px] font-black px-2 py-0.5 rounded-lg",
+              "text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest flex items-center",
               trend === 'up' ? 'bg-chart-positive/10 text-chart-positive' : 
               trend === 'down' ? 'bg-chart-negative/10 text-chart-negative' : 
               'bg-muted/50 text-muted-foreground'
@@ -58,19 +58,19 @@ export function MetricCard({
         </div>
         <div className="flex items-center justify-between gap-4">
           {subtitle && (
-            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest leading-tight truncate">
+            <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] leading-tight flex-1 truncate">
               {subtitle}
             </p>
           )}
           {badge && (
-            <Badge variant="outline" className="text-[9px] font-black py-0 h-4 border-none bg-primary/10 text-primary uppercase tracking-widest rounded-md shrink-0">
+            <Badge variant="outline" className="text-[9px] font-black py-0 h-4 border-none bg-primary/10 text-primary uppercase tracking-widest rounded-full shrink-0">
               {badge}
             </Badge>
           )}
         </div>
-        {/* Subtle decorative elements */}
-        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full -mr-8 -mt-8 group-hover:scale-150 transition-transform duration-1000" />
-      </CardContent>
-    </Card>
+      </div>
+      {/* Decorative gradient corner */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/[0.04] to-transparent rounded-bl-full pointer-events-none group-hover:scale-125 transition-transform duration-1000" />
+    </div>
   );
 }

@@ -427,455 +427,261 @@ export function AdminMessagesPage() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader 
-        title="Verbatimothèque"
+        title="Verbatims"
         description={project?.title}
         icon={<AudioLines className="h-6 w-6" />}
       />
 
-      <div className="max-w-4xl mx-auto mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Multiple files upload */}
-        <div className="lg:col-span-12">
-          <Card className="premium-card group">
-            <CardHeader className="px-10 py-8 bg-muted/10 border-b border-input">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                    <FileArchive className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-black font-heading tracking-tight text-foreground">Administration</p>
-                    <CardDescription className="label-uppercase mt-1">
-                      Import multiple • {selectedFiles.length} fichiers sélectionnés
-                    </CardDescription>
-                  </div>
-                </div>
-                {selectedFiles.length > 0 && (
-                  <Button
-                    onClick={handleUploadMultiple}
-                    disabled={uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total}
-                    size="premium"
-                    className="premium-gradient shadow-lg shadow-primary/20"
-                  >
-                    {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                        Traitement en cours...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-3.5 w-3.5 mr-2" />
-                        Uploader tout
-                      </>
-                    )}
-                  </Button>
-                )}
+      <div className="mt-8">
+        <div className="adl-card p-6">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Upload className="h-5 w-5" />
               </div>
-            </CardHeader>
-            <CardContent className="p-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div 
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={cn(
-                      "relative group flex flex-col items-center justify-center py-16 border-2 border-dashed rounded-[2rem] transition-all duration-500 cursor-pointer overflow-hidden",
-                      isDragging 
-                        ? "border-primary bg-primary/[0.03] scale-[0.99]" 
-                        : "border-input hover:border-primary/40 hover:bg-muted/30"
-                    )}
-                    onClick={() => multipleInputRef.current?.click()}
-                  >
-                    <input
-                      ref={multipleInputRef}
-                      type="file"
-                      accept="audio/mp3,audio/wav,audio/m4a,audio/mpeg"
-                      multiple
-                      onChange={handleMultipleFilesSelect}
-                      className="hidden"
-                    />
-                    
-                    <div className={cn(
-                      "w-16 h-16 rounded-3xl flex items-center justify-center mb-6 transition-all duration-500",
-                      isDragging ? "bg-primary text-white scale-110 rotate-12" : "bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                    )}>
-                      <Upload className="h-8 w-8" />
-                    </div>
-                    
-                    <div className="text-center space-y-2 px-6">
-                      <p className="font-black text-xs uppercase tracking-widest text-foreground">
-                        Glissez-déposez vos audios
-                      </p>
-                      <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest leading-relaxed">
-                        ou cliquez pour parcourir vos fichiers
-                      </p>
-                    </div>
-
-                    {isDragging && (
-                      <div className="absolute inset-0 bg-primary/5 animate-pulse" />
-                    )}
-                  </div>
-
-                  <div className="bg-white/50 backdrop-blur-md rounded-[2rem] p-8 border border-input space-y-6 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <RotateCw className="h-4 w-4" />
-                      </div>
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/80">Intelligence Artificielle</h4>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <FeatureItem 
-                        icon={<FileAudio className="h-4 w-4" />} 
-                        label="Transcription Automatique" 
-                        desc="Conversion audio vers texte haute fidélité via Google Cloud"
-                      />
-                      <FeatureItem 
-                        icon={<Clock className="h-4 w-4" />} 
-                        label="Segmentation Speakers" 
-                        desc="Identification des différents intervenants dans l'échange"
-                      />
-                      <FeatureItem 
-                        icon={<Check className="h-4 w-4" />} 
-                        label="Analyse de Ton" 
-                        desc="Détection automatique des sentiments (Positif / Négatif)"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col h-full min-h-[400px]">
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                      File d'attente
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-3 py-1 rounded-full">
-                      {selectedFiles.length} Fichiers
-                    </span>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto max-h-[500px] pr-2 space-y-3 custom-scrollbar">
-                    {selectedFiles.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-8 border border-dashed border-input rounded-[2rem] bg-muted/5">
-                        <div className="w-12 h-12 rounded-2xl bg-muted/20 flex items-center justify-center text-muted-foreground/40 mb-4">
-                          <AudioLines className="h-6 w-6" />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">
-                          Aucun fichier prêt pour l'envoi
-                        </p>
-                      </div>
-                    ) : (
-                      selectedFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} className="group relative bg-white/40 hover:bg-white/80 border border-input hover:border-primary/20 p-4 rounded-2xl transition-all duration-300">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className={cn(
-                                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                                uploadStatuses[file.name] === "success" ? "bg-green-500/10 text-green-600" :
-                                uploadStatuses[file.name] === "error" ? "bg-red-500/10 text-red-600" :
-                                "bg-muted/50 text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary"
-                              )}>
-                                {uploadStatuses[file.name] === "uploading" ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : uploadStatuses[file.name] === "success" ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  <FileAudio className="h-4 w-4" />
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-foreground truncate">{file.name}</p>
-                                <p className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-0.5">
-                                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {uploadStatuses[file.name] === "pending" && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeFile(index)}
-                                  className="h-8 w-8 rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {uploadStatuses[file.name] === "error" && (
-                                <AlertCircle className="h-4 w-4 text-red-500" />
-                              )}
-                            </div>
-                          </div>
-                          
-                          {uploadStatuses[file.name] === "uploading" && (
-                            <div className="absolute bottom-0 left-0 h-1 bg-primary/20 rounded-full animate-pulse" />
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total && (
-                    <div className="mt-6 pt-4 border-t border-input">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Upload global</span>
-                        <span className="text-[10px] font-black text-primary">{Math.round((uploadProgress.completed / uploadProgress.total) * 100)}%</span>
-                      </div>
-                      <Progress value={(uploadProgress.completed / uploadProgress.total) * 100} className="h-1.5" />
-                    </div>
-                  )}
-                </div>
+              <div>
+                <p className="text-lg font-black tracking-tight">Import de fichiers</p>
+                <p className="label-uppercase mt-0.5">{selectedFiles.length} sélectionnés</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <Separator className="my-24 opacity-50" />
-
-      {/* Messages list */}
-      <div className="mt-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary/40">
-              Liste des messages
-            </h3>
-            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
-              {messagesQuery.data?.total || 0} messages importés au total
-              {messagesQuery.data?.totalPages && messagesQuery.data.totalPages > 1 &&
-                ` (Page ${page}/${messagesQuery.data.totalPages})`
-              }
-            </p>
-          </div>
-        </div>
-
-        {/* Processing indicator */}
-        {processingCount > 0 && (
-          <Card className="mb-6 border-primary/20 bg-primary/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <div className="flex-1">
-                  <p className="font-bold text-sm">
-                    Traitement en cours...
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {processingCount} fichier(s) en cours de traitement
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Bulk action buttons */}
-        {!messagesQuery.isLoading && messages.length > 0 && (
-          <div className="flex gap-2 mb-6">
-            <Button
-              onClick={() => processBulkMutation.mutate()}
-              disabled={pendingCount === 0 || processBulkMutation.isPending}
-              variant="outline"
-              size="sm"
-              className="rounded-xl"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Traiter tous les fichiers en attente ({pendingCount})
-            </Button>
-
-            {failedCount > 0 && (
+            </div>
+            {selectedFiles.length > 0 && (
               <Button
-                onClick={() => retryAllFailedMutation.mutate()}
-                disabled={retryAllFailedMutation.isPending}
-                variant="outline"
-                size="sm"
-                className="rounded-xl"
+                onClick={handleUploadMultiple}
+                disabled={uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total}
+                size="premium"
+                className="bg-black text-white hover:bg-black/80 transition-all rounded-full px-8"
               >
-                <RotateCw className="h-4 w-4 mr-2" />
-                Réessayer les échecs ({failedCount})
+                {uploadProgress.total > 0 && uploadProgress.completed < uploadProgress.total ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    {uploadProgress.completed}/{uploadProgress.total}
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-3.5 w-3.5 mr-2" />
+                    Lancer l'import
+                  </>
+                )}
               </Button>
             )}
           </div>
-        )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div 
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "relative flex flex-col items-center justify-center py-10 border-2 border-dashed rounded-3xl transition-all cursor-pointer",
+                isDragging 
+                  ? "border-primary bg-primary/[0.03]" 
+                  : "border-black/[0.05] hover:border-primary/40 hover:bg-black/[0.02]"
+              )}
+              onClick={() => multipleInputRef.current?.click()}
+            >
+              <input
+                ref={multipleInputRef}
+                type="file"
+                accept="audio/mp3,audio/wav,audio/m4a,audio/mpeg"
+                multiple
+                onChange={handleMultipleFilesSelect}
+                className="hidden"
+              />
+              <Upload className="h-6 w-6 text-muted-foreground/40 mb-3" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                Glisser-déposer ou cliquer
+              </p>
+            </div>
+
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                  File d'attente
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto max-h-[160px] pr-2 space-y-2 custom-scrollbar">
+                {selectedFiles.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8 border border-dashed border-black/[0.05] rounded-[2rem] bg-black/[0.01]">
+                    <AudioLines className="h-5 w-5 text-muted-foreground/20 mb-3" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30">
+                      Aucun fichier en attente
+                    </p>
+                  </div>
+                ) : (
+                  selectedFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="group relative bg-black/[0.02] hover:bg-black/[0.04] border border-black/[0.05] p-3 rounded-2xl transition-all">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                            uploadStatuses[file.name] === "success" ? "bg-green-500/10 text-green-600" :
+                            uploadStatuses[file.name] === "error" ? "bg-red-500/10 text-red-600" :
+                            "bg-black/[0.03] text-muted-foreground"
+                          )}>
+                            {uploadStatuses[file.name] === "uploading" ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : uploadStatuses[file.name] === "success" ? (
+                              <Check className="h-3.5 w-3.5" />
+                            ) : (
+                              <FileAudio className="h-3.5 w-3.5" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-bold text-foreground truncate">{file.name}</p>
+                            <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mt-0.5">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+
+                        {uploadStatuses[file.name] === "pending" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFile(index)}
+                            className="h-7 w-7 rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-6 px-1">
+          <div className="flex items-center gap-4">
+            <h3 className="label-uppercase">Bibliothèque</h3>
+            <Badge variant="outline" className="text-primary border-none bg-primary/5 text-[9px] font-black uppercase px-3 rounded-full">
+              {messagesQuery.data?.total || 0} Verbatims
+            </Badge>
+          </div>
+          <div className="flex gap-2">
+            {!messagesQuery.isLoading && messages.length > 0 && (
+              <>
+                <Button
+                  onClick={() => processBulkMutation.mutate()}
+                  disabled={pendingCount === 0 || processBulkMutation.isPending}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full h-8 text-[9px] font-black uppercase tracking-widest px-4"
+                >
+                  Analyser ({pendingCount})
+                </Button>
+                {failedCount > 0 && (
+                  <Button
+                    onClick={() => retryAllFailedMutation.mutate()}
+                    disabled={retryAllFailedMutation.isPending}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full h-8 text-[9px] font-black uppercase tracking-widest px-4 border-red-500/20 text-red-500"
+                  >
+                    Réessayer ({failedCount})
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
 
         {messagesQuery.isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full" />
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-2xl" />
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                Aucun message pour ce projet. Importez des fichiers audio ci-dessus.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="adl-card p-12 text-center">
+            <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">
+              Aucun verbatim trouvé
+            </p>
+          </div>
         ) : (
           <>
-            {/* Table */}
-            <div className="rounded-[2rem] border border-input overflow-hidden shadow-sm bg-card backdrop-blur-sm">
+            <div className="adl-card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-muted/10 border-b border-input">
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60 w-16">Audio</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Fichier</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Statut</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Intervenant</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Durée</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Tonalité</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Charge</th>
-                      <th className="text-left py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Thèmes</th>
-                      <th className="text-right py-6 px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/60">Actions</th>
+                    <tr className="bg-black/[0.02] border-b border-black/[0.05]">
+                      <th className="text-left py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 w-12">Audio</th>
+                      <th className="text-left py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Fichier</th>
+                      <th className="text-left py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Statut</th>
+                      <th className="text-left py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Speaker</th>
+                      <th className="text-left py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Durée</th>
+                      <th className="text-right py-3 px-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-input">
+                  <tbody className="divide-y divide-black/[0.03]">
                     {messages.map((msg) => (
-                      <tr key={msg.id} className="group hover:bg-muted/30 transition-all duration-300">
-                        <td className="py-5 px-4">
+                      <tr key={msg.id} className="group hover:bg-black/[0.01] transition-colors">
+                        <td className="py-2 px-4">
                           <Button
                             variant="ghost"
                             size="icon"
                             className={cn(
-                              "w-10 h-10 rounded-xl transition-all",
+                              "w-8 h-8 rounded-lg transition-all",
                               playingMessageId === msg.id 
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                                : "hover:bg-primary/10 hover:text-primary"
+                                ? "bg-primary text-white" 
+                                : "hover:bg-primary/10 hover:text-primary text-muted-foreground/40"
                             )}
                             onClick={() => handlePlayAudio(msg.id)}
-                            title={playingMessageId === msg.id ? "Pause" : "Lecture"}
                           >
                             {playingMessageId === msg.id ? (
-                              <Pause className="h-4 w-4" />
+                              <Pause className="h-3.5 w-3.5" />
                             ) : (
-                              <Play className="h-4 w-4 ml-0.5" />
+                              <Play className="h-3.5 w-3.5" />
                             )}
                           </Button>
                         </td>
-                        <td className="py-4 px-4">
-                          <span className="font-extrabold font-heading text-sm transition-colors group-hover:text-primary">
-                            {msg.filename}
-                          </span>
-                          {msg.transcriptTxt && (
-                            <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-1 max-w-[200px]">
-                              {msg.transcriptTxt}
-                            </p>
-                          )}
+                        <td className="py-2 px-4">
+                          <div className="max-w-[180px]">
+                            <p className="font-bold text-foreground truncate">{msg.filename}</p>
+                            {msg.transcriptTxt && (
+                              <p className="text-[10px] text-muted-foreground/40 truncate italic">{msg.transcriptTxt}</p>
+                            )}
+                          </div>
                         </td>
-                        <td className="py-4 px-4">
-                          {msg.processingStatus === "PENDING" && (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-none text-[10px] font-black tracking-widest">
-                              <Clock className="h-3 w-3 mr-1" />
-                              En attente
-                            </Badge>
-                          )}
-                          {msg.processingStatus === "QUEUED" && (
-                            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-none text-[10px] font-black tracking-widest">
-                              <Clock className="h-3 w-3 mr-1" />
-                              En file
-                            </Badge>
-                          )}
-                          {msg.processingStatus === "PROCESSING" && (
-                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-none text-[10px] font-black tracking-widest">
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              Traitement
-                            </Badge>
-                          )}
-                          {msg.processingStatus === "COMPLETED" && (
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-none text-[10px] font-black tracking-widest">
-                              <Check className="h-3 w-3 mr-1" />
-                              Traité
-                            </Badge>
-                          )}
-                          {msg.processingStatus === "FAILED" && (
-                            <Badge
-                              variant="outline"
-                              className="bg-red-100 text-red-700 border-none text-[10px] font-black tracking-widest cursor-help"
-                              title={msg.processingError || "Échec du traitement"}
-                            >
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Échec
-                            </Badge>
-                          )}
+                        <td className="py-2 px-4">
+                          <Badge variant="outline" className={cn(
+                            "border-none text-[8px] font-black uppercase px-2 py-0.5 rounded-full",
+                            msg.processingStatus === 'COMPLETED' ? "bg-green-500/5 text-green-600" :
+                            msg.processingStatus === 'FAILED' ? "bg-red-500/5 text-red-600" :
+                            "bg-black/5 text-muted-foreground/60"
+                          )}>
+                            {msg.processingStatus === 'COMPLETED' ? 'Traité' :
+                             msg.processingStatus === 'FAILED' ? 'Échec' : 'En cours'}
+                          </Badge>
                         </td>
-                        <td className="py-4 px-4 text-xs font-bold text-muted-foreground/80">
+                        <td className="py-2 px-4 text-[10px] font-bold text-muted-foreground/60">
                           {msg.speaker || "-"}
                         </td>
-                        <td className="py-4 px-4 text-xs font-bold text-muted-foreground/80">
+                        <td className="py-2 px-4 text-[10px] font-bold text-muted-foreground/60">
                           {formatDuration(msg.duration)}
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border-none",
-                              msg.tone === 'POSITIVE' ? "bg-emerald-500/10 text-emerald-500" :
-                              msg.tone === 'NEGATIVE' ? "bg-red-500/10 text-red-500" :
-                              "bg-gray-500/10 text-gray-500"
-                            )}
-                          >
-                            {
-                              TONE_OPTIONS.find(
-                                (o) => o.value === msg.tone
-                              )?.label || msg.tone
-                            }
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border-none",
-                              msg.emotionalLoad === 'HIGH' ? "bg-red-500/10 text-red-500" :
-                              msg.emotionalLoad === 'MEDIUM' ? "bg-amber-500/10 text-amber-500" :
-                              "bg-emerald-500/10 text-emerald-500"
-                            )}
-                          >
-                            {
-                              EMOTIONAL_LOAD_OPTIONS.find(
-                                (o) => o.value === msg.emotionalLoad
-                              )?.label || msg.emotionalLoad
-                            }
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black tracking-widest font-heading">
-                            {msg.messageThemes?.length || 0}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {msg.processingStatus === "FAILED" && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-9 h-9 rounded-xl hover:bg-blue-500/10 hover:text-blue-500 transition-all"
-                                onClick={() => retryMutation.mutate(msg.id)}
-                                title={msg.processingError || "Réessayer le traitement"}
-                                disabled={retryMutation.isPending}
-                              >
-                                <RotateCw className="h-4 w-4" />
-                              </Button>
-                            )}
+                        <td className="py-2 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="w-9 h-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                              className="w-7 h-7 rounded-lg text-muted-foreground/40 hover:text-foreground hover:bg-black/[0.05]"
                               onClick={() => setEditingMessage(msg)}
-                              title="Modifier"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-3 w-3" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="w-9 h-9 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all"
+                              className="w-7 h-7 rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50"
                               onClick={() => setDeletingMessage(msg)}
-                              title="Supprimer"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </td>
@@ -886,38 +692,37 @@ export function AdminMessagesPage() {
               </div>
             </div>
 
-            {/* Pagination */}
             {(messagesQuery.data?.totalPages || 1) > 1 && (
-              <div className="flex items-center justify-between mt-8 px-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                  Page <span className="text-primary">{page}</span> sur {totalPages}
+              <div className="flex items-center justify-between mt-6 px-1">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30">
+                  Page <span className="text-primary">{page}</span> / {totalPages}
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     disabled={page <= 1}
                     onClick={() => {
                       setPage((p) => Math.max(1, p - 1));
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className="h-10 rounded-xl border-white/5 bg-card px-4 font-bold text-[10px] uppercase tracking-widest"
+                    className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest px-3"
                   >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <ChevronLeft className="h-3 w-3 mr-1" />
                     Précédent
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     disabled={page >= (messagesQuery.data?.totalPages || 1)}
                     onClick={() => {
                       setPage((p) => Math.min(messagesQuery.data?.totalPages || 1, p + 1));
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className="h-10 rounded-xl border-white/5 bg-card px-4 font-bold text-[10px] uppercase tracking-widest"
+                    className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest px-3"
                   >
                     Suivant
-                    <ChevronRight className="h-4 w-4 ml-1" />
+                    <ChevronRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -926,7 +731,45 @@ export function AdminMessagesPage() {
         )}
       </div>
 
-      {/* Edit dialog */}
+      <Dialog
+        open={!!deletingMessage}
+        onOpenChange={(open) => {
+          if (!open) setDeletingMessage(null);
+        }}
+      >
+        <DialogContent className="border-white/5 bg-card/95 backdrop-blur-xl rounded-[2rem]">
+          <DialogHeader>
+            <DialogTitle className="font-black">Confirmer la suppression</DialogTitle>
+            <DialogDescription className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
+              Êtes-vous sûr de vouloir supprimer <span className="text-primary">{deletingMessage?.filename}</span> ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeletingMessage(null)}
+              disabled={deleteMutation.isPending}
+              className="rounded-xl"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deletingMessage) deleteMutation.mutate(deletingMessage.id);
+              }}
+              disabled={deleteMutation.isPending}
+              className="rounded-xl"
+            >
+              {deleteMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <EditMessageDialog
         message={editingMessage}
         isOpen={!!editingMessage}
@@ -938,46 +781,6 @@ export function AdminMessagesPage() {
         }}
         isPending={updateMutation.isPending}
       />
-
-      {/* Delete confirmation dialog */}
-      <Dialog
-        open={!!deletingMessage}
-        onOpenChange={(open) => {
-          if (!open) setDeletingMessage(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmer la suppression</DialogTitle>
-            <DialogDescription>
-              Etes-vous sur de vouloir supprimer le message{" "}
-              <span className="font-medium">{deletingMessage?.filename}</span> ?
-              Cette action est irreversible.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeletingMessage(null)}
-              disabled={deleteMutation.isPending}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (deletingMessage) deleteMutation.mutate(deletingMessage.id);
-              }}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              Supprimer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
