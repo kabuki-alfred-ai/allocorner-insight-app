@@ -101,6 +101,19 @@ export default function Dashboard() {
           <p className="text-white/60 font-medium text-balance text-lg leading-relaxed mt-2 font-body">
             L'analyse concernant <span className="text-white font-bold">{project.title}</span> est prête. Explorez les indicateurs clés et plongez au cœur des retours pour identifier les signaux majeurs.
           </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 mt-8 pt-6">
+            <Button
+              size="lg"
+              className="bg-primary text-black hover:bg-white rounded-2xl font-black tracking-widest uppercase shadow-[0_0_20px_rgba(255,100,0,0.3)] transition-all h-14 px-8 text-sm"
+              onClick={() => navigate(`/projects/${projectId}/wrapped`)}
+            >
+              Lancer le Wrapped
+            </Button>
+            <p className="text-white/50 text-sm font-medium italic pr-8 sm:pr-0">
+              Revivez les moments clés de votre projet.
+            </p>
+          </div>
         </div>
       </div>
 

@@ -20,6 +20,7 @@ import TendancesPage from "./pages/TendancesPage";
 import EmotionsPage from "./pages/EmotionsPage";
 import RecommandationsPage from "./pages/RecommandationsPage";
 import RessourcesPage from "./pages/RessourcesPage";
+import WrappedPage from "./pages/WrappedPage";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProjectPage from "./pages/admin/AdminProjectPage";
@@ -68,6 +69,9 @@ const App = () => (
                 <Route path="recommandations" element={<RecommandationsPage />} />
                 <Route path="ressources" element={<RessourcesPage />} />
               </Route>
+
+              {/* Standalone Fullscreen Route */}
+              <Route path="/projects/:projectId/wrapped" element={<WrappedPage />} />
 
               {/* Profile route */}
               <Route path="/profile" element={<Layout />}>
