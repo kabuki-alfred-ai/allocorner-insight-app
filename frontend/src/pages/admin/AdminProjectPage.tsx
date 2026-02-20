@@ -258,11 +258,11 @@ export function AdminProjectPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <Tabs defaultValue="general" className="w-full">
-                  <div className="px-10 pt-6 border-b border-white/5 bg-muted/10">
-                    <TabsList className="bg-transparent h-auto p-0 gap-8">
+                  <div className="px-4 md:px-6 lg:px-10 pt-4 md:pt-6 border-b border-black/5 bg-muted/10 overflow-x-auto no-scrollbar">
+                    <TabsList className="bg-transparent h-auto p-0 gap-6 md:gap-8 flex-nowrap min-w-max">
                       <TabsTrigger 
                         value="general" 
-                        className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 label-uppercase data-[state=active]:text-primary transition-all"
+                        className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 md:py-4 label-uppercase data-[state=active]:text-primary transition-all whitespace-nowrap"
                       >
                         Informations Générales
                       </TabsTrigger>
@@ -270,13 +270,13 @@ export function AdminProjectPage() {
                         <>
                           <TabsTrigger 
                             value="identity" 
-                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 md:py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all whitespace-nowrap"
                           >
                             Identité Visuelle
                           </TabsTrigger>
                           <TabsTrigger 
                             value="objectives" 
-                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all"
+                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 md:py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary transition-all whitespace-nowrap"
                           >
                             Objectifs stratégiques
                           </TabsTrigger>
@@ -286,7 +286,7 @@ export function AdminProjectPage() {
                   </div>
 
                   <TabsContent value="general" className="m-0 focus-visible:ring-0">
-                    <div className="p-10 space-y-12">
+                    <div className="p-4 md:p-6 lg:p-10 space-y-8 md:space-y-12">
                       {/* informations de base */}
                       <div>
                         <h3 className="label-uppercase mb-6 flex items-center gap-2 !text-primary">
@@ -352,7 +352,7 @@ export function AdminProjectPage() {
                         </div>
                       </div>
 
-                      <Separator className="bg-white/5" />
+                      <Separator className="bg-black/5" />
 
                       {/* Contexte & Méthodologie */}
                       <div>
@@ -424,15 +424,15 @@ export function AdminProjectPage() {
                   </TabsContent>
 
                   <TabsContent value="identity" className="m-0 focus-visible:ring-0">
-                    <div className="p-10">
-                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-8 flex items-center gap-2">
+                    <div className="p-4 md:p-6 lg:p-10">
+                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 md:mb-8 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                         Identité Visuelle
                       </h3>
                       
-                      <div className="max-w-xl mx-auto p-12 rounded-[2.5rem] bg-muted/10 border border-white/5 flex flex-col items-center gap-8">
+                      <div className="max-w-xl mx-auto p-6 md:p-12 rounded-[2.5rem] bg-muted/10 border border-black/5 flex flex-col items-center gap-6 md:gap-8">
                         <div className="relative group">
-                          <div className="w-48 h-48 rounded-[3rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-muted/20 overflow-hidden transition-all group-hover:border-primary/30 shadow-inner">
+                          <div className="w-40 h-40 md:w-48 md:h-48 rounded-[3rem] border-2 border-dashed border-black/10 flex items-center justify-center bg-muted/20 overflow-hidden transition-all group-hover:border-primary/30 shadow-inner">
                             {uploadLogoMutation.isPending ? (
                               <div className="flex flex-col items-center gap-3">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -481,13 +481,13 @@ export function AdminProjectPage() {
                   </TabsContent>
 
                   <TabsContent value="objectives" className="m-0 focus-visible:ring-0">
-                    <div className="p-10">
-                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-8 flex items-center gap-2">
+                    <div className="p-4 md:p-6 lg:p-10">
+                      <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6 md:mb-8 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                         Objectifs stratégiques
                       </h3>
                       
-                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-12 flex-col-reverse lg:flex-row">
                         <div className="lg:col-span-3 space-y-4">
                            {objectivesLoading ? (
                             <div className="flex items-center justify-center py-12">
@@ -498,7 +498,7 @@ export function AdminProjectPage() {
                               {objectives?.map((obj) => (
                                 <div
                                   key={obj.id}
-                                  className="flex items-start gap-5 p-6 rounded-2xl bg-muted/20 border border-white/5 group transition-all hover:bg-muted/30 hover:shadow-sm"
+                                  className="flex items-start gap-4 md:gap-5 p-4 md:p-6 rounded-2xl bg-muted/20 border border-black/5 group transition-all hover:bg-muted/30 hover:shadow-sm"
                                 >
                                   <div className="mt-1 h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                                     <TargetIcon className="h-3.5 w-3.5 text-primary" />
@@ -517,7 +517,7 @@ export function AdminProjectPage() {
                                 </div>
                               ))}
                               {objectives?.length === 0 && (
-                                <div className="py-20 text-center rounded-[2rem] border-2 border-dashed border-white/5 bg-muted/5">
+                                <div className="py-16 md:py-20 text-center rounded-[2rem] border-2 border-dashed border-black/5 bg-muted/5">
                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">Aucun objectif défini au projet</p>
                                 </div>
                               )}
@@ -562,15 +562,15 @@ export function AdminProjectPage() {
                 </Tabs>
 
                 {/* ── Footer / Submit ── */}
-                <div className="px-10 py-8 bg-muted/30 border-t border-white/5 flex justify-end items-center gap-6">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">
+                <div className="px-4 md:px-6 lg:px-10 py-6 md:py-8 bg-muted/30 border-t border-black/5 flex flex-col-reverse sm:flex-row justify-between sm:justify-end items-center gap-4 sm:gap-6">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic text-center sm:text-left w-full sm:w-auto">
                     Tous les champs marqués d'une * sont requis
                   </p>
                   <Button 
                     type="submit" 
                     size="premium"
                     disabled={isSubmitting}
-                    className="shadow-xl shadow-primary/20 px-12 h-12 bg-black text-white hover:bg-black/90 font-black rounded-xl border-none"
+                    className="shadow-xl shadow-primary/20 w-full sm:w-auto px-12 h-12 bg-black text-white hover:bg-black/90 font-black rounded-xl border-none"
                   >
                     {isSubmitting && (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />

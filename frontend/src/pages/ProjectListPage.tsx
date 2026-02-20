@@ -201,10 +201,10 @@ export function ProjectListPage() {
               variant="default"
               size="premium"
               onClick={() => navigate("/projects/new/admin")}
-              className="shadow-md shadow-primary/20"
+              className="shadow-md shadow-primary/20 px-3 md:px-5"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau projet
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nouveau projet</span>
             </Button>
           }
         />
@@ -219,86 +219,81 @@ export function ProjectListPage() {
           ) : !isError && projects && projects.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="rounded-[2rem] border border-white/5 overflow-hidden shadow-sm bg-card backdrop-blur-sm">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="hover:bg-transparent border-white/5">
-                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Client</TableHead>
-                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Titre du Projet</TableHead>
-                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Dates</TableHead>
-                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-center">Témoignages</TableHead>
-                      <TableHead className="py-6 px-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projects?.map((project) => {
-                      const messagesCount = (project as any)._count?.messages;
-                      return (
-                        <TableRow key={project.id} className="group hover:bg-primary/[0.02] transition-colors border-white/5">
-                          <TableCell className="py-4 px-8">
-                            <div className="flex items-center gap-4">
-                              {project.logoKey ? (
-                                <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm flex-shrink-0">
-                                  <img
-                                    src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
-                                    alt={project.clientName}
-                                    className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
-                                  <Briefcase className="h-5 w-5 text-muted-foreground/40" />
-                                </div>
-                              )}
-                              <span className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate max-w-[150px]">
-                                {project.clientName}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4 px-8">
-                            <span className="text-sm font-extrabold font-heading group-hover:text-primary transition-colors">
-                              {project.title}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-4 px-8 text-center text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">
-                            {project.dates || "En cours"}
-                          </TableCell>
-                          <TableCell className="py-4 px-8 text-center">
-                            <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black tracking-widest font-heading">
-                              {messagesCount !== undefined && messagesCount !== null ? messagesCount : 0}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="py-4 px-8 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-9 px-4 rounded-xl border-primary/10 text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-widest transition-all"
-                                onClick={() => navigate(`/projects/${project.id}`)}
-                              >
-                                Board
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="default"
-                                className="h-9 w-9 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-110 active:scale-95"
-                                onClick={() => navigate(`/projects/${project.id}/admin`)}
-                                title="Administrer"
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+            <div className="flex flex-col gap-3">
+              {projects?.map((project) => {
+                const messagesCount = (project as Project & { _count?: { messages: number } })._count?.messages;
+                return (
+                  <div 
+                    key={project.id} 
+                    className="group relative flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[1.5rem] bg-white border border-black/5 shadow-sm hover:shadow-md hover:bg-primary/[0.02] hover:border-primary/10 transition-all duration-300"
+                  >
+                    <div className="flex items-start md:items-center gap-4 flex-1 min-w-0">
+                      {/* Logo */}
+                      {project.logoKey ? (
+                        <div className="w-12 h-12 rounded-xl bg-muted/20 p-2 flex-shrink-0 border border-black/5">
+                          <img
+                            src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                            alt={project.clientName}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 border border-black/5">
+                          <Briefcase className="h-5 w-5 text-muted-foreground/40" />
+                        </div>
+                      )}
+                      
+                      {/* Info */}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate">
+                          {project.clientName}
+                        </span>
+                        <span className="text-lg md:text-base font-extrabold font-heading text-foreground group-hover:text-primary transition-colors truncate">
+                          {project.title}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 mt-2 md:mt-0 ml-16 md:ml-0 flex-wrap md:flex-nowrap">
+                      {/* Meta Data */}
+                      <div className="flex flex-wrap md:flex-nowrap items-center gap-4 md:gap-6 text-xs font-bold text-muted-foreground/70 uppercase tracking-wider w-full md:w-auto">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 opacity-50" />
+                          <span>{project.dates || "En cours"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-3.5 w-3.5 opacity-50" />
+                          <span className="text-foreground/80">{messagesCount !== undefined && messagesCount !== null ? messagesCount : 0} témoig.</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0 justify-end md:justify-start">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-10 px-5 rounded-xl border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-widest transition-all flex-1 md:flex-none"
+                          onClick={() => navigate(`/projects/${project.id}`)}
+                        >
+                          Dashboard
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="default"
+                          className="h-10 w-10 flex-shrink-0 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-muted/80 text-foreground hover:bg-primary hover:text-primary-foreground"
+                          onClick={() => navigate(`/projects/${project.id}/admin`)}
+                          title="Administrer"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

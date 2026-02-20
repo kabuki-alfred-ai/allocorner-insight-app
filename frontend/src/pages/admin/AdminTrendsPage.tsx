@@ -215,13 +215,14 @@ const trendsSchema = z.object({
 type TrendsFormValues = z.infer<typeof trendsSchema>;
 
 // Helper to normalize items
-function normalizeTrendItems(items: any[] | undefined): (string | TrendItem)[] {
+function normalizeTrendItems(items: unknown[] | undefined): (string | TrendItem)[] {
   if (!items || !Array.isArray(items)) return [];
-  return items.map(item => {
+  return items.map((item) => {
     if (typeof item === 'string') return item;
+    const obj = item as Record<string, unknown> | null | undefined;
     return {
-      title: item.title || "",
-      content: item.content || ""
+      title: (obj?.title as string) || "",
+      content: (obj?.content as string) || ""
     };
   });
 }

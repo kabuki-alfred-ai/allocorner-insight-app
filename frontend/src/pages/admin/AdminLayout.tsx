@@ -22,21 +22,21 @@ export function AdminLayout() {
         
         <div className="flex-1 flex flex-col min-w-0">
           {/* Main Header */}
-          <header className="h-16 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 flex items-center px-6 transition-all duration-300 shrink-0">
+          <header className="h-16 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 flex items-center px-4 md:px-6 transition-all duration-300 shrink-0">
             <SidebarTrigger className="mr-4 lg:hidden" />
             
             <div id="header-title" className="flex-1 min-w-0" />
 
             <div className="ml-auto flex items-center gap-4">
               {/* Dynamic portal node for admin actions */}
-              <div id="header-portal" className="flex items-center gap-3"></div>
+              <div id="header-portal" className="flex items-center gap-3 w-full md:w-auto"></div>
               
                {!isNewProject && project && !isWorkspace && (
                 <Link 
                   to={`/projects/${projectId}`}
                   className={cn(
                     buttonVariants({ variant: "default", size: "premium" }),
-                    "shadow-md bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all"
+                    "shadow-md bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 transition-all hidden md:flex"
                   )}
                 >
                   <FolderCog className="h-3.5 w-3.5" />
@@ -46,7 +46,7 @@ export function AdminLayout() {
             </div>
           </header>
 
-          <main className="flex-1 p-8 md:p-12 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
             <div className="max-w-7xl mx-auto">
               <Outlet />
             </div>

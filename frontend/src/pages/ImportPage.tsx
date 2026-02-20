@@ -199,12 +199,13 @@ const ImportPage = () => {
           return "Le fichier doit être au format PDF";
         }
         break;
-      case "logo":
+      case "logo": {
         const validExtensions = [".png", ".jpg", ".jpeg"];
         if (!validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
           return "Le fichier doit être au format PNG, JPG ou JPEG";
         }
         break;
+      }
     }
     return null;
   };

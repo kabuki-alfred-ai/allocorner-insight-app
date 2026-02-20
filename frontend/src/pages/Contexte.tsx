@@ -77,8 +77,8 @@ export default function Contexte() {
       // Cleanup appended JSON-LD on unmount to avoid duplicates
       if (ldScript && document.head.contains(ldScript)) document.head.removeChild(ldScript);
       // Do not remove global meta/canonical if reused elsewhere
-      if (metaDesc && !metaDesc.getAttribute("data-global")) {}
-      if (canonical && !canonical.getAttribute("data-global")) {}
+      if (metaDesc && !metaDesc.getAttribute("data-global")) { void 0; }
+      if (canonical && !canonical.getAttribute("data-global")) { void 0; }
     };
   }, [project]);
 

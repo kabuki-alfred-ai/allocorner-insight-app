@@ -77,8 +77,8 @@ export default function Themes() {
 
     return () => {
       if (ldScript && document.head.contains(ldScript)) document.head.removeChild(ldScript);
-      if (metaDesc && !metaDesc.getAttribute("data-global")) {}
-      if (canonical && !canonical.getAttribute("data-global")) {}
+      if (metaDesc && !metaDesc.getAttribute("data-global")) { void 0; }
+      if (canonical && !canonical.getAttribute("data-global")) { void 0; }
     };
   }, [project, themesList]);
 
