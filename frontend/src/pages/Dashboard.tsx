@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { MetricCard } from "@/components/MetricCard";
-import { AudioPlayer } from "@/components/AudioPlayer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -366,28 +365,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Verbatims */}
-        <div className="space-y-8 pt-12 border-t border-black/[0.04]">
-          <div className="flex items-center justify-between px-4">
-            <div className="space-y-1">
-              <h3 className="label-uppercase">Derniers témoignages</h3>
-              <p className="text-2xl font-black text-foreground tracking-tight">Matière brute</p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="premium"
-              className="text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all rounded-full px-7 h-10 border border-primary/10"
-              onClick={() => navigate(`/projects/${projectId}/verbatims`)}
-            >
-              Voir la bibliothèque
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
-            {messagesData?.data?.slice(0, 3).map((message) => (
-              <AudioPlayer key={message.id} message={message} projectId={projectId!} />
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
