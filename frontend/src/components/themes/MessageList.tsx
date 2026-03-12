@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import type { Theme, Message } from "@/lib/types";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Play } from "lucide-react";
+import { useAudio } from "@/lib/audio-context";
 
 interface MessageListProps {
   theme: Theme;
@@ -21,6 +21,7 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
   const [searchTerm, setSearchTerm] = useState("");
   const [showPositiveOnly, setShowPositiveOnly] = useState(false);
   const [showNegativeOnly, setShowNegativeOnly] = useState(false);
+  const { playMessage, currentMessage, isPlaying } = useAudio();
 
   // Filter messages by theme
   const themeMessages = useMemo(() => {
@@ -51,6 +52,12 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
 
     return filtered;
   }, [themeMessages, searchTerm, showPositiveOnly, showNegativeOnly]);
+
+  const handlePlayAll = () => {
+    if (filteredMessages.length > 0) {
+      playMessage(filteredMessages[0], projectId, filteredMessages);
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
@@ -117,12 +124,22 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
       </div>
 
       <div className="flex items-center justify-between px-2 pt-4">
-        <h3 className="text-2xl font-black tracking-tighter">
-          Témoignages associés
-        </h3>
-        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/5 text-primary border-none px-4 py-1.5 rounded-full">
-          {filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''}
-        </Badge>
+        <div className="space-y-1">
+          <h3 className="text-2xl font-black tracking-tighter">
+            Témoignages associés
+          </h3>
+          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{filteredMessages.length} message{filteredMessages.length > 1 ? 's' : ''}</p>
+        </div>
+        
+        {filteredMessages.length > 0 && (
+          <Button 
+            onClick={handlePlayAll}
+            className="rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest h-9 px-5 gap-2 shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            <Play className="h-3.5 w-3.5 fill-current" />
+            Tout écouter
+          </Button>
+        )}
       </div>
 
       {/* Messages List - 1 column for 3-column layout compatibility */}
@@ -139,7 +156,7 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
           </div>
         ) : (
           filteredMessages.map((message) => (
-            <div key={message.id}>
+            <div key={message.id} onClick={() => playMessage(message, projectId, filteredMessages)}>
                <AudioPlayer message={message} projectId={projectId} />
             </div>
           ))
