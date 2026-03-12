@@ -100,13 +100,13 @@ export const StatsScene: React.FC<{
     },
     {
       value: ircScore,
-      format: (v) => `${v.toFixed(1)}/10`,
+      format: (v) => `${Math.round(v)}/100`,
       label: 'Score Climat',
       sublabel: 'indice IRC global',
       icon: <TrendingUp className="w-10 h-10" />,
       glowHsl: '150, 70%, 50%',
       accentColor: 'rgba(16,185,129,',
-      ringTarget: ircScore / 10,
+      ringTarget: ircScore / 100,
     },
     {
       value: participationRate * 100,

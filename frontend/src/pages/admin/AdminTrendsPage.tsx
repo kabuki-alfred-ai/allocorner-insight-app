@@ -216,13 +216,21 @@ type TrendsFormValues = z.infer<typeof trendsSchema>;
 
 // Helper to normalize items
 function normalizeTrendItems(items: unknown[] | undefined): (string | TrendItem)[] {
-  if (!items || !Array.isArray(items)) return [];
-  return items.map((item) => {
+  if (!items) return [];
+  
+  const arrayItems = Array.isArray(items) 
+    ? items 
+    : typeof items === 'object' 
+      ? Object.values(items) 
+      : [];
+      
+  return arrayItems.map((item) => {
     if (typeof item === 'string') return item;
     const obj = item as Record<string, unknown> | null | undefined;
+    if (!obj) return { title: "", content: "" };
     return {
-      title: (obj?.title as string) || "",
-      content: (obj?.content as string) || ""
+      title: String(obj?.title || obj?.name || ""),
+      content: String(obj?.content || obj?.description || "")
     };
   });
 }
@@ -258,13 +266,14 @@ export function AdminTrendsPage() {
   // Pre-fill when data arrives
   useEffect(() => {
     if (trends) {
-      form.reset({
+      const resetValues = {
         mainTrends: normalizeTrendItems(trends.mainTrends),
         strengths: normalizeTrendItems(trends.strengths),
         recurringWords: trends.recurringWords || [],
         weakSignal: trends.weakSignal || "",
         weakSignalDetail: trends.weakSignalDetail || "",
-      });
+      };
+      form.reset(resetValues);
     }
   }, [trends]); // eslint-disable-line react-hooks/exhaustive-deps
 

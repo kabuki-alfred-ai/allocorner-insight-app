@@ -160,6 +160,15 @@ export default function WrappedPage() {
         />
       </div>
 
+      {/* Brand Logo */}
+      <div className="absolute top-6 left-6 z-[60] flex items-center gap-3">
+        <img 
+          src="https://www.allocorner.fr/wp-content/uploads/2024/01/Logo-Allo-Corner-4.png" 
+          alt="Allo Corner Logo" 
+          className="h-6 md:h-8 w-auto object-contain brightness-110 drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+        />
+      </div>
+
       {/* Close Button */}
       <Button
         variant="ghost"
