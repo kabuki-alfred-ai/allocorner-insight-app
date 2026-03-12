@@ -134,7 +134,7 @@ export default function Dashboard() {
             icon={<Clock className="h-4 w-4" />}
           />
           <MetricCard
-            title="Engagement"
+            title="Taux de participation"
             value={`${Math.round((project.metrics?.participationRate ?? 0) * 100)}%`}
             subtitle={`Base: ${project.participantsEstimated}`}
             icon={<Users className="h-4 w-4" />}
@@ -153,46 +153,6 @@ export default function Dashboard() {
           {/* Analysis Column (Themes & Duration) */}
           <div className="lg:col-span-8 space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {/* Theme Distribution */}
-              <div className="space-y-8">
-                <div className="px-4">
-                  <h3 className="label-uppercase mb-1.5">Analyse</h3>
-                  <p className="text-xl font-black text-foreground tracking-tight">Répartition thématique</p>
-                </div>
-                <div className="space-y-7 px-4">
-                  {themes.length > 0 ? (
-                    themes.map((theme) => {
-                      const percentage = totalThemeCount > 0 ? Math.round((theme.count / totalThemeCount) * 100) : 0;
-                      return (
-                        <div key={theme.id} className="space-y-2.5 group cursor-default">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="text-[11px] font-black text-foreground/70 uppercase tracking-widest group-hover:text-primary transition-colors">
-                                {theme.name}
-                              </span>
-                            </div>
-                            <span className="text-[11px] font-black text-primary/80">
-                              {percentage}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-black/[0.04] rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.05)]"
-                              style={{
-                                backgroundColor: theme.color || "hsl(var(--primary))",
-                                width: `${percentage}%`
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Aucune donnée disponible</p>
-                  )}
-                </div>
-              </div>
-
               {/* Duration Chart */}
               <div className="space-y-8">
                 <div className="px-4">
@@ -241,38 +201,44 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Emotional & Tonality Row */}
-            <div className="pt-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
-                <div className="adl-card-flat p-7 flex items-center gap-7">
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-soft flex items-center justify-center text-primary">
-                    <Heart className="h-8 w-8" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h4 className="label-uppercase">Charge Émotionnelle</h4>
-                    <div className="text-4xl font-black text-foreground tracking-tighter">
-                      {Math.round((project.metrics?.highEmotionShare ?? 0) * 100)}%
-                    </div>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80">
-                      Impact affectif {(project.metrics?.highEmotionShare ?? 0) > 0.6 ? "fort" : (project.metrics?.highEmotionShare ?? 0) > 0.3 ? "modéré" : "faible"}
-                    </p>
-                  </div>
+              {/* Theme Distribution */}
+              <div className="space-y-8">
+                <div className="px-4">
+                  <h3 className="label-uppercase mb-1.5">Analyse</h3>
+                  <p className="text-xl font-black text-foreground tracking-tight">Répartition thématique</p>
                 </div>
-                <div className="adl-card-flat p-7 flex items-center gap-7">
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-soft flex items-center justify-center text-foreground">
-                    <TrendingUp className="h-8 w-8" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h4 className="label-uppercase">Tonalité Globale</h4>
-                    <div className="text-4xl font-black text-foreground tracking-tighter">
-                      {(project.metrics?.tonalityAvg ?? 0).toFixed(1)}<span className="text-base text-muted-foreground/40 ml-1">/5</span>
-                    </div>
-                    <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] opacity-80">
-                      Sentiment {(project.metrics?.tonalityAvg ?? 0) >= 4 ? "positif" : (project.metrics?.tonalityAvg ?? 0) >= 3 ? "neutre" : "négatif"}
-                    </p>
-                  </div>
+                <div className="space-y-7 px-4">
+                  {themes.length > 0 ? (
+                    themes.map((theme) => {
+                      const percentage = totalThemeCount > 0 ? Math.round((theme.count / totalThemeCount) * 100) : 0;
+                      return (
+                        <div key={theme.id} className="space-y-2.5 group cursor-default">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="text-[11px] font-black text-foreground/70 uppercase tracking-widest group-hover:text-primary transition-colors">
+                                {theme.name}
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-black text-primary/80">
+                              {percentage}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-black/[0.04] rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.05)]"
+                              style={{
+                                backgroundColor: theme.color || "hsl(var(--primary))",
+                                width: `${percentage}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Aucune donnée disponible</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -281,8 +247,8 @@ export default function Dashboard() {
           {/* Sidebar Engagement Card */}
           <div className="lg:col-span-4 space-y-8">
             <div className="px-4">
-              <h3 className="label-uppercase mb-1">Engagement</h3>
-              <p className="text-xl font-black text-foreground tracking-tight">Participation</p>
+              <h3 className="label-uppercase mb-1">Participation</h3>
+              <p className="text-xl font-black text-foreground tracking-tight">Taux de participation</p>
             </div>
             <div className="adl-card p-8 flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />

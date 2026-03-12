@@ -422,8 +422,7 @@ export class MessagesService {
     const ranges = [
       { range: '0-30s', min: 0, max: 30 },
       { range: '30-60s', min: 30, max: 60 },
-      { range: '60-90s', min: 60, max: 90 },
-      { range: '90s+', min: 90, max: Infinity },
+      { range: '60-90s', min: 60, max: 91 },
     ];
 
     const durationDistribution = ranges.map(({ range, min, max }) => {

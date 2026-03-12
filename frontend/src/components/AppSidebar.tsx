@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useProjects, useProject } from "@/hooks/use-projects";
 import { LogOut } from "lucide-react";
 import { Button } from "./ui/button";
+import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 import {
@@ -108,7 +109,7 @@ export function AppSidebar() {
                 collapsed ? "w-10 h-10" : "w-16 h-16"
               )}>
                 <img
-                  src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${currentProjectDetails.logoKey}`}
+                  src={`${apiClient.defaults.baseURL}/storage/logo/${currentProjectDetails.logoKey}`}
                   alt={currentProjectDetails.clientName}
                   className="w-full h-full object-contain"
                   onError={(e) => {

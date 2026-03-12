@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useProject } from "@/hooks/use-projects";
 import { useObjectives } from "@/hooks/use-objectives";
+import { apiClient } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   Loader2, 
@@ -168,7 +169,7 @@ export default function Contexte() {
                 {project.logoKey && (
                   <div className="h-12 w-12 rounded-xl bg-white p-1.5 shadow-sm border border-black/5">
                     <img
-                      src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                      src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
                       alt={project.clientName}
                       className="w-full h-full object-contain"
                       onError={(e) => {

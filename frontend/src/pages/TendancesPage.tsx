@@ -87,18 +87,6 @@ export default function TendancesPage() {
                         </p>
                       )}
                     </div>
-                    <div className="space-y-2 pt-4">
-                      <div className="flex justify-between items-center label-uppercase opacity-60">
-                        <span>Intensité</span>
-                        <span className="text-primary font-black">{85 - index * 15}%</span>
-                      </div>
-                      <div className="w-full bg-black/[0.04] rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-primary h-full rounded-full transition-all duration-1000 ease-out"
-                          style={{ width: `${85 - index * 15}%` }}
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
               );

@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Project } from "@/lib/types";
+import { apiClient } from "@/lib/api";
 
 // ──────────────────────────────────────────────
 // Project card
@@ -56,7 +57,7 @@ function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
           {project.logoKey && (
             <div className="w-12 h-12 rounded-xl bg-white p-1.5 flex-shrink-0 border border-black/5">
               <img
-                src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
                 alt={project.clientName}
                 className="w-full h-full object-contain"
                 onError={(e) => {
@@ -232,7 +233,7 @@ export function ProjectListPage() {
                       {project.logoKey ? (
                         <div className="w-12 h-12 rounded-xl bg-muted/20 p-2 flex-shrink-0 border border-black/5">
                           <img
-                            src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`}
+                            src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
                             alt={project.clientName}
                             className="w-full h-full object-contain"
                             onError={(e) => {

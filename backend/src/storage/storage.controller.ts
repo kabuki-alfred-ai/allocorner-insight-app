@@ -66,7 +66,7 @@ export class StorageController {
   }
 
   @Public()
-  @Get('logo/*')
+  @Get('logo/*path')
   @Header('Cache-Control', 'public, max-age=3600')
   async streamLogo(
     @Req() req: any,
@@ -74,7 +74,7 @@ export class StorageController {
   ) {
     // Extract logoKey from URL path (everything after /api/storage/logo/)
     const fullPath = req.path || req.url;
-    const logoKey = fullPath.replace('/api/storage/logo/', '');
+    const logoKey = fullPath.replace(/^\/api\/storage\/logo\//, '');
 
     if (!logoKey || logoKey === fullPath) {
       throw new NotFoundException('Logo key is required');

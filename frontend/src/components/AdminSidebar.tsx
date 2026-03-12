@@ -19,6 +19,7 @@ import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { useProject } from "@/hooks/use-projects";
 import { Button } from "./ui/button";
+import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 import {
@@ -92,7 +93,7 @@ export function AdminSidebar() {
                 collapsed ? "w-14 h-14" : "w-24 h-24"
               )}>
                 <img
-                  src={`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${currentProjectDetails.logoKey}`}
+                  src={`${apiClient.defaults.baseURL}/storage/logo/${currentProjectDetails.logoKey}`}
                   alt={currentProjectDetails.clientName}
                   className="w-full h-full object-contain"
                   onError={(e) => {

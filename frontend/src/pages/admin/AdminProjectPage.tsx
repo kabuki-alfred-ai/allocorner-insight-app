@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { createProject, updateProject, uploadLogo } from "@/lib/api/projects";
+import { apiClient } from "@/lib/api";
 import { useProject } from "@/hooks/use-projects";
 import { useObjectives, useCreateObjective, useDeleteObjective } from "@/hooks/use-objectives";
 import { PageHeader } from "@/components/PageHeader";
@@ -119,7 +120,7 @@ export function AdminProjectPage() {
       // Set logo preview if exists
       if (project.logoKey) {
         setLogoPreview(
-          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/storage/logo/${project.logoKey}`
+          `${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`
         );
       }
     }
