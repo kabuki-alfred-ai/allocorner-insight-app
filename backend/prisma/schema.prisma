@@ -164,6 +164,7 @@ model Theme {
   temporality    String          @default("")
   emotionLabel   String          @default("") @map("emotion_label")
   analysis       String          @default("")
+  strategicTeaching String       @default("") @map("strategic_teaching")
   verbatimTotem  String          @default("") @map("verbatim_totem")
   totemMessageId String?         @map("totem_message_id")
   count          Int             @default(0)

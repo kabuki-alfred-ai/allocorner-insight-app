@@ -54,21 +54,21 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
 
   return (
     <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
-      {/* Header & Filters in a single premium row */}
-      <div className="adl-card p-4 flex flex-col xl:flex-row items-center gap-4">
-        <div className="flex-1 relative w-full">
-          <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-muted-foreground/40 w-4 h-4" />
+      {/* Header & Filters simplified for column layout */}
+      <div className="flex flex-col gap-4">
+        <div className="relative w-full">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/40 w-3.5 h-3.5" />
           <Input
-            placeholder="Rechercher dans les témoignages..."
+            placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 h-14 border-none bg-black/[0.04] hover:bg-black/[0.06] rounded-full text-sm font-bold placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all w-full"
+            className="pl-10 h-10 border-none bg-black/[0.04] hover:bg-black/[0.06] rounded-full text-xs font-bold placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all w-full"
           />
         </div>
 
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-4 w-full xl:w-auto">
-          <div className="flex items-center gap-6 px-5 py-2 bg-black/[0.02] rounded-full h-14 border border-black/[0.03] flex-1 xl:flex-none justify-center">
-            <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <Switch
                 id="positive-only"
                 checked={showPositiveOnly}
@@ -76,16 +76,14 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
                   setShowPositiveOnly(checked);
                   if (checked) setShowNegativeOnly(false);
                 }}
-                className="data-[state=checked]:bg-chart-positive"
+                className="scale-75 data-[state=checked]:bg-chart-positive"
               />
-              <Label htmlFor="positive-only" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 cursor-pointer">
+              <Label htmlFor="positive-only" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 cursor-pointer">
                 Positifs
               </Label>
             </div>
 
-            <div className="w-[1px] h-6 bg-black/[0.05]" />
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Switch
                 id="negative-only"
                 checked={showNegativeOnly}
@@ -93,9 +91,9 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
                   setShowNegativeOnly(checked);
                   if (checked) setShowPositiveOnly(false);
                 }}
-                className="data-[state=checked]:bg-chart-negative"
+                className="scale-75 data-[state=checked]:bg-chart-negative"
               />
-              <Label htmlFor="negative-only" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 cursor-pointer">
+              <Label htmlFor="negative-only" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 cursor-pointer">
                 Négatifs
               </Label>
             </div>
@@ -104,14 +102,15 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
           {(searchTerm || showPositiveOnly || showNegativeOnly) && (
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => {
                 setSearchTerm("");
                 setShowPositiveOnly(false);
                 setShowNegativeOnly(false);
               }}
-              className="h-14 px-8 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all w-full xl:w-auto"
+              className="h-8 px-4 rounded-full text-[9px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 transition-all"
             >
-              Réinitialiser
+              Reset
             </Button>
           )}
         </div>
@@ -126,16 +125,16 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
         </Badge>
       </div>
 
-      {/* Messages List - Grid for desktop */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Messages List - 1 column for 3-column layout compatibility */}
+      <div className="grid grid-cols-1 gap-4">
         {filteredMessages.length === 0 ? (
-          <div className="col-span-full adl-card-flat py-20 text-center flex flex-col items-center justify-center">
-             <div className="p-5 bg-black/[0.02] rounded-full mb-6 relative">
-               <Filter className="h-6 w-6 text-muted-foreground/30 relative z-10" />
+          <div className="adl-card-flat py-12 text-center flex flex-col items-center justify-center">
+             <div className="p-4 bg-black/[0.02] rounded-full mb-4 relative">
+               <Filter className="h-5 w-5 text-muted-foreground/30 relative z-10" />
                <div className="absolute inset-0 bg-primary/5 rounded-full scale-150 blur-xl"></div>
              </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
-              Aucun résultat pour ces filtres
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+              Aucun résultat
             </p>
           </div>
         ) : (

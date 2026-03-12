@@ -163,6 +163,7 @@ export interface Theme {
   temporality: string;
   emotionLabel: string;
   analysis: string;
+  strategicTeaching: string;
   verbatimTotem: string;
   totemMessageId: string | null;
   count: number;

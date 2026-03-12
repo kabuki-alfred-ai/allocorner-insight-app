@@ -4,15 +4,37 @@ import { Progress } from "@/components/ui/progress";
 import { useTrends } from "@/hooks/use-trends";
 import { useThemes } from "@/hooks/use-themes";
 import { useProject } from "@/hooks/use-projects";
+import { useMessagesStats } from "@/hooks/use-messages-stats";
 import { useParams } from "react-router-dom";
-import { TrendingUp, AlertTriangle, Zap, Eye, Target, Loader2, LineChart } from "lucide-react";
+import { 
+  TrendingUp, 
+  AlertTriangle, 
+  Zap, 
+  Eye, 
+  Target, 
+  Loader2, 
+  LineChart,
+  Clock,
+  Users
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  Tooltip as RechartsTooltip, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer 
+} from "recharts";
 
 export default function TendancesPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { data: project } = useProject(projectId!);
   const { data: trendsData, isLoading: trendsLoading } = useTrends(projectId!);
   const { data: themesData, isLoading: themesLoading } = useThemes(projectId!);
+  const { data: statsData, isLoading: statsLoading } = useMessagesStats(projectId!);
 
   const recurringWords = trendsData?.recurringWords || [];
   const mainTrends = trendsData?.mainTrends || [];
@@ -20,13 +42,23 @@ export default function TendancesPage() {
   const weakSignal = trendsData?.weakSignal || '';
   const weakSignalDetail = trendsData?.weakSignalDetail || '';
 
+  const themes = themesData || [];
+  const totalThemeCount = themes.reduce((sum, t) => sum + t.count, 0);
+
+  const durationDistribution = statsData?.durationDistribution || [];
+
+  const participationData = [
+    { name: "Participants", value: (project?.metrics?.participationRate ?? 0) * 100, color: "hsl(var(--primary))" },
+    { name: "Potentiel restant", value: (1 - (project?.metrics?.participationRate ?? 0)) * 100, color: "hsl(var(--muted))" }
+  ];
+
   const wordFrequencyData = recurringWords.map((word, index) => ({
     word: typeof word === 'string' ? word : String(word),
     frequency: Math.round((100 - index * 12) / 10) * 10,
     color: themesData?.[index % (themesData.length || 1)]?.color || "#8B5CF6"
   }));
 
-  if (trendsLoading || themesLoading) {
+  if (trendsLoading || themesLoading || statsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -157,6 +189,142 @@ export default function TendancesPage() {
                     <Badge variant="outline" className="text-[10px] font-black bg-white/5 border-white/10 text-white rounded-xl px-4 py-1 uppercase tracking-widest">PROXIMITÉ</Badge>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Indicators Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-20 border-t border-black/[0.04] px-2">
+          {/* 1. Durée des verbatims */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="px-4">
+              <h3 className="label-uppercase mb-1.5">Chronologie</h3>
+              <p className="text-xl font-black text-foreground tracking-tight">Durée des verbatims</p>
+            </div>
+            <div className="h-[200px] w-full mt-4 pr-4">
+              {durationDistribution.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={durationDistribution}
+                    margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                  >
+                    <XAxis
+                      dataKey="range"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'currentColor', opacity: 0.3, fontSize: 10, fontWeight: '800' }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      fill="hsl(var(--primary))"
+                      radius={[6, 6, 6, 6]}
+                      barSize={32}
+                      className="opacity-90 hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
+                    />
+                    <RechartsTooltip
+                      cursor={{ fill: 'rgba(0,0,0,0.015)' }}
+                      contentStyle={{ 
+                        borderRadius: '1.5rem', 
+                        border: 'none', 
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: 'none', 
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        padding: '12px 16px'
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-xs text-muted-foreground italic uppercase tracking-widest opacity-40">Aucune donnée</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Répartition thématique */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="px-4">
+              <h3 className="label-uppercase mb-1.5">Analyse</h3>
+              <p className="text-xl font-black text-foreground tracking-tight">Répartition thématique</p>
+            </div>
+            <div className="space-y-6 px-4">
+              {themes.length > 0 ? (
+                themes.slice(0, 5).map((theme) => {
+                  const percentage = totalThemeCount > 0 ? Math.round((theme.count / totalThemeCount) * 100) : 0;
+                  return (
+                    <div key={theme.id} className="space-y-2 group cursor-default">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-foreground/70 uppercase tracking-widest group-hover:text-primary transition-colors">
+                          {theme.name}
+                        </span>
+                        <span className="text-[10px] font-black text-primary/80">{percentage}%</span>
+                      </div>
+                      <div className="w-full bg-black/[0.04] rounded-full h-1 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{
+                            backgroundColor: theme.color || "hsl(var(--primary))",
+                            width: `${percentage}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Aucune donnée disponible</p>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Taux de participation */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="px-4">
+              <h3 className="label-uppercase mb-1">Taux de participation</h3>
+              <p className="text-xl font-black text-foreground tracking-tight">Taux de participation</p>
+            </div>
+            <div className="adl-card p-6 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
+              <div className="relative w-full flex items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center mt-[-10px] z-10">
+                  <span className="text-4xl font-black tracking-tighter text-foreground">
+                    {Math.round((project?.metrics?.participationRate ?? 0) * 100)}%
+                  </span>
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={participationData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={65}
+                      outerRadius={80}
+                      paddingAngle={0}
+                      dataKey="value"
+                      strokeWidth={0}
+                      startAngle={90}
+                      endAngle={450}
+                    >
+                      {participationData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color} 
+                          opacity={index === 0 ? 1 : 0.04}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full mt-4 space-y-3 px-4">
+                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest opacity-40">
+                  <span>0%</span>
+                  <span className="text-primary italic">Objectif 100%</span>
+                </div>
+                <Progress value={(project?.metrics?.participationRate ?? 0) * 100} className="h-1 bg-black/[0.04]" />
               </div>
             </div>
           </div>

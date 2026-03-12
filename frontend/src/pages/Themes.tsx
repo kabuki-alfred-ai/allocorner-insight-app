@@ -109,36 +109,35 @@ export default function Themes() {
         icon={<Tags className="h-5 w-5" />}
       />
 
-      <div className="space-y-12">
-        <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
-          {/* Left Sidebar - Theme selector */}
-          <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 h-[calc(100vh-140px)] flex flex-col">
-              <ThemeSelector
-                themes={themesList}
-                selectedTheme={selectedTheme}
-                onThemeSelect={setSelectedTheme}
-                total={total}
-              />
-            </div>
+      <div className="mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-220px)] overflow-hidden">
+          {/* Column 1 - Theme selector (Fixed position via parent height) */}
+          <aside className="lg:col-span-3 h-full border-r border-black/[0.03] pr-4">
+            <ThemeSelector
+              themes={themesList}
+              selectedTheme={selectedTheme}
+              onThemeSelect={setSelectedTheme}
+              total={total}
+            />
           </aside>
 
-          {/* Right Content */}
-          <section className="lg:col-span-8 xl:col-span-9 space-y-16 pt-2">
+          {/* Column 2 - Theme Details (Scrollable) */}
+          <section className="lg:col-span-4 h-full overflow-y-auto no-scrollbar pr-4">
             {selectedTheme && (
-              <>
-                <ThemeSynthesis theme={selectedTheme} projectId={projectId!} />
-                
-                <div className="pt-12 border-t border-black/[0.05]">
-                  <MessageList
-                    theme={selectedTheme}
-                    onThemeSelect={setSelectedTheme}
-                    messages={allMessages}
-                    allThemes={themesList}
-                    projectId={projectId!}
-                  />
-                </div>
-              </>
+              <ThemeSynthesis theme={selectedTheme} projectId={projectId!} />
+            )}
+          </section>
+
+          {/* Column 3 - Associated messages (Scrollable) */}
+          <section className="lg:col-span-5 h-full overflow-y-auto no-scrollbar">
+            {selectedTheme && (
+              <MessageList
+                theme={selectedTheme}
+                onThemeSelect={setSelectedTheme}
+                messages={allMessages}
+                allThemes={themesList}
+                projectId={projectId!}
+              />
             )}
           </section>
         </div>

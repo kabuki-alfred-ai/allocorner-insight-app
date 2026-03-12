@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { AudioProvider } from "@/lib/audio-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
@@ -13,7 +14,6 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProjectListPage from "./pages/ProjectListPage";
 import Dashboard from "./pages/Dashboard";
 import Verbatims from "./pages/Verbatims";
-import Contexte from "./pages/Contexte";
 import Themes from "./pages/Themes";
 
 import TendancesPage from "./pages/TendancesPage";
@@ -45,64 +45,65 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <AudioProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute />}>
-              {/* Dashboard client (read-only) */}
-              <Route path="/projects" element={<Layout />}>
-                <Route index element={<ProjectListPage />} />
-              </Route>
-              <Route path="/projects/:projectId" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="contexte" element={<Contexte />} />
-
-                <Route path="verbatims" element={<Verbatims />} />
-                <Route path="themes" element={<Themes />} />
-                <Route path="tendances" element={<TendancesPage />} />
-                <Route path="emotions" element={<EmotionsPage />} />
-                <Route path="recommandations" element={<RecommandationsPage />} />
-                <Route path="ressources" element={<RessourcesPage />} />
-              </Route>
-
-              {/* Standalone Fullscreen Route */}
-              <Route path="/projects/:projectId/wrapped" element={<WrappedPage />} />
-
-              {/* Profile route */}
-              <Route path="/profile" element={<Layout />}>
-                <Route index element={<ProfilePage />} />
-              </Route>
-
-              {/* Admin routes */}
-              <Route element={<ProtectedRoute requiredRole="SUPERADMIN" />}>
-                <Route path="/admin" element={<AdminLayout />}>
+              {/* Protected routes */}
+              <Route element={<ProtectedRoute />}>
+                {/* Dashboard client (read-only) */}
+                <Route path="/projects" element={<Layout />}>
                   <Route index element={<ProjectListPage />} />
                 </Route>
-                <Route path="/projects/:projectId/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminProjectPage />} />
-                  <Route path="messages" element={<AdminMessagesPage />} />
-                  <Route path="themes" element={<AdminThemesPage />} />
-                  <Route path="metriques" element={<AdminMetricsPage />} />
-                  <Route path="tendances" element={<AdminTrendsPage />} />
-                  <Route path="recommandations" element={<AdminRecommendationsPage />} />
-                  <Route path="transversal" element={<AdminTransversalPage />} />
-                  <Route path="invitations" element={<AdminInvitationsPage />} />
-                  <Route path="objectives" element={<AdminObjectivesPage />} />
-                  <Route path="irc-breakdown" element={<AdminIrcBreakdownPage />} />
-                  <Route path="strategic-actions" element={<AdminStrategicActionsPage />} />
+                <Route path="/projects/:projectId" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+
+                  <Route path="verbatims" element={<Verbatims />} />
+                  <Route path="themes" element={<Themes />} />
+                  <Route path="tendances" element={<TendancesPage />} />
+                  <Route path="emotions" element={<EmotionsPage />} />
+                  <Route path="recommandations" element={<RecommandationsPage />} />
+                  <Route path="ressources" element={<RessourcesPage />} />
+                </Route>
+
+                {/* Standalone Fullscreen Route */}
+                <Route path="/projects/:projectId/wrapped" element={<WrappedPage />} />
+
+                {/* Profile route */}
+                <Route path="/profile" element={<Layout />}>
+                  <Route index element={<ProfilePage />} />
+                </Route>
+
+                {/* Admin routes */}
+                <Route element={<ProtectedRoute requiredRole="SUPERADMIN" />}>
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<ProjectListPage />} />
+                  </Route>
+                  <Route path="/projects/:projectId/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminProjectPage />} />
+                    <Route path="messages" element={<AdminMessagesPage />} />
+                    <Route path="themes" element={<AdminThemesPage />} />
+                    <Route path="metriques" element={<AdminMetricsPage />} />
+                    <Route path="tendances" element={<AdminTrendsPage />} />
+                    <Route path="recommandations" element={<AdminRecommendationsPage />} />
+                    <Route path="transversal" element={<AdminTransversalPage />} />
+                    <Route path="invitations" element={<AdminInvitationsPage />} />
+                    <Route path="objectives" element={<AdminObjectivesPage />} />
+                    <Route path="irc-breakdown" element={<AdminIrcBreakdownPage />} />
+                    <Route path="strategic-actions" element={<AdminStrategicActionsPage />} />
+                  </Route>
                 </Route>
               </Route>
-            </Route>
 
-            {/* Redirects */}
-            <Route path="/" element={<RootRedirect />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Redirects */}
+              <Route path="/" element={<RootRedirect />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AudioProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

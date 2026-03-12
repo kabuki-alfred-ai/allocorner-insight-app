@@ -44,7 +44,6 @@ import { Skeleton } from "./ui/skeleton";
 
 const navigationItems = [
   { title: "Accueil", path: "", icon: Home },
-  { title: "Contexte", path: "contexte", icon: Info },
   { title: "Verbatims", path: "verbatims", icon: AudioLines },
   { title: "Analyse thematique", path: "themes", icon: Tags },
   { title: "Synthese & tendances", path: "tendances", icon: TrendingUp },

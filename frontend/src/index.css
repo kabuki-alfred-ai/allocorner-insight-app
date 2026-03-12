@@ -190,6 +190,18 @@ All colors MUST be HSL.
     @apply opacity-100;
   }
 
+  .verbatim-card-light {
+    @apply rounded-[1.5rem] transition-all duration-700 relative overflow-hidden bg-white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  .verbatim-card-light:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

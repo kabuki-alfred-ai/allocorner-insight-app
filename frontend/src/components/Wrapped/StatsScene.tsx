@@ -111,7 +111,7 @@ export const StatsScene: React.FC<{
     {
       value: participationRate * 100,
       format: (v) => `${Math.round(v)}%`,
-      label: 'Participation',
+      label: 'Taux de participation',
       sublabel: "taux d'engagement",
       icon: <Users className="w-10 h-10" />,
       glowHsl: '270, 70%, 65%',

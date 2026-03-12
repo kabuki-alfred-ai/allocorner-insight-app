@@ -5,6 +5,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { GlobalAudioPlayer } from "./GlobalAudioPlayer";
 
 export function Layout() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -31,6 +32,7 @@ export function Layout() {
             <Outlet />
           </div>
         </main>
+        <GlobalAudioPlayer />
       </SidebarInset>
     </SidebarProvider>
   );

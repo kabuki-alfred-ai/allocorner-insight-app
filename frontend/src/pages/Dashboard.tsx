@@ -8,6 +8,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useMessages } from "@/hooks/use-messages";
 import { useThemes } from "@/hooks/use-themes";
 import { useMessagesStats } from "@/hooks/use-messages-stats";
+import { useObjectives } from "@/hooks/use-objectives";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import {
@@ -19,6 +20,9 @@ import {
   Download,
   Loader2,
   LayoutDashboard,
+  Info,
+  CheckCircle2,
+  Lightbulb,
 } from "lucide-react";
 import { 
   BarChart, 
@@ -41,8 +45,9 @@ export default function Dashboard() {
   const { data: messagesData, isLoading: messagesLoading } = useMessages(projectId || "");
   const { data: themesData, isLoading: themesLoading } = useThemes(projectId || "");
   const { data: statsData, isLoading: statsLoading } = useMessagesStats(projectId || "");
+  const { data: objectivesData, isLoading: objectivesLoading } = useObjectives(projectId || "");
 
-  if (projectLoading || messagesLoading || themesLoading || statsLoading) {
+  if (projectLoading || messagesLoading || themesLoading || statsLoading || objectivesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -58,7 +63,7 @@ export default function Dashboard() {
   const totalThemeCount = themes.reduce((sum, t) => sum + t.count, 0);
 
   const participationData = [
-    { name: "Participants", value: (project.metrics?.participationRate ?? 0) * 100, color: "hsl(var(--primary))" },
+    { name: "Taux de participation", value: (project.metrics?.participationRate ?? 0) * 100, color: "hsl(var(--primary))" },
     { name: "Potentiel restant", value: (1 - (project.metrics?.participationRate ?? 0)) * 100, color: "hsl(var(--muted))" }
   ];
 
@@ -118,6 +123,72 @@ export default function Dashboard() {
       </div>
 
       <div className="space-y-12">
+        {/* Context & Objectives Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 px-2 pb-4">
+          <div className="lg:col-span-12">
+             <div className="flex items-center gap-3 mb-8">
+                <span className="h-px w-8 bg-primary/20" />
+                <h3 className="text-[9px] font-black text-primary/40 uppercase tracking-[0.4em]">Contexte & Objectifs</h3>
+             </div>
+          </div>
+          
+          <div className="lg:col-span-8 space-y-10">
+            <div className="space-y-6">
+              <p className="text-2xl font-bold leading-[1.4] text-foreground/90 tracking-tight">
+                {project.context}
+              </p>
+            </div>
+
+            <div className="p-10 rounded-[2.5rem] bg-black/[0.02] border border-black/[0.03] space-y-8 group hover:bg-black/[0.03] transition-all duration-500">
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.4em]">Méthodologie</h3>
+                <p className="text-2xl font-black font-heading tracking-tight italic text-primary/80 leading-tight">
+                  "{project.methodology}"
+                </p>
+              </div>
+              <div className="pt-8 border-t border-black/[0.03] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-2xl bg-white border border-black/5 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500 text-muted-foreground/40">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[0.2em]">Responsable d'étude</p>
+                    <p className="text-sm font-bold text-foreground/80">{project.analyst}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 space-y-8">
+            <div className="px-2">
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-foreground/40 mb-6">Objectifs clés</p>
+              <ul className="space-y-6">
+                {(objectivesData || []).map((obj, i) => (
+                  <li key={i} className="flex gap-4 group">
+                    <div className="h-5 w-5 rounded-full border border-primary/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:border-primary/40 transition-colors duration-500">
+                      <CheckCircle2 className="h-3 w-3 text-primary/20 group-hover:text-primary transition-colors duration-500" />
+                    </div>
+                    <span className="text-sm font-semibold leading-relaxed text-foreground/50 group-hover:text-foreground/80 transition-colors duration-500">
+                      {obj.content}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="p-6 rounded-[2rem] bg-primary/[0.02] border border-primary/5 flex items-start gap-4 hover:bg-primary/[0.04] transition-colors duration-500">
+              <Lightbulb className="h-4 w-4 text-primary/40 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-[9px] font-black text-primary/30 uppercase tracking-widest">Échantillonnage</p>
+                <p className="text-[11px] font-black text-primary/60 leading-relaxed uppercase tracking-widest">
+                  Analyse basée sur {project.metrics?.messagesCount ?? 0} témoignages audio.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Primary Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-2">
           <MetricCard
@@ -247,7 +318,7 @@ export default function Dashboard() {
           {/* Sidebar Engagement Card */}
           <div className="lg:col-span-4 space-y-8">
             <div className="px-4">
-              <h3 className="label-uppercase mb-1">Participation</h3>
+              <h3 className="label-uppercase mb-1">Taux de participation</h3>
               <p className="text-xl font-black text-foreground tracking-tight">Taux de participation</p>
             </div>
             <div className="adl-card p-8 flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden">

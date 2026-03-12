@@ -108,9 +108,9 @@ const themeSchema = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "Couleur hexadecimale invalide (ex: #2F66F5)")
     .default("#2F66F5"),
-  temporality: z.string().default(""),
   emotionLabel: z.string().default(""),
   analysis: z.string().default(""),
+  strategicTeaching: z.string().default(""),
   verbatimTotem: z.string().default(""),
   count: z.coerce.number().int().min(0).default(0),
 });
@@ -148,9 +148,10 @@ export function AdminThemesPage() {
     mutationFn: (data: ThemeFormValues) => createTheme(projectId!, {
       name: data.name,
       color: data.color || "#2F66F5",
-      temporality: data.temporality || "",
+      temporality: "",
       emotionLabel: data.emotionLabel || "",
       analysis: data.analysis || "",
+      strategicTeaching: data.strategicTeaching || "",
       verbatimTotem: data.verbatimTotem || "",
       count: data.count || 0,
       totemMessageId: null,
@@ -200,9 +201,9 @@ export function AdminThemesPage() {
     defaultValues: {
       name: "",
       color: "#2F66F5",
-      temporality: "",
       emotionLabel: "",
       analysis: "",
+      strategicTeaching: "",
       verbatimTotem: "",
       count: 0,
     },
@@ -214,9 +215,9 @@ export function AdminThemesPage() {
     form.reset({
       name: "",
       color: "#2F66F5",
-      temporality: "",
       emotionLabel: "",
       analysis: "",
+      strategicTeaching: "",
       verbatimTotem: "",
       count: 0,
     });
@@ -228,9 +229,9 @@ export function AdminThemesPage() {
     form.reset({
       name: theme.name,
       color: theme.color,
-      temporality: theme.temporality,
       emotionLabel: theme.emotionLabel,
       analysis: theme.analysis,
+      strategicTeaching: theme.strategicTeaching,
       verbatimTotem: theme.verbatimTotem,
       count: theme.count,
     });
@@ -349,11 +350,6 @@ export function AdminThemesPage() {
                             {theme.emotionLabel}
                           </Badge>
                         )}
-                        {theme.temporality && (
-                          <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none text-[8px] font-black uppercase tracking-widest w-fit">
-                            {theme.temporality}
-                          </Badge>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="py-4 px-4 text-center">
@@ -466,28 +462,15 @@ export function AdminThemesPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="temporality"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Temporalite</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Passe, Present, Futur" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={form.control}
                 name="emotionLabel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Label emotion</FormLabel>
+                    <FormLabel>Émotion dominante</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Nostalgie, Fierte..." {...field} />
+                      <Input placeholder="Ex: Nostalgie, Fierté..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -499,10 +482,28 @@ export function AdminThemesPage() {
                 name="analysis"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Analyse</FormLabel>
+                    <FormLabel>Synthèse Analyste</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Analyse detaillee du theme..."
+                        className="min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="strategicTeaching"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Enseignement stratégique</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enseignement stratégique clé..."
                         className="min-h-[80px]"
                         {...field}
                       />

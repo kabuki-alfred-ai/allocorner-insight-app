@@ -6,15 +6,15 @@ export class CreateThemeDto {
 
   @IsOptional()
   @IsString()
-  temporality?: string;
-
-  @IsOptional()
-  @IsString()
   emotionLabel?: string;
 
   @IsOptional()
   @IsString()
   analysis?: string;
+
+  @IsOptional()
+  @IsString()
+  strategicTeaching?: string;
 
   @IsOptional()
   @IsString()

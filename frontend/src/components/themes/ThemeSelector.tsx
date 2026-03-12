@@ -33,9 +33,25 @@ export function ThemeSelector({ themes, selectedTheme, onThemeSelect, total }: T
                 "group cursor-pointer p-5 transition-all duration-500 rounded-[1.5rem] border border-transparent",
                 isSelected
                   ? "bg-primary/[0.03] border-primary/10"
-                  : "hover:bg-black/[0.02]"
+                  : ""
               )}
+              style={!isSelected ? { 
+                '--hover-bg': `${theme.color}08`,
+                '--hover-border': `${theme.color}20`
+              } as React.CSSProperties : {}}
               onClick={() => onThemeSelect(theme)}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = `${theme.color}08`;
+                  e.currentTarget.style.borderColor = `${theme.color}20`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'transparent';
+                }
+              }}
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
