@@ -1,7 +1,7 @@
 import { useAudio } from "@/lib/audio-context";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, X, Volume2, Loader2, Music } from "lucide-react";
+import { Play, Pause, X, Volume2, Loader2, Music, SkipBack, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function GlobalAudioPlayer() {
@@ -15,7 +15,10 @@ export function GlobalAudioPlayer() {
     duration,
     audioLoading,
     playMessage,
-    stopAudio
+    stopAudio,
+    playNext,
+    playPrevious,
+    queue
   } = useAudio();
 
   if (!currentMessage) return null;
@@ -26,6 +29,8 @@ export function GlobalAudioPlayer() {
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  const hasPlaylist = queue.length > 1;
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[min(94vw,700px)] animate-in slide-in-from-bottom-10 duration-700 ease-out">
@@ -50,12 +55,23 @@ export function GlobalAudioPlayer() {
                </div>
              </div>
              
-             <div className="flex items-center gap-2 shrink-0">
+             <div className="flex items-center gap-1 shrink-0">
+                {hasPlaylist && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={playPrevious}
+                    className="h-10 w-10 rounded-xl text-black/20 hover:text-primary hover:bg-primary/5 transition-all"
+                  >
+                    <SkipBack className="h-4 w-4 fill-current" />
+                  </Button>
+                )}
+
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={togglePlay}
-                  className="h-12 w-12 rounded-xl bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary hover:scale-105 active:scale-95 transition-all"
+                  className="h-12 w-12 rounded-xl bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary hover:scale-105 active:scale-95 transition-all mx-1"
                 >
                   {isPlaying ? (
                     <Pause className="h-5 w-5 fill-current" />
@@ -63,12 +79,23 @@ export function GlobalAudioPlayer() {
                     <Play className="h-5 w-5 fill-current ml-0.5" />
                   )}
                 </Button>
+
+                {hasPlaylist && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={playNext}
+                    className="h-10 w-10 rounded-xl text-black/20 hover:text-primary hover:bg-primary/5 transition-all"
+                  >
+                    <SkipForward className="h-4 w-4 fill-current" />
+                  </Button>
+                )}
                 
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={stopAudio}
-                  className="h-8 w-8 rounded-full text-black/10 hover:text-black/30 hover:bg-black/5"
+                  className="h-8 w-8 rounded-full text-black/10 hover:text-black/30 hover:bg-black/5 ml-2"
                 >
                   <X className="h-4 w-4" />
                 </Button>
