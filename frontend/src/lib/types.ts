@@ -9,34 +9,34 @@ export type EmotionalLoad = 'LOW' | 'MEDIUM' | 'HIGH';
 export type Tone = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
 
 export type VerbatimCategory =
-  | 'CONTRASTE'
-  | 'ORIGINALITE'
-  | 'EMOTION'
-  | 'REPRESENTATIVITE'
-  | 'TOTEM';
+ | 'CONTRASTE'
+ | 'ORIGINALITE'
+ | 'EMOTION'
+ | 'REPRESENTATIVITE'
+ | 'TOTEM';
 
 export type Priority = 'HAUTE' | 'MOYENNE' | 'BASSE';
 
 export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED';
 
 export type ProcessingStatus =
-  | 'PENDING'
-  | 'QUEUED'
-  | 'PROCESSING'
-  | 'COMPLETED'
-  | 'FAILED';
+ | 'PENDING'
+ | 'QUEUED'
+ | 'PROCESSING'
+ | 'COMPLETED'
+ | 'FAILED';
 
 // ──────────────────────────────────────────────
 // User
 // ──────────────────────────────────────────────
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: Role;
-  createdAt: string;
-  updatedAt: string;
+ id: string;
+ email: string;
+ name: string;
+ role: Role;
+ createdAt: string;
+ updatedAt: string;
 }
 
 // ──────────────────────────────────────────────
@@ -44,14 +44,14 @@ export interface User {
 // ──────────────────────────────────────────────
 
 export interface AuthResponse {
-  user: Pick<User, 'id' | 'email' | 'name' | 'role'>;
-  accessToken: string;
-  refreshToken: string;
+ user: Pick<User, 'id' | 'email' | 'name' | 'role'>;
+ accessToken: string;
+ refreshToken: string;
 }
 
 export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
+ accessToken: string;
+ refreshToken: string;
 }
 
 // ──────────────────────────────────────────────
@@ -59,29 +59,29 @@ export interface TokenPair {
 // ──────────────────────────────────────────────
 
 export interface Project {
-  id: string;
-  clientName: string;
-  title: string;
-  dates: string;
-  context: string;
-  analyst: string;
-  methodology: string;
-  participantsEstimated: number;
-  logoKey: string | null;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
+ id: string;
+ clientName: string;
+ title: string;
+ dates: string;
+ context: string;
+ analyst: string;
+ methodology: string;
+ participantsEstimated: number;
+ logoKey: string | null;
+ createdById: string;
+ createdAt: string;
+ updatedAt: string;
 }
 
 export interface ProjectWithRelations extends Project {
-  metrics: ProjectMetrics | null;
-  plutchik: ProjectPlutchik | null;
-  ircBreakdown: IrcBreakdown | null;
-  themes: Theme[];
-  objectives: ProjectObjective[];
-  strategicActions: StrategicAction[];
-  resources: ProjectResource[];
-  _count?: { messages: number; members: number };
+ metrics: ProjectMetrics | null;
+ plutchik: ProjectPlutchik | null;
+ ircBreakdown: IrcBreakdown | null;
+ themes: Theme[];
+ objectives: ProjectObjective[];
+ strategicActions: StrategicAction[];
+ resources: ProjectResource[];
+ _count?: { messages: number; members: number };
 }
 
 // ──────────────────────────────────────────────
@@ -89,17 +89,17 @@ export interface ProjectWithRelations extends Project {
 // ──────────────────────────────────────────────
 
 export interface ProjectMetrics {
-  id: string;
-  projectId: string;
-  messagesCount: number;
-  avgDurationSec: number;
-  totalDurationSec: number;
-  participationRate: number;
-  ircScore: number;
-  tonalityAvg: number;
-  highEmotionShare: number;
-  ircInterpretation: string;
-  emotionalClimate: string;
+ id: string;
+ projectId: string;
+ messagesCount: number;
+ avgDurationSec: number;
+ totalDurationSec: number;
+ participationRate: number;
+ ircScore: number;
+ tonalityAvg: number;
+ highEmotionShare: number;
+ ircInterpretation: string;
+ emotionalClimate: string;
 }
 
 // ──────────────────────────────────────────────
@@ -107,16 +107,16 @@ export interface ProjectMetrics {
 // ──────────────────────────────────────────────
 
 export interface ProjectPlutchik {
-  id: string;
-  projectId: string;
-  joy: number;
-  trust: number;
-  sadness: number;
-  anticipation: number;
-  anger: number;
-  surprise: number;
-  fear: number;
-  cocktailSummary: string;
+ id: string;
+ projectId: string;
+ joy: number;
+ trust: number;
+ sadness: number;
+ anticipation: number;
+ anger: number;
+ surprise: number;
+ fear: number;
+ cocktailSummary: string;
 }
 
 // ──────────────────────────────────────────────
@@ -124,26 +124,26 @@ export interface ProjectPlutchik {
 // ──────────────────────────────────────────────
 
 export interface Message {
-  id: string;
-  projectId: string;
-  filename: string;
-  audioKey: string | null;
-  duration: number | null;
-  speaker: string | null;
-  transcriptTxt: string;
-  emotionalLoad: EmotionalLoad;
-  tone: Tone;
-  quote: string;
-  createdAt: string;
-  updatedAt: string;
-  messageThemes?: { theme: Theme }[];
-  messageEmotions?: { emotionName: string }[];
-  // Processing status fields
-  processingStatus: ProcessingStatus;
-  processingError?: string | null;
-  processedAt?: string | null;
-  retryCount: number;
-  gcpJobId?: string | null;
+ id: string;
+ projectId: string;
+ filename: string;
+ audioKey: string | null;
+ duration: number | null;
+ speaker: string | null;
+ transcriptTxt: string;
+ emotionalLoad: EmotionalLoad;
+ tone: Tone;
+ quote: string;
+ createdAt: string;
+ updatedAt: string;
+ messageThemes?: { theme: Theme }[];
+ messageEmotions?: { emotionName: string }[];
+ // Processing status fields
+ processingStatus: ProcessingStatus;
+ processingError?: string | null;
+ processedAt?: string | null;
+ retryCount: number;
+ gcpJobId?: string | null;
 }
 
 // ──────────────────────────────────────────────
@@ -151,31 +151,31 @@ export interface Message {
 // ──────────────────────────────────────────────
 
 export interface ThemeKeyword {
-  id: string;
-  themeId: string;
-  keyword: string;
+ id: string;
+ themeId: string;
+ keyword: string;
 }
 
 export interface Theme {
-  id: string;
-  projectId: string;
-  name: string;
-  temporality: string;
-  emotionLabel: string;
-  analysis: string;
-  strategicTeaching: string;
-  verbatimTotem: string;
-  totemMessageId: string | null;
-  count: number;
-  color: string;
-  keywords: ThemeKeyword[];
-  totemMessage?: {
-    id: string;
-    filename: string;
-    transcriptTxt: string;
-    duration: number | null;
-    speaker: string | null;
-  } | null;
+ id: string;
+ projectId: string;
+ name: string;
+ temporality: string;
+ emotionLabel: string;
+ analysis: string;
+ strategicTeaching: string;
+ verbatimTotem: string;
+ totemMessageId: string | null;
+ count: number;
+ color: string;
+ keywords: ThemeKeyword[];
+ totemMessage?: {
+ id: string;
+ filename: string;
+ transcriptTxt: string;
+ duration: number | null;
+ speaker: string | null;
+ } | null;
 }
 
 // ──────────────────────────────────────────────
@@ -183,14 +183,14 @@ export interface Theme {
 // ──────────────────────────────────────────────
 
 export interface FeaturedVerbatim {
-  id: string;
-  projectId: string;
-  category: VerbatimCategory;
-  messageId: string | null;
-  citation: string;
-  implication: string;
-  createdAt: string;
-  message?: Message | null;
+ id: string;
+ projectId: string;
+ category: VerbatimCategory;
+ messageId: string | null;
+ citation: string;
+ implication: string;
+ createdAt: string;
+ message?: Message | null;
 }
 
 // ──────────────────────────────────────────────
@@ -198,13 +198,13 @@ export interface FeaturedVerbatim {
 // ──────────────────────────────────────────────
 
 export interface Recommendation {
-  id: string;
-  projectId: string;
-  title: string;
-  objective: string;
-  priority: Priority;
-  position: number;
-  createdAt: string;
+ id: string;
+ projectId: string;
+ title: string;
+ objective: string;
+ priority: Priority;
+ position: number;
+ createdAt: string;
 }
 
 // ──────────────────────────────────────────────
@@ -212,52 +212,52 @@ export interface Recommendation {
 // ──────────────────────────────────────────────
 
 export interface Trends {
-  id: string;
-  projectId: string;
-  mainTrends: { title: string; content: string }[];
-  strengths: { title: string; content: string }[];
-  recurringWords: string[];
-  weakSignal: string;
-  weakSignalDetail: string;
+ id: string;
+ projectId: string;
+ mainTrends: { title: string; content: string }[];
+ strengths: { title: string; content: string }[];
+ recurringWords: string[];
+ weakSignal: string;
+ weakSignalDetail: string;
 }
 
 export interface ProjectObjective {
-  id: string;
-  projectId: string;
-  content: string;
-  position: number;
+ id: string;
+ projectId: string;
+ content: string;
+ position: number;
 }
 
 export interface StrategicAction {
-  id: string;
-  projectId: string;
-  title: string;
-  description: string;
-  priority: Priority;
-  timeline: string;
-  resources: string;
-  position: number;
+ id: string;
+ projectId: string;
+ title: string;
+ description: string;
+ priority: Priority;
+ timeline: string;
+ resources: string;
+ position: number;
 }
 
 export interface IrcBreakdown {
-  id: string;
-  projectId: string;
-  intensity: number;
-  thematicRichness: number;
-  narrativeCoherence: number;
-  originality: number;
+ id: string;
+ projectId: string;
+ intensity: number;
+ thematicRichness: number;
+ narrativeCoherence: number;
+ originality: number;
 }
 
 export interface ProjectResource {
-  id: string;
-  projectId: string;
-  title: string;
-  description: string;
-  type: string;
-  size: string;
-  fileKey: string | null;
-  position: number;
-  createdAt: string;
+ id: string;
+ projectId: string;
+ title: string;
+ description: string;
+ type: string;
+ size: string;
+ fileKey: string | null;
+ position: number;
+ createdAt: string;
 }
 
 // ──────────────────────────────────────────────
@@ -265,11 +265,11 @@ export interface ProjectResource {
 // ──────────────────────────────────────────────
 
 export interface TransversalAnalysis {
-  id: string;
-  projectId: string;
-  axis: string;
-  category: string;
-  content: string;
+ id: string;
+ projectId: string;
+ axis: string;
+ category: string;
+ content: string;
 }
 
 // ──────────────────────────────────────────────
@@ -277,13 +277,13 @@ export interface TransversalAnalysis {
 // ──────────────────────────────────────────────
 
 export interface Invitation {
-  id: string;
-  projectId: string;
-  email: string;
-  token: string;
-  status: InvitationStatus;
-  expiresAt: string;
-  createdAt: string;
+ id: string;
+ projectId: string;
+ email: string;
+ token: string;
+ status: InvitationStatus;
+ expiresAt: string;
+ createdAt: string;
 }
 
 // ──────────────────────────────────────────────
@@ -291,11 +291,11 @@ export interface Invitation {
 // ──────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+ data: T[];
+ total: number;
+ page: number;
+ limit: number;
+ totalPages: number;
 }
 
 // ──────────────────────────────────────────────
@@ -303,8 +303,8 @@ export interface PaginatedResponse<T> {
 // ──────────────────────────────────────────────
 
 export type CreateProjectDto = Omit<
-  Project,
-  'id' | 'createdById' | 'createdAt' | 'updatedAt' | 'logoKey'
+ Project,
+ 'id' | 'createdById' | 'createdAt' | 'updatedAt' | 'logoKey'
 >;
 
 export type UpdateProjectDto = Partial<CreateProjectDto>;
@@ -318,8 +318,8 @@ export type CreateThemeDto = Omit<Theme, 'id' | 'projectId'>;
 export type UpdateThemeDto = Partial<CreateThemeDto>;
 
 export type CreateRecommendationDto = Omit<
-  Recommendation,
-  'id' | 'projectId' | 'createdAt'
+ Recommendation,
+ 'id' | 'projectId' | 'createdAt'
 >;
 
 export type UpdateRecommendationDto = Partial<CreateRecommendationDto>;
@@ -327,22 +327,22 @@ export type UpdateRecommendationDto = Partial<CreateRecommendationDto>;
 export type UpsertTrendsDto = Omit<Trends, 'id' | 'projectId'>;
 
 export type CreateFeaturedVerbatimDto = Omit<
-  FeaturedVerbatim,
-  'id' | 'projectId' | 'createdAt' | 'message'
+ FeaturedVerbatim,
+ 'id' | 'projectId' | 'createdAt' | 'message'
 >;
 
 export type CreateTransversalAnalysisDto = Omit<
-  TransversalAnalysis,
-  'id' | 'projectId'
+ TransversalAnalysis,
+ 'id' | 'projectId'
 >;
 
 export type UpdateTransversalAnalysisDto = Partial<CreateTransversalAnalysisDto>;
 
 export type UpdateMessageDto = Partial<
-  Pick<Message, 'speaker' | 'transcriptTxt' | 'emotionalLoad' | 'tone' | 'quote'>
+ Pick<Message, 'speaker' | 'transcriptTxt' | 'emotionalLoad' | 'tone' | 'quote'>
 >;
 
 // Extension pour l'association theme-messages
 export interface MessageWithAssociation extends Message {
-  isAssociated: boolean;
+ isAssociated: boolean;
 }

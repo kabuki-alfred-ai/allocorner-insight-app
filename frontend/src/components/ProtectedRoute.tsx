@@ -4,28 +4,28 @@ import { useAuth } from '@/lib/auth-context';
 import type { Role } from '@/lib/types';
 
 interface ProtectedRouteProps {
-  requiredRole?: Role;
+ requiredRole?: Role;
 }
 
 export function ProtectedRoute({ requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
+ const { isAuthenticated, isLoading, user } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+ if (isLoading) {
+ return (
+ <div className="flex h-screen w-screen items-center justify-center">
+ <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+ </div>
+ );
+ }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+ if (!isAuthenticated) {
+ return <Navigate to="/login" replace />;
+ }
 
-  if (requiredRole && user?.role !== requiredRole) {
-    const destination = user?.role === "SUPERADMIN" ? "/admin" : "/projects";
-    return <Navigate to={destination} replace />;
-  }
+ if (requiredRole && user?.role !== requiredRole) {
+ const destination = user?.role ==="SUPERADMIN" ?"/admin" :"/projects";
+ return <Navigate to={destination} replace />;
+ }
 
-  return <Outlet />;
+ return <Outlet />;
 }

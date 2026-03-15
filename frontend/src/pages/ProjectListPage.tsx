@@ -1,124 +1,120 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from"react";
+import { useNavigate, useLocation } from"react-router-dom";
 import {
-  LogOut,
-  Plus,
-  Calendar,
-  MessageSquare,
-  ArrowRight,
-  Settings,
-  FolderOpen,
-  Briefcase,
-} from "lucide-react";
+ LogOut,
+ Plus,
+ Calendar,
+ MessageSquare,
+ ArrowRight,
+ Settings,
+ FolderOpen,
+ Briefcase,
+ MoreVertical
+} from"lucide-react";
 
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from"@/components/PageHeader";
 
-import { useAuth } from "@/lib/auth-context";
-import { useProjects } from "@/hooks/use-projects";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from"@/lib/auth-context";
+import { useProjects } from"@/hooks/use-projects";
+import { Button } from"@/components/ui/button";
+import { Skeleton } from"@/components/ui/skeleton";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { Project } from "@/lib/types";
-import { apiClient } from "@/lib/api";
+ Card,
+ CardContent,
+ CardDescription,
+ CardFooter,
+ CardHeader,
+ CardTitle,
+} from"@/components/ui/card";
+import { Separator } from"@/components/ui/separator";
+import type { Project } from"@/lib/types";
+import { apiClient } from"@/lib/api";
 
 // ──────────────────────────────────────────────
 // Project card
 // ──────────────────────────────────────────────
 
 interface ProjectCardProps {
-  project: Project & { _count?: { messages: number } };
-  isSuperAdmin: boolean;
+ project: Project & { _count?: { messages: number } };
+ isSuperAdmin: boolean;
 }
 
 function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
-  const navigate = useNavigate();
-  const messagesCount = project._count?.messages;
+ const navigate = useNavigate();
+ const messagesCount = project._count?.messages;
 
-  return (
-    <Card className="premium-card group hover:scale-[1.02] transition-all duration-500 flex flex-col">
-      <CardHeader className="pb-4 pt-8 px-8 relative">
-        <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
-        <div className="flex items-start gap-4 mb-2">
-          {project.logoKey && (
-            <div className="w-12 h-12 rounded-xl bg-white p-1.5 flex-shrink-0 border border-black/5">
-              <img
-                src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
-                alt={project.clientName}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="label-uppercase mb-1">
-              {project.clientName}
-            </p>
-            <h3 className="text-2xl font-extrabold font-heading text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors">
-              {project.title}
-            </h3>
-          </div>
-        </div>
-      </CardHeader>
+ return (
+ <Card 
+ onClick={() => navigate(`/projects/${project.id}`)}
+ className="cursor-pointer transition-colors hover:bg-muted/50 flex flex-col h-full"
+ >
+ <CardHeader className="flex flex-row items-center gap-4">
+ {project.logoKey ? (
+ <div className="w-12 h-12 rounded-md bg-muted p-2 flex-shrink-0 flex items-center justify-center">
+ <img
+ src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
+ alt={project.clientName}
+ className="w-full h-full object-contain"
+ onError={(e) => {
+ (e.target as HTMLImageElement).style.display = 'none';
+ }}
+ />
+ </div>
+ ) : (
+ <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+ <Briefcase className="h-5 w-5 text-muted-foreground" />
+ </div>
+ )}
+ <div className="flex-1 min-w-0">
+ <CardDescription className="truncate">{project.clientName}</CardDescription>
+ <CardTitle className="text-xl truncate">{project.title}</CardTitle>
+ </div>
+ </CardHeader>
  
-      <CardContent className="flex-1 pb-8 px-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/70 uppercase tracking-[0.15em]">
-            <div className="p-2 bg-muted/50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-              <Calendar className="h-4 w-4 shrink-0" />
-            </div>
-            <span>{project.dates || "En cours"}</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/70 uppercase tracking-[0.15em]">
-            <div className="p-2 bg-muted/50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-              <MessageSquare className="h-4 w-4 shrink-0" />
-            </div>
-            <span>
-              {messagesCount !== undefined && messagesCount !== null
-                ? `${messagesCount} témoignages`
-                : "Aucun message"}
-            </span>
-          </div>
-        </div>
-      </CardContent>
+ <CardContent className="flex-1">
+ <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+ <div className="flex items-center gap-2">
+ <Calendar className="h-4 w-4" />
+ <span>{project.dates ||"En cours"}</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <MessageSquare className="h-4 w-4" />
+ <span>
+ {messagesCount !== undefined && messagesCount !== null
+ ?`${messagesCount} témoignages`
+ :"0 témoignage"}
+ </span>
+ </div>
+ </div>
+ </CardContent>
  
-      <div className="px-8 py-6 bg-muted/20 border-t border-white/5 flex gap-3">
-        <Button
-          className="flex-1 shadow-lg shadow-primary/20 font-black text-xs uppercase tracking-widest rounded-xl h-12 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          onClick={() => navigate(`/projects/${project.id}`)}
-        >
-          Accéder au Board
-        </Button>
-        {isSuperAdmin && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl h-12 w-12 border-primary/10 text-primary hover:bg-primary/5 transition-all hover:border-primary/20"
-            onClick={() => navigate(`/projects/${project.id}/admin`)}
-            title="Administrer"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-        )}
-      </div>
-    </Card>
-  );
+ <CardFooter className="flex items-center gap-2">
+ <Button
+ variant="secondary"
+ className="w-full"
+ onClick={(e) => {
+ e.stopPropagation();
+ navigate(`/projects/${project.id}`);
+ }}
+ >
+ Ouvrir
+ </Button>
+ {isSuperAdmin && (
+ <Button
+ variant="ghost"
+ size="icon"
+ onClick={(e) => {
+ e.stopPropagation();
+ navigate(`/projects/${project.id}/admin`);
+ }}
+ title="Administrer"
+ >
+ <Settings className="h-4 w-4" />
+ </Button>
+ )}
+ </CardFooter>
+ </Card>
+ );
 }
 
 // ──────────────────────────────────────────────
@@ -126,24 +122,24 @@ function ProjectCard({ project, isSuperAdmin }: ProjectCardProps) {
 // ──────────────────────────────────────────────
 
 function ProjectCardSkeleton() {
-  return (
-    <Card className="shadow-card flex flex-col">
-      <CardHeader className="pb-3">
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-5 w-3/4 mt-2" />
-      </CardHeader>
-      <CardContent className="flex-1 pb-3">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      </CardContent>
-      <Separator />
-      <CardFooter className="pt-4">
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
-  );
+ return (
+ <Card className="flex flex-col h-full">
+ <CardHeader className="flex flex-row gap-4 mb-4">
+ <Skeleton className="h-12 w-12 rounded-md" />
+ <div className="space-y-2 flex-1 pt-1">
+ <Skeleton className="h-4 w-20" />
+ <Skeleton className="h-6 w-3/4" />
+ </div>
+ </CardHeader>
+ <CardContent className="flex-1 space-y-3">
+ <Skeleton className="h-4 w-32" />
+ <Skeleton className="h-4 w-24" />
+ </CardContent>
+ <CardFooter>
+ <Skeleton className="h-10 w-full rounded-md" />
+ </CardFooter>
+ </Card>
+ );
 }
 
 // ──────────────────────────────────────────────
@@ -151,19 +147,19 @@ function ProjectCardSkeleton() {
 // ──────────────────────────────────────────────
 
 function EmptyState() {
-  return (
-    <div className="col-span-full flex flex-col items-center justify-center py-24 text-center bg-muted/20 rounded-[2.5rem] border border-dashed border-muted-foreground/20">
-      <div className="h-20 w-20 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-6">
-        <FolderOpen className="h-10 w-10 text-primary" />
-      </div>
-      <h3 className="text-xl font-extrabold font-heading text-foreground tracking-tight">
-        Aucun projet actif
-      </h3>
-      <p className="text-sm font-bold text-muted-foreground/80 mt-2 max-w-sm uppercase tracking-wider leading-relaxed">
-        Vous n'avez pas encore de collectes audio. Commencez par en créer une nouvelle.
-      </p>
-    </div>
-  );
+ return (
+ <div className="col-span-full flex flex-col items-center justify-center py-20 text-center border rounded-lg bg-muted/20">
+ <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-6">
+ <FolderOpen className="h-8 w-8 text-muted-foreground" />
+ </div>
+ <h3 className="text-xl font-semibold text-foreground tracking-tight">
+ Aucun projet
+ </h3>
+ <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+ Vous n'avez pas encore de collecte audio en cours.
+ </p>
+ </div>
+ );
 }
 
 // ──────────────────────────────────────────────
@@ -171,194 +167,175 @@ function EmptyState() {
 // ──────────────────────────────────────────────
 
 export function ProjectListPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isEmbedded = location.pathname.startsWith("/admin");
-  const { user, logout } = useAuth();
-  const { data: projects, isLoading, isError } = useProjects();
+ const navigate = useNavigate();
+ const location = useLocation();
+ const isEmbedded = location.pathname.startsWith("/admin");
+ const { user, logout } = useAuth();
+ const { data: projects, isLoading, isError } = useProjects();
  
-  const isSuperAdmin = user?.role === "SUPERADMIN";
+ const isSuperAdmin = user?.role ==="SUPERADMIN";
  
-  // Redirect SuperAdmins to /admin if they are on the standalone /projects page
-  useEffect(() => {
-    if (!isLoading && isSuperAdmin && !isEmbedded) {
-      navigate("/admin", { replace: true });
-    }
-  }, [isLoading, isSuperAdmin, isEmbedded, navigate]);
+ // Redirect SuperAdmins to /admin if they are on the standalone /projects page
+ useEffect(() => {
+ if (!isLoading && isSuperAdmin && !isEmbedded) {
+ navigate("/admin", { replace: true });
+ }
+ }, [isLoading, isSuperAdmin, isEmbedded, navigate]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login", { replace: true });
-  };
+ const handleLogout = async () => {
+ await logout();
+ navigate("/login", { replace: true });
+ };
 
-  if (isEmbedded) {
-    return (
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <PageHeader 
-          title="Gestion des Projets"
-          icon={<Briefcase className="h-6 w-6" />}
-          actions={
-            <Button
-              variant="default"
-              size="premium"
-              onClick={() => navigate("/projects/new/admin")}
-              className="shadow-md shadow-primary/20 px-3 md:px-5"
-            >
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Nouveau projet</span>
-            </Button>
-          }
-        />
+ if (isEmbedded) {
+ return (
+ <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+ <PageHeader 
+ title="Projets"
+ actions={
+ <Button
+ variant="default"
+ onClick={() => navigate("/projects/new/admin")}
+ >
+ <Plus className="h-4 w-4 mr-2" />
+ Nouveau projet
+ </Button>
+ }
+ />
 
-        <div className="mt-12">
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-2xl" />
-              ))}
-            </div>
-          ) : !isError && projects && projects.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="flex flex-col gap-3">
-              {projects?.map((project) => {
-                const messagesCount = (project as Project & { _count?: { messages: number } })._count?.messages;
-                return (
-                  <div 
-                    key={project.id} 
-                    className="group relative flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[1.5rem] bg-white border border-black/5 shadow-sm hover:shadow-md hover:bg-primary/[0.02] hover:border-primary/10 transition-all duration-300"
-                  >
-                    <div className="flex items-start md:items-center gap-4 flex-1 min-w-0">
-                      {/* Logo */}
-                      {project.logoKey ? (
-                        <div className="w-12 h-12 rounded-xl bg-muted/20 p-2 flex-shrink-0 border border-black/5">
-                          <img
-                            src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
-                            alt={project.clientName}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 border border-black/5">
-                          <Briefcase className="h-5 w-5 text-muted-foreground/40" />
-                        </div>
-                      )}
-                      
-                      {/* Info */}
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate">
-                          {project.clientName}
-                        </span>
-                        <span className="text-lg md:text-base font-extrabold font-heading text-foreground group-hover:text-primary transition-colors truncate">
-                          {project.title}
-                        </span>
-                      </div>
-                    </div>
+ <div className="mt-8">
+ {isLoading ? (
+ <div className="space-y-4">
+ {Array.from({ length: 5 }).map((_, i) => (
+ <Skeleton key={i} className="h-24 w-full rounded-lg" />
+ ))}
+ </div>
+ ) : !isError && projects && projects.length === 0 ? (
+ <EmptyState />
+ ) : (
+ <div className="flex flex-col gap-4">
+ {projects?.map((project) => {
+ const messagesCount = (project as Project & { _count?: { messages: number } })._count?.messages;
+ return (
+ <Card
+ key={project.id}
+ onClick={() => navigate(`/projects/${project.id}`)}
+ className="cursor-pointer transition-colors hover:bg-muted/50 flex items-center flex-row p-4"
+ >
+ <div className="w-12 h-12 rounded-md bg-muted p-2 flex-shrink-0 flex items-center justify-center">
+ {project.logoKey ? (
+ <img
+ src={`${apiClient.defaults.baseURL}/storage/logo/${project.logoKey}`}
+ alt={project.clientName}
+ className="w-full h-full object-contain"
+ onError={(e) => {
+ (e.target as HTMLImageElement).style.display = 'none';
+ }}
+ />
+ ) : (
+ <Briefcase className="h-5 w-5 text-muted-foreground" />
+ )}
+ </div>
+ 
+ <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4 ml-4">
+ <div className="flex flex-col min-w-0">
+ <CardTitle className="text-base truncate">{project.title}</CardTitle>
+ <CardDescription className="truncate">{project.clientName}</CardDescription>
+ </div>
 
-                    <div className="flex items-center gap-6 mt-2 md:mt-0 ml-16 md:ml-0 flex-wrap md:flex-nowrap">
-                      {/* Meta Data */}
-                      <div className="flex flex-wrap md:flex-nowrap items-center gap-4 md:gap-6 text-xs font-bold text-muted-foreground/70 uppercase tracking-wider w-full md:w-auto">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 opacity-50" />
-                          <span>{project.dates || "En cours"}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="h-3.5 w-3.5 opacity-50" />
-                          <span className="text-foreground/80">{messagesCount !== undefined && messagesCount !== null ? messagesCount : 0} témoig.</span>
-                        </div>
-                      </div>
+ <div className="flex items-center gap-6 text-sm text-muted-foreground">
+ <div className="hidden md:flex items-center gap-2 w-32">
+ <Calendar className="h-4 w-4" />
+ <span>{project.dates ||"En cours"}</span>
+ </div>
+ <div className="flex items-center gap-2 w-32">
+ <MessageSquare className="h-4 w-4" />
+ <span>{messagesCount !== undefined && messagesCount !== null ? messagesCount : 0} témoig.</span>
+ </div>
+ </div>
+ </div>
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0 justify-end md:justify-start">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-10 px-5 rounded-xl border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-widest transition-all flex-1 md:flex-none"
-                          onClick={() => navigate(`/projects/${project.id}`)}
-                        >
-                          Dashboard
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="default"
-                          className="h-10 w-10 flex-shrink-0 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-muted/80 text-foreground hover:bg-primary hover:text-primary-foreground"
-                          onClick={() => navigate(`/projects/${project.id}/admin`)}
-                          title="Administrer"
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+ <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+ {isSuperAdmin && (
+ <Button
+ variant="ghost"
+ size="icon"
+ onClick={(e) => {
+ e.stopPropagation();
+ navigate(`/projects/${project.id}/admin`);
+ }}
+ title="Administrer"
+ >
+ <Settings className="h-4 w-4" />
+ </Button>
+ )}
+ <Button variant="ghost" size="icon">
+ <ArrowRight className="h-4 w-4" />
+ </Button>
+ </div>
+ </Card>
+ );
+ })}
+ </div>
+ )}
+ </div>
+ </div>
+ );
+ }
 
-  // When in layout (not standalone), show simplified version
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <PageHeader 
-        title="Mes Projets"
-        description="Sélectionnez un projet pour accéder à son tableau de bord"
-        icon={<Briefcase className="h-6 w-6" />}
-        actions={
-          isSuperAdmin && (
-            <Button
-              variant="default"
-              size="premium"
-              onClick={() => navigate("/projects/new/admin")}
-              className="shadow-md shadow-primary/20"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau projet
-            </Button>
-          )
-        }
-      />
+ // When in layout (not standalone), show simplified version
+ return (
+ <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+ <PageHeader 
+ title="Projets"
+ actions={
+ isSuperAdmin && (
+ <Button
+ variant="default"
+ onClick={() => navigate("/projects/new/admin")}
+ >
+ <Plus className="h-4 w-4 mr-2" />
+ Nouveau projet
+ </Button>
+ )
+ }
+ />
 
-      <div className="mt-12">
-        {isError && (
-        <div className="text-center py-12">
-          <p className="text-destructive font-medium">
-            Erreur lors du chargement des projets.
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Veuillez rafraichir la page ou réessayer plus tard.
-          </p>
-        </div>
-      )}
+ <div className="mt-8">
+ {isError && (
+ <div className="text-center py-12">
+ <p className="text-destructive font-medium">
+ Erreur lors du chargement des projets.
+ </p>
+ <p className="text-sm text-muted-foreground mt-1">
+ Veuillez rafraichir la page ou réessayer plus tard.
+ </p>
+ </div>
+ )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading &&
-          Array.from({ length: 6 }).map((_, i) => (
-            <ProjectCardSkeleton key={i} />
-          ))}
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ {isLoading &&
+ Array.from({ length: 6 }).map((_, i) => (
+ <ProjectCardSkeleton key={i} />
+ ))}
 
-        {!isLoading && !isError && projects && projects.length === 0 && (
-          <EmptyState />
-        )}
+ {!isLoading && !isError && projects && projects.length === 0 && (
+ <EmptyState />
+ )}
 
-        {!isLoading &&
-          !isError &&
-          projects?.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project as Project & { _count?: { messages: number } }}
-              isSuperAdmin={isSuperAdmin}
-            />
-          ))}
-      </div>
-    </div>
-  </div>
-  );
+ {!isLoading &&
+ !isError &&
+ projects?.map((project) => (
+ <ProjectCard
+ key={project.id}
+ project={project as Project & { _count?: { messages: number } }}
+ isSuperAdmin={isSuperAdmin}
+ />
+ ))}
+ </div>
+ </div>
+ </div>
+ );
 }
 
 export default ProjectListPage;
