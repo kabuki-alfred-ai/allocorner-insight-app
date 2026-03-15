@@ -46,22 +46,22 @@ const STATUS_CONFIG: Record<
  InvitationStatus,
  { label: string; className: string }
 > = {
- PENDING: {
- label:"En attente",
- className:"bg-yellow-100 text-yellow-800 border-yellow-300",
- },
- ACCEPTED: {
- label:"Acceptee",
- className:"bg-green-100 text-green-800 border-green-300",
- },
- EXPIRED: {
- label:"Expiree",
- className:"bg-gray-100 text-gray-600 border-gray-300",
- },
- REVOKED: {
- label:"Revoquee",
- className:"bg-red-100 text-red-800 border-red-300",
- },
+  PENDING: {
+    label: "En attente",
+    className: "bg-amber-500/10 text-amber-600 border-none px-3 py-0.5 rounded-full text-[9px] font-bold",
+  },
+  ACCEPTED: {
+    label: "Acceptée",
+    className: "bg-green-500/10 text-green-600 border-none px-3 py-0.5 rounded-full text-[9px] font-bold",
+  },
+  EXPIRED: {
+    label: "Expirée",
+    className: "bg-muted text-muted-foreground/60 border-none px-3 py-0.5 rounded-full text-[9px] font-bold",
+  },
+  REVOKED: {
+    label: "Révôquée",
+    className: "bg-red-500/10 text-red-600 border-none px-3 py-0.5 rounded-full text-[9px] font-bold",
+  },
 };
 
 function statusBadge(status: InvitationStatus) {
