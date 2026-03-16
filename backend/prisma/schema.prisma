@@ -53,6 +53,8 @@ model Project {
   strategicActions      StrategicAction[]
   ircBreakdown          IrcBreakdown?
   resources             ProjectResource[]
+  wrappedPublished      Boolean               @default(false) @map("wrapped_published")
+  wrappedTheme          Json?                 @map("wrapped_theme")
 
   @@map("projects")
 }
@@ -118,6 +120,8 @@ model Message {
   quote             String             @default("")
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  speakerProfile    SpeakerProfile?    @map("speaker_profile")
 
   // Processing status tracking
   processingStatus  ProcessingStatus   @default(PENDING) @map("processing_status")
@@ -297,6 +301,26 @@ enum ProcessingStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum SpeakerProfile {
+  CHILD
+  TEENAGER
+  TEENAGER_GIRL
+  TEENAGER_BOY
+  YOUNG_ADULT
+  YOUNG_WOMAN
+  YOUNG_MAN
+  ADULT
+  ADULT_WOMAN
+  ADULT_MAN
+  SENIOR
+  SENIOR_WOMAN
+  SENIOR_MAN
+  PROFESSIONAL
+  PARENT
+  STUDENT
+  OTHER
 }
 
 model ProjectObjective {

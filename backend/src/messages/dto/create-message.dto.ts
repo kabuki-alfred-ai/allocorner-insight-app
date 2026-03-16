@@ -6,7 +6,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EmotionalLoad, Tone } from '@prisma/client';
+import { EmotionalLoad, SpeakerProfile, Tone } from '@prisma/client';
 
 export class CreateMessageDto {
   @IsString()
@@ -36,6 +36,10 @@ export class CreateMessageDto {
   @IsOptional()
   @IsString()
   quote?: string;
+
+  @IsOptional()
+  @IsEnum(SpeakerProfile)
+  speakerProfile?: SpeakerProfile;
 
   @IsOptional()
   @IsArray()

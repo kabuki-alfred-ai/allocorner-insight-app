@@ -69,6 +69,17 @@ export async function deleteMessage(
  await apiClient.delete(`/projects/${projectId}/messages/${messageId}`);
 }
 
+export async function bulkDeleteMessages(
+  projectId: string,
+  ids: string[],
+): Promise<{ deleted: number }> {
+  const response = await apiClient.delete<{ deleted: number }>(
+    `/projects/${projectId}/messages/bulk`,
+    { data: { ids } },
+  );
+  return response.data;
+}
+
 // ========== PROCESSING ENDPOINTS ==========
 
 export async function triggerProcessing(

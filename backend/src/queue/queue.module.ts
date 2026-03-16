@@ -6,6 +6,8 @@ import { AudioProcessingProcessor } from './processors/audio-processing.processo
 import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
 import { GoogleModule } from '../google/google.module';
+import { ClaudeModule } from '../claude/claude.module';
+import { AudioModule } from '../audio/audio.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { GoogleModule } from '../google/google.module';
     PrismaModule,
     StorageModule,
     GoogleModule,
+    ClaudeModule,
+    AudioModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

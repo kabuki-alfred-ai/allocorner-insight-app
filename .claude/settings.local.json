@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \":*)",
+      "WebSearch",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(ffmpeg -version)"
+    ]
+  }
+}

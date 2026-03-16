@@ -23,6 +23,8 @@ import {
  Clock,
  RotateCw,
  FileAudio,
+ Square,
+ CheckSquare,
 } from"lucide-react";
 
 import {
@@ -31,13 +33,14 @@ import {
  bulkUploadMessages,
  updateMessage,
  deleteMessage,
+ bulkDeleteMessages,
  triggerProcessing,
  retryProcessing,
  processBulk,
  retryAllFailed,
 } from"@/lib/api/messages";
 import { useProject } from"@/hooks/use-projects";
-import type { Message, EmotionalLoad, Tone, ProcessingStatus } from"@/lib/types";
+import type { Message, Tone, ProcessingStatus, SpeakerProfile } from"@/lib/types";
 
 import { cn } from"@/lib/utils";
 import { PageHeader } from"@/components/PageHeader";
@@ -91,34 +94,100 @@ import {
 
 const PAGE_LIMIT = 50;
 
-const EMOTIONAL_LOAD_OPTIONS: { value: EmotionalLoad; label: string }[] = [
- { value:"LOW", label:"Faible" },
- { value:"MEDIUM", label:"Moyenne" },
- { value:"HIGH", label:"Elevee" },
-];
-
 const TONE_OPTIONS: { value: Tone; label: string }[] = [
  { value:"POSITIVE", label:"Positive" },
  { value:"NEGATIVE", label:"Négative" },
  { value:"NEUTRAL", label:"Neutre" },
 ];
 
-const emotionalLoadColor: Record<EmotionalLoad, string> = {
- LOW:"bg-green-100 text-green-800",
- MEDIUM:"bg-yellow-100 text-yellow-800",
- HIGH:"bg-red-100 text-red-800",
+
+const speakerProfileLabel: Record<SpeakerProfile, string> = {
+ CHILD: "Enfant",
+ TEENAGER: "Adolescent(e)",
+ TEENAGER_GIRL: "Adolescente",
+ TEENAGER_BOY: "Adolescent",
+ YOUNG_ADULT: "Jeune adulte",
+ YOUNG_WOMAN: "Jeune femme",
+ YOUNG_MAN: "Jeune homme",
+ ADULT: "Adulte",
+ ADULT_WOMAN: "Femme adulte",
+ ADULT_MAN: "Homme adulte",
+ SENIOR: "Senior",
+ SENIOR_WOMAN: "Femme senior",
+ SENIOR_MAN: "Homme senior",
+ PROFESSIONAL: "Professionnel",
+ PARENT: "Parent",
+ STUDENT: "Étudiant(e)",
+ OTHER: "Autre",
+};
+
+const speakerProfileColor: Record<SpeakerProfile, string> = {
+ CHILD: "bg-yellow-400/10 text-yellow-600",
+ TEENAGER: "bg-lime-400/10 text-lime-600",
+ TEENAGER_GIRL: "bg-pink-500/10 text-pink-600",
+ TEENAGER_BOY: "bg-sky-400/10 text-sky-600",
+ YOUNG_ADULT: "bg-cyan-400/10 text-cyan-600",
+ YOUNG_WOMAN: "bg-fuchsia-500/10 text-fuchsia-600",
+ YOUNG_MAN: "bg-blue-400/10 text-blue-500",
+ ADULT: "bg-slate-400/10 text-slate-600",
+ ADULT_WOMAN: "bg-violet-500/10 text-violet-600",
+ ADULT_MAN: "bg-blue-600/10 text-blue-700",
+ SENIOR: "bg-amber-400/10 text-amber-700",
+ SENIOR_WOMAN: "bg-rose-400/10 text-rose-600",
+ SENIOR_MAN: "bg-indigo-500/10 text-indigo-700",
+ PROFESSIONAL: "bg-emerald-500/10 text-emerald-700",
+ PARENT: "bg-orange-400/10 text-orange-600",
+ STUDENT: "bg-teal-400/10 text-teal-600",
+ OTHER: "bg-muted text-muted-foreground/60",
+};
+
+const toneLabel: Record<Tone, string> = {
+ POSITIVE: "Positif",
+ NEGATIVE: "Négatif",
+ NEUTRAL: "Neutre",
+};
+
+const toneColor: Record<Tone, string> = {
+ POSITIVE: "bg-green-500/10 text-green-600",
+ NEGATIVE: "bg-red-500/10 text-red-600",
+ NEUTRAL: "bg-muted text-muted-foreground/60",
 };
 
 // ──────────────────────────────────────────────
 // Edit form schema
 // ──────────────────────────────────────────────
 
+const SPEAKER_PROFILE_OPTIONS: { value: SpeakerProfile; label: string }[] = [
+ { value: "CHILD", label: "Enfant" },
+ { value: "TEENAGER", label: "Adolescent(e)" },
+ { value: "TEENAGER_GIRL", label: "Adolescente" },
+ { value: "TEENAGER_BOY", label: "Adolescent" },
+ { value: "YOUNG_ADULT", label: "Jeune adulte" },
+ { value: "YOUNG_WOMAN", label: "Jeune femme" },
+ { value: "YOUNG_MAN", label: "Jeune homme" },
+ { value: "ADULT", label: "Adulte" },
+ { value: "ADULT_WOMAN", label: "Femme adulte" },
+ { value: "ADULT_MAN", label: "Homme adulte" },
+ { value: "SENIOR", label: "Senior" },
+ { value: "SENIOR_WOMAN", label: "Femme senior" },
+ { value: "SENIOR_MAN", label: "Homme senior" },
+ { value: "PROFESSIONAL", label: "Professionnel(le)" },
+ { value: "PARENT", label: "Parent" },
+ { value: "STUDENT", label: "Étudiant(e)" },
+ { value: "OTHER", label: "Autre" },
+];
+
 const editMessageSchema = z.object({
  speaker: z.string().optional().default(""),
+ speakerProfile: z.enum([
+   "CHILD","TEENAGER","TEENAGER_GIRL","TEENAGER_BOY",
+   "YOUNG_ADULT","YOUNG_WOMAN","YOUNG_MAN",
+   "ADULT","ADULT_WOMAN","ADULT_MAN",
+   "SENIOR","SENIOR_WOMAN","SENIOR_MAN",
+   "PROFESSIONAL","PARENT","STUDENT","OTHER",
+ ] as const).optional(),
  transcriptTxt: z.string().optional().default(""),
- emotionalLoad: z.enum(["LOW","MEDIUM","HIGH"]).default("LOW"),
  tone: z.enum(["POSITIVE","NEGATIVE","NEUTRAL"]).default("NEUTRAL"),
- quote: z.string().optional().default(""),
 });
 
 type EditMessageValues = z.infer<typeof editMessageSchema>;
@@ -154,6 +223,8 @@ export function AdminMessagesPage() {
  const [page, setPage] = useState(1);
  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
  const [deletingMessage, setDeletingMessage] = useState<Message | null>(null);
+ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+ const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
  const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -240,6 +311,22 @@ export function AdminMessagesPage() {
  queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
  toast.success("Message supprime");
  setDeletingMessage(null);
+ },
+ onError: (error: Error) => {
+ toast.error(`Erreur de suppression : ${error.message}`);
+ },
+ });
+
+ // ── Bulk delete mutation ──
+
+ const bulkDeleteMutation = useMutation({
+ mutationFn: (ids: string[]) => bulkDeleteMessages(projectId!, ids),
+ onSuccess: (data) => {
+ queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
+ queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+ toast.success(`${data.deleted} verbatim(s) supprimé(s)`);
+ setSelectedIds(new Set());
+ setShowBulkDeleteConfirm(false);
  },
  onError: (error: Error) => {
  toast.error(`Erreur de suppression : ${error.message}`);
@@ -405,7 +492,7 @@ export function AdminMessagesPage() {
  // Get audio URL for a message
  const getAudioUrl = (messageId: string) => {
  const token = localStorage.getItem("access_token");
- const baseUrl =`${import.meta.env.VITE_API_URL ||"http://localhost:3000"}/api/storage/audio/${projectId}/${messageId}/stream`;
+ const baseUrl =`${import.meta.env.VITE_API_URL ||"http://localhost:3000/api"}/storage/audio/${projectId}/${messageId}/stream`;
  return token ?`${baseUrl}?token=${token}` : baseUrl;
  };
 
@@ -568,8 +655,24 @@ export function AdminMessagesPage() {
  <Badge variant="outline" className="text-primary border-none bg-primary/5 text-[9px] font-semibold px-3 rounded-full">
  {messagesQuery.data?.total || 0} Verbatims
  </Badge>
+ {selectedIds.size > 0 && (
+ <Badge variant="outline" className="border-none bg-red-500/10 text-red-600 text-[9px] font-semibold px-3 rounded-full">
+ {selectedIds.size} sélectionné(s)
+ </Badge>
+ )}
  </div>
  <div className="flex gap-2">
+ {selectedIds.size > 0 && (
+ <Button
+ onClick={() => setShowBulkDeleteConfirm(true)}
+ variant="destructive"
+ size="sm"
+ className="rounded-full h-8 text-[9px] font-semibold px-4"
+ >
+ <Trash2 className="h-3 w-3 mr-1.5" />
+ Supprimer ({selectedIds.size})
+ </Button>
+ )}
  {!messagesQuery.isLoading && messages.length > 0 && (
  <>
  <Button
@@ -611,21 +714,65 @@ export function AdminMessagesPage() {
  </Card>
  ) : (
  <>
+ {messages.length > 0 && (
+ <div className="flex items-center gap-2 px-4 mb-2">
+ <button
+ className="flex items-center gap-2 text-[9px] font-semibold text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+ onClick={() => {
+ if (selectedIds.size === messages.length) {
+ setSelectedIds(new Set());
+ } else {
+ setSelectedIds(new Set(messages.map((m) => m.id)));
+ }
+ }}
+ >
+ {selectedIds.size === messages.length && messages.length > 0 ? (
+ <CheckSquare className="h-3.5 w-3.5" />
+ ) : (
+ <Square className="h-3.5 w-3.5" />
+ )}
+ Tout sélectionner
+ </button>
+ </div>
+ )}
+
  <div className="space-y-3">
  {messages.map((msg) => (
- <div 
- key={msg.id} 
+ <div
+ key={msg.id}
  className={cn(
- "group relative flex items-center gap-4 px-4 py-3 transition-all cursor-pointer rounded-xl border border-transparent hover:bg-muted/40",
- playingMessageId === msg.id ? "bg-muted/60 border-border/50 shadow-sm" : "hover:border-border/20"
+ "group relative flex items-center gap-4 px-4 py-3 transition-all cursor-pointer rounded-xl border",
+ selectedIds.has(msg.id)
+ ? "bg-red-50/50 border-red-200/60 dark:bg-red-950/20 dark:border-red-900/40"
+ : playingMessageId === msg.id ? "bg-muted/60 border-border/50 shadow-sm" : "border-transparent hover:bg-muted/40 hover:border-border/20"
  )}
  onClick={() => handlePlayAudio(msg.id)}
  >
+ {/* Checkbox */}
+ <div
+ className="shrink-0 flex items-center justify-center"
+ onClick={(e) => {
+ e.stopPropagation();
+ setSelectedIds((prev) => {
+ const next = new Set(prev);
+ if (next.has(msg.id)) next.delete(msg.id);
+ else next.add(msg.id);
+ return next;
+ });
+ }}
+ >
+ {selectedIds.has(msg.id) ? (
+ <CheckSquare className="h-4 w-4 text-red-500" />
+ ) : (
+ <Square className="h-4 w-4 text-muted-foreground/20 group-hover:text-muted-foreground/40" />
+ )}
+ </div>
+
  {/* Play Indicator */}
  <div className={cn(
  "w-10 h-10 flex items-center justify-center shrink-0 rounded-full transition-all duration-300",
- playingMessageId === msg.id 
- ? "bg-primary/10 text-primary shadow-sm" 
+ playingMessageId === msg.id
+ ? "bg-primary/10 text-primary shadow-sm"
  : "bg-muted/20 text-muted-foreground/40 group-hover:bg-primary/10 group-hover:text-primary"
  )}>
  {playingMessageId === msg.id ? (
@@ -638,12 +785,6 @@ export function AdminMessagesPage() {
  {/* Info Stack */}
  <div className="flex-1 min-w-0 flex flex-col gap-0.5">
  <div className="flex items-center gap-2">
- {msg.emotionalLoad && msg.processingStatus === 'COMPLETED' && (
- <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", 
- msg.emotionalLoad === 'HIGH' ? 'bg-red-500' : 
- msg.emotionalLoad === 'MEDIUM' ? 'bg-orange-500' : 'bg-green-500'
- )} />
- )}
  <h4 className={cn(
  "text-[13px] font-semibold tracking-tight truncate transition-colors",
  playingMessageId === msg.id ? "text-primary" : "text-foreground/90"
@@ -665,10 +806,18 @@ export function AdminMessagesPage() {
  </div>
  </div>
  
- <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium truncate">
- <span>{msg.speaker || "Anonyme"}</span>
- {msg.transcriptTxt && <span>•</span>}
- <p className="text-muted-foreground/50 italic truncate flex-1">
+ <div className="flex items-center gap-2 flex-wrap">
+ {msg.processingStatus === 'COMPLETED' && msg.speakerProfile && (
+ <Badge variant="outline" className={cn("border-none text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0", speakerProfileColor[msg.speakerProfile])}>
+ {speakerProfileLabel[msg.speakerProfile]}
+ </Badge>
+ )}
+ {msg.processingStatus === 'COMPLETED' && (
+ <Badge variant="outline" className={cn("border-none text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0", toneColor[msg.tone])}>
+ {toneLabel[msg.tone]}
+ </Badge>
+ )}
+ <p className="text-[11px] text-muted-foreground/50 italic truncate flex-1">
  {msg.transcriptTxt ? `"${msg.transcriptTxt}"` : "Aucune transcription"}
  </p>
  </div>
@@ -725,6 +874,7 @@ export function AdminMessagesPage() {
  disabled={page <= 1}
  onClick={() => {
  setPage((p) => Math.max(1, p - 1));
+ setSelectedIds(new Set());
  window.scrollTo({ top: 0, behavior: 'smooth' });
  }}
  className="h-8 rounded-lg text-[9px] font-semibold px-3"
@@ -738,6 +888,7 @@ export function AdminMessagesPage() {
  disabled={page >= (messagesQuery.data?.totalPages || 1)}
  onClick={() => {
  setPage((p) => Math.min(messagesQuery.data?.totalPages || 1, p + 1));
+ setSelectedIds(new Set());
  window.scrollTo({ top: 0, behavior: 'smooth' });
  }}
  className="h-8 rounded-lg text-[9px] font-semibold px-3"
@@ -791,6 +942,43 @@ export function AdminMessagesPage() {
  </DialogContent>
  </Dialog>
 
+ <Dialog
+ open={showBulkDeleteConfirm}
+ onOpenChange={(open) => {
+ if (!open) setShowBulkDeleteConfirm(false);
+ }}
+ >
+ <DialogContent className="border-white/5 bg-card/95 backdrop-blur-xl rounded-[2rem]">
+ <DialogHeader>
+ <DialogTitle className="font-semibold">Supprimer la sélection</DialogTitle>
+ <DialogDescription className="text-xs font-medium text-muted-foreground/60">
+ Êtes-vous sûr de vouloir supprimer <span className="text-red-500 font-bold">{selectedIds.size}</span> verbatim(s) ? Cette action est irréversible.
+ </DialogDescription>
+ </DialogHeader>
+ <DialogFooter className="mt-6 gap-2">
+ <Button
+ variant="outline"
+ onClick={() => setShowBulkDeleteConfirm(false)}
+ disabled={bulkDeleteMutation.isPending}
+ className="rounded-xl"
+ >
+ Annuler
+ </Button>
+ <Button
+ variant="destructive"
+ onClick={() => bulkDeleteMutation.mutate(Array.from(selectedIds))}
+ disabled={bulkDeleteMutation.isPending}
+ className="rounded-xl"
+ >
+ {bulkDeleteMutation.isPending && (
+ <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+ )}
+ Supprimer {selectedIds.size} verbatim(s)
+ </Button>
+ </DialogFooter>
+ </DialogContent>
+ </Dialog>
+
  <EditMessageDialog
  message={editingMessage}
  isOpen={!!editingMessage}
@@ -829,10 +1017,9 @@ function EditMessageDialog({
  resolver: zodResolver(editMessageSchema),
  defaultValues: {
  speaker:"",
+ speakerProfile: undefined,
  transcriptTxt:"",
- emotionalLoad:"LOW",
  tone:"NEUTRAL",
- quote:"",
  },
  });
 
@@ -841,10 +1028,9 @@ function EditMessageDialog({
  if (message && isOpen) {
  form.reset({
  speaker: message.speaker ||"",
+ speakerProfile: message.speakerProfile ?? undefined,
  transcriptTxt: message.transcriptTxt ||"",
- emotionalLoad: message.emotionalLoad ||"LOW",
  tone: message.tone ||"NEUTRAL",
- quote: message.quote ||"",
  });
  }
  }, [message, isOpen, form]);
@@ -853,10 +1039,9 @@ function EditMessageDialog({
  if (!open) {
  form.reset({
  speaker:"",
+ speakerProfile: undefined,
  transcriptTxt:"",
- emotionalLoad:"LOW",
  tone:"NEUTRAL",
- quote:"",
  });
  onClose();
  }
@@ -884,18 +1069,22 @@ function EditMessageDialog({
  >
  <FormField
  control={form.control}
- name="speaker"
+ name="speakerProfile"
  render={({ field }) => (
  <div className="space-y-2">
  <Label className="text-[10px] font-semibold text-muted-foreground/60 ml-1">Intervenant</Label>
- <Input 
- placeholder="Nom de l'intervenant" 
- className="h-11 rounded-xl bg-background/50 border-white/5"
- {...field} 
- />
- {form.formState.errors.speaker && (
- <p className="text-[10px] font-medium text-destructive mt-1 ml-1">{form.formState.errors.speaker.message}</p>
- )}
+ <Select onValueChange={field.onChange} value={field.value ?? ""}>
+ <SelectTrigger className="h-11 rounded-xl bg-background/50 border-white/5">
+ <SelectValue placeholder="Profil détecté par l'IA" />
+ </SelectTrigger>
+ <SelectContent className="border-white/5 bg-card/95 backdrop-blur-xl rounded-xl">
+ {SPEAKER_PROFILE_OPTIONS.map((opt) => (
+ <SelectItem key={opt.value} value={opt.value} className="rounded-lg">
+ {opt.label}
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
  </div>
  )}
  />
@@ -919,33 +1108,6 @@ function EditMessageDialog({
  )}
  />
 
- <FormField
- control={form.control}
- name="emotionalLoad"
- render={({ field }) => (
- <div className="space-y-2">
- <Label className="text-[10px] font-semibold text-muted-foreground/60 ml-1">Charge émotionnelle</Label>
- <Select
- onValueChange={field.onChange}
- value={field.value}
- >
- <SelectTrigger className="h-11 rounded-xl bg-background/50 border-white/5">
- <SelectValue placeholder="Sélectionnez un niveau" />
- </SelectTrigger>
- <SelectContent className="border-white/5 bg-card/95 backdrop-blur-xl rounded-xl">
- {EMOTIONAL_LOAD_OPTIONS.map((opt) => (
- <SelectItem key={opt.value} value={opt.value} className="rounded-lg">
- {opt.label}
- </SelectItem>
- ))}
- </SelectContent>
- </Select>
- {form.formState.errors.emotionalLoad && (
- <p className="text-[10px] font-medium text-destructive mt-1 ml-1">{form.formState.errors.emotionalLoad.message}</p>
- )}
- </div>
- )}
- />
 
  <FormField
  control={form.control}
@@ -975,24 +1137,6 @@ function EditMessageDialog({
  )}
  />
 
- <FormField
- control={form.control}
- name="quote"
- render={({ field }) => (
- <div className="space-y-2">
- <Label className="text-[10px] font-semibold text-muted-foreground/60 ml-1">Verbatim Totem (Citation)</Label>
- <Textarea
- placeholder="Citation marquante extraite du message"
- rows={2}
- className="rounded-xl bg-background/50 border-white/5 resize-none font-medium text-primary italic"
- {...field}
- />
- {form.formState.errors.quote && (
- <p className="text-[10px] font-medium text-destructive mt-1 ml-1">{form.formState.errors.quote.message}</p>
- )}
- </div>
- )}
- />
 
  <DialogFooter className="mt-10 gap-3">
  <Button

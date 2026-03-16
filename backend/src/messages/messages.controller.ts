@@ -84,6 +84,15 @@ export class MessagesController {
     return this.messagesService.update(id, dto, audioFile);
   }
 
+  @Delete('bulk')
+  @Roles(Role.SUPERADMIN)
+  bulkRemove(
+    @Param('pid') _projectId: string,
+    @Body('ids') ids: string[],
+  ) {
+    return this.messagesService.bulkRemove(ids);
+  }
+
   @Delete(':id')
   @Roles(Role.SUPERADMIN)
   remove(

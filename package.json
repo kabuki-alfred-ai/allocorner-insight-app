@@ -1,0 +1,14 @@
+{
+    "name": "allocorner-insight-app",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "dev:backend": "dotenv -e .env -- npm run start:dev --prefix backend",
+        "dev:frontend": "dotenv -e .env -- npm run dev --prefix frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "dotenv-cli": "^7.3.0"
+    }
+}

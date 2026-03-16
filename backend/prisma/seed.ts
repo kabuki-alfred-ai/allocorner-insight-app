@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient, Role, EmotionalLoad, VerbatimCategory, Priority } from '@prisma/client';
 import * as Minio from 'minio';
 import * as fs from 'fs';
@@ -321,7 +322,7 @@ async function uploadAudioFile(filename: string, projectId: string): Promise<str
     path.join(baseDir, '..', 'data', 'audios', filename),        // Local: backend/../data/audios
     path.join(baseDir, 'prisma', '..', '..', 'data', 'audios', filename), // depuis prisma/
   ];
-  
+
   let localPath: string | null = null;
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
@@ -329,16 +330,16 @@ async function uploadAudioFile(filename: string, projectId: string): Promise<str
       break;
     }
   }
-  
+
   if (!localPath) {
     console.warn(`Fichier audio non trouvé: ${filename} (cherché dans: ${possiblePaths.join(', ')})`);
     return '';
   }
-  
+
   console.log(`Fichier trouvé: ${localPath}`);
 
   const objectName = `${projectId}/${filename}`;
-  
+
   try {
     await minioClient.fPutObject(BUCKET_NAME, objectName, localPath, {
       'Content-Type': 'audio/mpeg',
@@ -453,11 +454,11 @@ async function main() {
   // 6. Créer les messages et uploader les fichiers audio
   console.log('🎙️ Création des messages et upload des fichiers audio...');
   const messageMap = new Map<string, string>();
-  
+
   for (let i = 0; i < VERBATIMS_DATA.length; i++) {
     const verbatim = VERBATIMS_DATA[i];
     const audioKey = await uploadAudioFile(verbatim.filename, project.id);
-    
+
     const message = await prisma.message.create({
       data: {
         projectId: project.id,
@@ -543,7 +544,7 @@ async function main() {
     "Identifier les signaux faibles et les piliers de satisfaction client.",
     "Mesurer l'alignement entre les objectifs de marque et le ressenti réel."
   ];
-  
+
   for (let i = 0; i < OBJECTIVES_DATA.length; i++) {
     await prisma.projectObjective.create({
       data: {
@@ -580,7 +581,7 @@ async function main() {
       resources: "Sales, Partnerships",
     },
   ];
-  
+
   for (let i = 0; i < STRATEGIC_ACTIONS_DATA.length; i++) {
     await prisma.strategicAction.create({
       data: {
@@ -621,7 +622,7 @@ async function main() {
       size: "456 KB",
     },
   ];
-  
+
   for (let i = 0; i < RESOURCES_DATA.length; i++) {
     await prisma.projectResource.create({
       data: {

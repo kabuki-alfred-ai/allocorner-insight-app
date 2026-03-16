@@ -31,6 +31,9 @@ export default () => ({
       enableDiarization: true,
     },
   },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY,
+  },
   queue: {
     concurrency: parseInt(process.env.QUEUE_CONCURRENCY || '5', 10),
     maxRetries: parseInt(process.env.QUEUE_MAX_RETRIES || '3', 10),

@@ -23,7 +23,7 @@ export default function Verbatims() {
  const { data: project } = useProject(projectId!);
  const [searchTerm, setSearchTerm] = useState("");
  const [selectedTheme, setSelectedTheme] = useState<string>("all");
- const [selectedEmotion, setSelectedEmotion] = useState<string>("all");
+ const [selectedTone, setSelectedTone] = useState<string>("all");
 
  const { data: themesData } = useThemes(projectId!);
  const { data: messagesResponse, isLoading } = useMessages(projectId!, { limit: 1000 });
@@ -31,23 +31,19 @@ export default function Verbatims() {
  const allMessages: Message[] = messagesResponse?.data || [];
  const themes = themesData || [];
 
- const allEmotions = Array.from(
- new Set(allMessages.flatMap(m => m.messageEmotions?.map(me => me.emotionName) || []))
- );
-
  const filteredMessages = allMessages.filter(message => {
  const matchesSearch = message.transcriptTxt.toLowerCase().includes(searchTerm.toLowerCase()) ||
  message.quote.toLowerCase().includes(searchTerm.toLowerCase());
  const matchesTheme = selectedTheme === "all" || message.messageThemes?.some(mt => mt.theme.name === selectedTheme);
- const matchesEmotion = selectedEmotion === "all" || message.messageEmotions?.some(me => me.emotionName === selectedEmotion);
+ const matchesTone = selectedTone === "all" || message.tone === selectedTone;
 
- return matchesSearch && matchesTheme && matchesEmotion;
+ return matchesSearch && matchesTheme && matchesTone;
  });
 
  const clearFilters = () => {
  setSearchTerm("");
  setSelectedTheme("all");
- setSelectedEmotion("all");
+ setSelectedTone("all");
  };
 
  if (isLoading) {
@@ -95,21 +91,19 @@ export default function Verbatims() {
  </SelectContent>
  </Select>
 
- <Select value={selectedEmotion} onValueChange={setSelectedEmotion}>
+ <Select value={selectedTone} onValueChange={setSelectedTone}>
  <SelectTrigger className="w-full md:w-[180px] h-10 bg-muted/50 border-transparent hover:bg-muted transition-all font-sans text-sm text-foreground">
- <SelectValue placeholder="Émotion" />
+ <SelectValue placeholder="Tonalité" />
  </SelectTrigger>
  <SelectContent>
- <SelectItem value="all">Toutes les émotions</SelectItem>
- {allEmotions.map(emotion => (
- <SelectItem key={emotion} value={emotion}>
- {emotion}
- </SelectItem>
- ))}
+ <SelectItem value="all">Toutes les tonalités</SelectItem>
+ <SelectItem value="POSITIVE">Positive</SelectItem>
+ <SelectItem value="NEUTRAL">Neutre</SelectItem>
+ <SelectItem value="NEGATIVE">Négative</SelectItem>
  </SelectContent>
  </Select>
 
- {(selectedTheme !== "all" || selectedEmotion !== "all" || searchTerm) && (
+ {(selectedTheme !== "all" || selectedTone !== "all" || searchTerm) && (
  <Button 
  variant="ghost" 
  size="sm"
@@ -144,7 +138,6 @@ export default function Verbatims() {
  <div className="hidden md:flex items-center gap-4 px-4 py-2 border-b border-border/50 mb-2">
  <div className="w-8 shrink-0 flex justify-center text-xs font-medium text-muted-foreground/70">#</div>
  <div className="flex-1 text-xs font-medium text-muted-foreground/70 font-medium">Titre / Speaker</div>
- <div className="w-[140px] hidden lg:block shrink-0 text-xs font-medium text-muted-foreground/70 font-medium">Intensité</div>
  <div className="w-10 shrink-0"></div>
  </div>
  

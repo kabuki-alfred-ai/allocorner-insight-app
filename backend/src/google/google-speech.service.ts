@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SpeechClient } from '@google-cloud/speech';
 import { Readable } from 'stream';
+import { GoogleAuthService } from './google-auth.service';
 
 export interface TranscriptionResult {
   text: string;
@@ -16,14 +17,12 @@ export class GoogleSpeechService {
   private readonly logger = new Logger(GoogleSpeechService.name);
   private readonly client: SpeechClient;
 
-  constructor(private configService: ConfigService) {
-    const credentialsPath = this.configService.get<string>(
-      'google.credentialsPath',
-    );
-
-    this.client = new SpeechClient({
-      keyFilename: credentialsPath,
-    });
+  constructor(
+    private configService: ConfigService,
+    private googleAuthService: GoogleAuthService,
+  ) {
+    // GOOGLE_APPLICATION_CREDENTIALS is set by GoogleAuthService — no explicit auth needed
+    this.client = new SpeechClient();
   }
 
   /**

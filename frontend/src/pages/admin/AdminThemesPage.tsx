@@ -111,8 +111,6 @@ const themeSchema = z.object({
  emotionLabel: z.string().default(""),
  analysis: z.string().default(""),
  strategicTeaching: z.string().default(""),
- verbatimTotem: z.string().default(""),
- count: z.coerce.number().int().min(0).default(0),
 });
 
 type ThemeFormValues = z.infer<typeof themeSchema>;
@@ -152,8 +150,8 @@ export function AdminThemesPage() {
  emotionLabel: data.emotionLabel ||"",
  analysis: data.analysis ||"",
  strategicTeaching: data.strategicTeaching ||"",
- verbatimTotem: data.verbatimTotem ||"",
- count: data.count || 0,
+ verbatimTotem:"",
+ count: 0,
  totemMessageId: null,
  keywords: []
  }),
@@ -170,7 +168,11 @@ export function AdminThemesPage() {
 
  const updateMutation = useMutation({
  mutationFn: (data: ThemeFormValues) =>
- updateTheme(projectId!, editingTheme!.id, data),
+ updateTheme(projectId!, editingTheme!.id, {
+ ...data,
+ verbatimTotem: editingTheme!.verbatimTotem,
+ count: editingTheme!.count,
+ }),
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["themes", projectId] });
  queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
@@ -204,8 +206,6 @@ export function AdminThemesPage() {
  emotionLabel:"",
  analysis:"",
  strategicTeaching:"",
- verbatimTotem:"",
- count: 0,
  },
  });
 
@@ -218,8 +218,6 @@ export function AdminThemesPage() {
  emotionLabel:"",
  analysis:"",
  strategicTeaching:"",
- verbatimTotem:"",
- count: 0,
  });
  setDialogOpen(true);
  }
@@ -232,8 +230,6 @@ export function AdminThemesPage() {
  emotionLabel: theme.emotionLabel,
  analysis: theme.analysis,
  strategicTeaching: theme.strategicTeaching,
- verbatimTotem: theme.verbatimTotem,
- count: theme.count,
  });
  setDialogOpen(true);
  }
@@ -422,6 +418,7 @@ export function AdminThemesPage() {
 
  <Form {...form}>
  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+ {!editingTheme && (
  <FormField
  control={form.control}
  name="name"
@@ -435,6 +432,7 @@ export function AdminThemesPage() {
  </FormItem>
  )}
  />
+ )}
 
  <FormField
  control={form.control}
@@ -513,37 +511,6 @@ export function AdminThemesPage() {
  )}
  />
 
- <FormField
- control={form.control}
- name="verbatimTotem"
- render={({ field }) => (
- <FormItem>
- <FormLabel>Verbatim totem</FormLabel>
- <FormControl>
- <Textarea
- placeholder="Citation emblematique..."
- className="min-h-[60px]"
- {...field}
- />
- </FormControl>
- <FormMessage />
- </FormItem>
- )}
- />
-
- <FormField
- control={form.control}
- name="count"
- render={({ field }) => (
- <FormItem>
- <FormLabel>Nombre de messages</FormLabel>
- <FormControl>
- <Input type="number" min={0} {...field} />
- </FormControl>
- <FormMessage />
- </FormItem>
- )}
- />
 
  {/* Mots-clés (visible uniquement en mode édition) */}
  {editingTheme && (
@@ -936,11 +903,6 @@ function ThemeAssociationDialog({
  ) : (
  <p className="text-sm text-muted-foreground italic">
  Aucune transcription
- </p>
- )}
- {message.emotionalLoad && (
- <p className="text-xs text-muted-foreground mt-1">
- Charge: {message.emotionalLoad}/100
  </p>
  )}
  {playingMessageId === message.id && audioUrl && (

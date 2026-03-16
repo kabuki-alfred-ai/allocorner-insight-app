@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LanguageServiceClient } from '@google-cloud/language';
+import { GoogleAuthService } from './google-auth.service';
 
 export interface SentimentResult {
   score: number; // -1 to 1
@@ -13,14 +14,12 @@ export class GoogleLanguageService {
   private readonly logger = new Logger(GoogleLanguageService.name);
   private readonly client: LanguageServiceClient;
 
-  constructor(private configService: ConfigService) {
-    const credentialsPath = this.configService.get<string>(
-      'google.credentialsPath',
-    );
-
-    this.client = new LanguageServiceClient({
-      keyFilename: credentialsPath,
-    });
+  constructor(
+    private configService: ConfigService,
+    private googleAuthService: GoogleAuthService,
+  ) {
+    // GOOGLE_APPLICATION_CREDENTIALS is set by GoogleAuthService — no explicit auth needed
+    this.client = new LanguageServiceClient();
   }
 
   /**

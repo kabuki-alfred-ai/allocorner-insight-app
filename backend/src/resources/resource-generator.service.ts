@@ -47,17 +47,10 @@ export class ResourceGeneratorService {
   private async generateCsv(projectId: string, filename: string, res: Response) {
     const messages = await this.prisma.message.findMany({
       where: { projectId },
-      include: {
-        messageEmotions: true,
-        messageThemes: { include: { theme: true } },
-      },
       orderBy: { createdAt: 'asc' },
     });
 
-    const headers = [
-      'id', 'filename', 'speaker', 'duration_sec', 'emotional_load',
-      'tone', 'transcript', 'quote', 'themes', 'emotions', 'processing_status', 'processed_at',
-    ];
+    const headers = ['filename', 'speaker', 'duration_sec', 'tone', 'transcript'];
 
     const escape = (v: string | number | null | undefined) => {
       if (v == null) return '';
@@ -66,18 +59,11 @@ export class ResourceGeneratorService {
     };
 
     const rows = messages.map(m => [
-      m.id,
       m.filename,
-      m.speaker ?? '',
+      m.speakerProfile ?? '',
       m.duration ?? '',
-      m.emotionalLoad,
       m.tone,
       m.transcriptTxt,
-      m.quote,
-      m.messageThemes.map(mt => mt.theme.name).join('; '),
-      m.messageEmotions.map(me => me.emotionName).join('; '),
-      m.processingStatus,
-      m.processedAt?.toISOString() ?? '',
     ].map(escape).join(','));
 
     const csv = [headers.join(','), ...rows].join('\n');
@@ -89,7 +75,7 @@ export class ResourceGeneratorService {
 
   // ─── PDF ────────────────────────────────────────────────────────────────────
 
-  private async generatePdf(projectId: string, filename: string, res: Response) {
+  private async generatePdf(projectId: string, _filename: string, res: Response) {
     const [project, metrics, plutchik, themes, recommendations, featuredVerbatims, strategicActions, transversalAnalyses] =
       await Promise.all([
         this.prisma.project.findUnique({ where: { id: projectId } }),
@@ -104,84 +90,154 @@ export class ResourceGeneratorService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    const doc = new PDFDocument({ margin: 50, size: 'A4', compress: true });
+    // Filename from project title
+    const pdfFilename = `${project.title}-rapport`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9 _-]/g, '_')
+      .replace(/\s+/g, '_');
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4', compress: true, bufferPages: true });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}.pdf"`);
     doc.pipe(res);
 
-    const PRIMARY = '#1a1a2e';
-    const ACCENT = '#2F66F5';
-    const LIGHT = '#f8f9fa';
-    const MUTED = '#6c757d';
-    const PAGE_WIDTH = 595 - 100; // A4 minus margins
+    // ── Color palette (Allo Corner) ──────────────────────────────────────────
+    const DARK    = '#0f0f0f';
+    const ORANGE  = '#f97316';
+    const ORANGE2 = '#ea6c10';
+    const BODY    = '#1f1f1f';
+    const MUTED   = '#6b7280';
+    const LIGHT   = '#f9fafb';
+    const WHITE   = '#ffffff';
+    const L       = 50;              // left margin
+    const R       = 545;             // right margin
+    const W       = R - L;           // content width (495)
 
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /** Section header bar */
     const section = (title: string) => {
-      doc.moveDown(1.5);
-      doc.rect(50, doc.y, PAGE_WIDTH, 28).fill(ACCENT);
-      doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
-        .text(title, 60, doc.y - 22, { width: PAGE_WIDTH - 20 });
-      doc.fillColor(PRIMARY).font('Helvetica').fontSize(10);
-      doc.moveDown(0.8);
+      if (doc.y > 700) doc.addPage();
+      doc.moveDown(1.2);
+      const y = doc.y;
+      doc.rect(L, y, W, 22).fill(ORANGE);
+      doc.fillColor(WHITE).fontSize(10).font('Helvetica-Bold')
+        .text(title.toUpperCase(), L + 10, y + 6, { width: W - 20 });
+      // advance cursor below the bar
+      doc.text('', L, y + 22 + 6);
+      doc.fillColor(BODY).font('Helvetica').fontSize(10);
     };
 
+    /** Key-value line */
     const kv = (label: string, value: string | number | null | undefined) => {
       if (value == null || value === '') return;
-      doc.font('Helvetica-Bold').fillColor(PRIMARY).fontSize(9).text(`${label} `, { continued: true });
+      doc.font('Helvetica-Bold').fillColor(BODY).fontSize(9)
+        .text(`${label}  `, { continued: true });
       doc.font('Helvetica').fillColor(MUTED).text(String(value));
     };
 
-    const badge = (label: string, color: string) => {
-      const w = doc.widthOfString(label) + 12;
-      doc.rect(doc.x, doc.y, w, 14).fill(color);
-      doc.fillColor('#fff').fontSize(7).font('Helvetica-Bold')
-        .text(label.toUpperCase(), doc.x - w + 6, doc.y - 12, { width: w });
+    /** Thin orange left-bar paragraph */
+    const note = (text: string) => {
+      if (!text) return;
+      const y = doc.y;
+      doc.rect(L, y, 2, doc.heightOfString(text, { width: W - 14 }) + 4).fill(ORANGE);
+      doc.font('Helvetica-Oblique').fillColor(MUTED).fontSize(9)
+        .text(text, L + 10, y + 2, { width: W - 14 });
+      doc.font('Helvetica').fillColor(BODY).fontSize(10);
     };
 
-    // ── Cover ────────────────────────────────────────────────────────────────
-    doc.rect(0, 0, 595, 200).fill(PRIMARY);
-    doc.fillColor('#ffffff').fontSize(22).font('Helvetica-Bold')
-      .text(project.title, 50, 60, { width: PAGE_WIDTH });
-    doc.fontSize(13).font('Helvetica').fillColor('#c8d0e8')
-      .text(project.clientName, 50, doc.y + 6);
-    doc.fillColor('#8896b8').fontSize(10)
-      .text(project.dates, 50, doc.y + 4);
+    /** Horizontal separator */
+    const sep = () => {
+      doc.moveDown(0.4);
+      doc.rect(L, doc.y, W, 0.5).fill('#e5e7eb');
+      doc.moveDown(0.5);
+    };
 
-    doc.rect(0, 200, 595, 4).fill(ACCENT);
-    doc.moveDown(2);
+    // ─────────────────────────────────────────────────────────────────────────
+    // COVER PAGE
+    // ─────────────────────────────────────────────────────────────────────────
+    doc.rect(0, 0, 595, 240).fill(DARK);
+    doc.rect(0, 240, 595, 5).fill(ORANGE);
 
-    // ── Project info ─────────────────────────────────────────────────────────
-    doc.fillColor(PRIMARY).fontSize(10).font('Helvetica');
-    if (project.context) { kv('Contexte :', project.context); doc.moveDown(0.3); }
-    if (project.analyst) { kv('Analyste :', project.analyst); doc.moveDown(0.3); }
-    if (project.methodology) { kv('Méthodologie :', project.methodology); doc.moveDown(0.3); }
-    kv('Participants estimés :', project.participantsEstimated);
+    // Brand label
+    doc.fillColor(ORANGE).fontSize(8).font('Helvetica-Bold')
+      .text('ALLO CORNER INSIGHT', L, 42, { width: W, characterSpacing: 2 });
 
-    // ── Metrics ──────────────────────────────────────────────────────────────
+    // Project title
+    const titleFontSize = project.title.length > 40 ? 22 : 28;
+    doc.fillColor(WHITE).fontSize(titleFontSize).font('Helvetica-Bold')
+      .text(project.title, L, 70, { width: W });
+
+    // Client + dates
+    doc.fillColor('#9ca3af').fontSize(12).font('Helvetica')
+      .text(project.clientName, L, doc.y + 6);
+    doc.fillColor('#6b7280').fontSize(10)
+      .text(project.dates ?? '', L, doc.y + 4);
+
+    // "Rapport d'analyse" label bottom-left of cover
+    doc.fillColor('#374151').fontSize(9).font('Helvetica-Bold')
+      .text("RAPPORT D'ANALYSE", L, 210, { characterSpacing: 1.5 });
+
+    // Move cursor below cover + orange bar
+    doc.text('', L, 260);
+    doc.fillColor(BODY).font('Helvetica').fontSize(10);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PROJECT INFO
+    // ─────────────────────────────────────────────────────────────────────────
+    doc.moveDown(0.6);
+    if (project.context)              { kv('Contexte :', project.context);              doc.moveDown(0.4); }
+    if (project.analyst)              { kv('Analyste :', project.analyst);              doc.moveDown(0.4); }
+    if (project.methodology)          { kv('Méthodologie :', project.methodology);      doc.moveDown(0.4); }
+    if (project.participantsEstimated){ kv('Participants estimés :', project.participantsEstimated); doc.moveDown(0.4); }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // METRICS
+    // ─────────────────────────────────────────────────────────────────────────
     if (metrics) {
       section('Métriques clés');
-      const cols = [
-        ['Messages analysés', metrics.messagesCount],
-        ['Score IRC', `${Math.round(metrics.ircScore)}/100`],
-        ['Durée moyenne', `${metrics.avgDurationSec.toFixed(1)}s`],
-        ['Taux de participation', `${(metrics.participationRate * 100).toFixed(1)}%`],
-        ['Charge émotionnelle élevée', `${(metrics.highEmotionShare * 100).toFixed(1)}%`],
+      const stats: [string, string][] = [
+        ['Messages analysés',      String(metrics.messagesCount)],
+        ['Score IRC',              `${Math.round(metrics.ircScore)}/100`],
+        ['Durée totale',           `${Math.round(metrics.totalDurationSec / 60)} min`],
+        ['Durée moyenne / message',`${metrics.avgDurationSec.toFixed(1)}s`],
+        ['Taux de participation',  `${(metrics.participationRate * 100).toFixed(1)}%`],
       ];
-      cols.forEach(([label, val]) => {
-        kv(`${label} :`, String(val));
-        doc.moveDown(0.3);
+
+      // 2-column grid
+      const colW = (W - 10) / 2;
+      let col = 0;
+      let rowY = doc.y;
+      stats.forEach(([label, val]) => {
+        const x = col === 0 ? L : L + colW + 10;
+        const boxY = rowY;
+        doc.rect(x, boxY, colW, 36).fill(LIGHT);
+        doc.rect(x, boxY, 2, 36).fill(ORANGE);
+        doc.fillColor(ORANGE).fontSize(16).font('Helvetica-Bold')
+          .text(val, x + 8, boxY + 4, { width: colW - 16 });
+        doc.fillColor(MUTED).fontSize(7).font('Helvetica')
+          .text(label.toUpperCase(), x + 8, boxY + 24, { width: colW - 16, characterSpacing: 0.5 });
+        col++;
+        if (col === 2) { col = 0; rowY += 44; }
       });
+      if (col === 1) rowY += 44;
+      doc.text('', L, rowY + 4);
+      doc.fillColor(BODY).font('Helvetica').fontSize(10);
+
       if (metrics.ircInterpretation) {
-        doc.moveDown(0.4);
-        doc.font('Helvetica-Oblique').fillColor(MUTED).fontSize(9)
-          .text(metrics.ircInterpretation, { indent: 10 });
-        doc.font('Helvetica').fillColor(PRIMARY).fontSize(10);
+        doc.moveDown(0.6);
+        note(metrics.ircInterpretation);
       }
     }
 
-    // ── Emotions (Plutchik) ───────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // EMOTIONS (Plutchik)
+    // ─────────────────────────────────────────────────────────────────────────
     if (plutchik) {
-      section('Analyse émotionnelle (Roue de Plutchik)');
+      section('Analyse émotionnelle — Roue de Plutchik');
+
       const emotions: [string, number][] = [
         ['Joie', plutchik.joy], ['Confiance', plutchik.trust],
         ['Tristesse', plutchik.sadness], ['Anticipation', plutchik.anticipation],
@@ -189,115 +245,169 @@ export class ResourceGeneratorService {
         ['Peur', plutchik.fear],
       ].filter(([, v]) => (v as number) > 0) as [string, number][];
 
+      const maxVal = Math.max(...emotions.map(([, v]) => v));
+      const barMaxW = W - 120;
+
       emotions.forEach(([name, val]) => {
-        const pct = Math.round((val as number) * 100);
-        const barW = Math.round((pct / 100) * (PAGE_WIDTH - 140));
-        doc.fillColor(MUTED).fontSize(9).font('Helvetica-Bold').text(`${name}`, 50, doc.y, { continued: false, width: 100 });
-        const barY = doc.y - 12;
-        doc.rect(155, barY, barW, 10).fill(ACCENT);
-        doc.fillColor(MUTED).fontSize(8).text(`${pct}%`, 155 + barW + 5, barY + 1);
-        doc.moveDown(0.3);
+        const pct = Math.round(val * 100);
+        const barW = Math.max(2, Math.round((val / maxVal) * barMaxW));
+        const y = doc.y;
+        doc.fillColor(BODY).fontSize(9).font('Helvetica-Bold')
+          .text(name, L, y, { width: 95, continued: false });
+        doc.rect(L + 100, y, barW, 10).fill(ORANGE);
+        doc.fillColor(MUTED).fontSize(8).font('Helvetica')
+          .text(`${pct}%`, L + 100 + barW + 5, y + 1);
+        doc.moveDown(0.55);
       });
 
       if (plutchik.cocktailSummary) {
-        doc.moveDown(0.4);
-        doc.font('Helvetica-Oblique').fillColor(MUTED).fontSize(9)
-          .text(plutchik.cocktailSummary, { indent: 10 });
-        doc.font('Helvetica').fillColor(PRIMARY).fontSize(10);
+        doc.moveDown(0.6);
+        note(plutchik.cocktailSummary);
       }
     }
 
-    // ── Themes ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // THEMES
+    // ─────────────────────────────────────────────────────────────────────────
     if (themes.length) {
-      section(`Thèmes identifiés (${themes.length})`);
+      section(`Thèmes identifiés — ${themes.length}`);
       themes.forEach((theme, i) => {
-        doc.font('Helvetica-Bold').fillColor(PRIMARY).fontSize(10)
-          .text(`${i + 1}. ${theme.name}`, { continued: false });
-        if (theme.emotionLabel) kv('  Émotion dominante :', theme.emotionLabel);
-        if (theme.temporality) kv('  Temporalité :', theme.temporality);
+        if (doc.y > 700) doc.addPage();
+        // Theme name row
+        const y = doc.y;
+        doc.rect(L, y, W, 18).fill('#fff7ed');
+        doc.fillColor(ORANGE).fontSize(9).font('Helvetica-Bold')
+          .text(`${String(i + 1).padStart(2, '0')}`, L + 4, y + 4, { width: 20, continued: true });
+        doc.fillColor(BODY).fontSize(10)
+          .text(`  ${theme.name}`, { continued: false });
+        doc.text('', L, y + 22);
+
+        if (theme.emotionLabel)  { kv('  Émotion :', theme.emotionLabel);  doc.moveDown(0.3); }
+        if (theme.temporality)   { kv('  Temporalité :', theme.temporality); doc.moveDown(0.3); }
         kv('  Messages :', theme.count);
         if (theme.keywords.length) {
+          doc.moveDown(0.3);
           kv('  Mots-clés :', theme.keywords.map(k => k.keyword).join(', '));
         }
         if (theme.analysis) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica').fillColor(MUTED).fontSize(9)
-            .text(theme.analysis, { indent: 20, width: PAGE_WIDTH - 20 });
-          doc.fillColor(PRIMARY).fontSize(10);
+          doc.moveDown(0.4);
+          note(theme.analysis);
         }
         if (theme.verbatimTotem) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Oblique').fillColor(ACCENT).fontSize(9)
-            .text(`"${theme.verbatimTotem}"`, { indent: 20, width: PAGE_WIDTH - 20 });
+          doc.moveDown(0.4);
+          doc.font('Helvetica-Oblique').fillColor(ORANGE).fontSize(9)
+            .text(`"${theme.verbatimTotem}"`, { indent: 12, width: W - 12 });
         }
-        doc.font('Helvetica').fillColor(PRIMARY).fontSize(10);
-        doc.moveDown(0.8);
+        doc.font('Helvetica').fillColor(BODY).fontSize(10);
+        sep();
       });
     }
 
-    // ── Featured Verbatims ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // FEATURED VERBATIMS
+    // ─────────────────────────────────────────────────────────────────────────
     if (featuredVerbatims.length) {
       section('Verbatims marquants');
       featuredVerbatims.forEach(v => {
-        doc.font('Helvetica-Oblique').fillColor('#333').fontSize(9)
-          .text(`"${v.citation}"`, { indent: 10, width: PAGE_WIDTH - 20 });
-        doc.font('Helvetica').fillColor(MUTED).fontSize(8)
-          .text(`[${v.category}]${v.implication ? ` — ${v.implication}` : ''}`, { indent: 10 });
-        doc.moveDown(0.6);
+        if (doc.y > 700) doc.addPage();
+        doc.font('Helvetica-Oblique').fillColor(BODY).fontSize(9)
+          .text(`"${v.citation}"`, { indent: 12, width: W - 12 });
+        doc.font('Helvetica-Bold').fillColor(ORANGE).fontSize(7)
+          .text(v.category, { indent: 12 });
+        if (v.implication) {
+          doc.font('Helvetica').fillColor(MUTED).fontSize(8)
+            .text(v.implication, { indent: 12, width: W - 12 });
+        }
+        sep();
       });
     }
 
-    // ── Transversal ───────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // TRANSVERSAL ANALYSES
+    // ─────────────────────────────────────────────────────────────────────────
     if (transversalAnalyses.length) {
       section('Analyses transversales');
       transversalAnalyses.forEach(t => {
-        doc.font('Helvetica-Bold').fillColor(PRIMARY).fontSize(9).text(`${t.axis} — ${t.category}`);
+        if (doc.y > 700) doc.addPage();
+        doc.font('Helvetica-Bold').fillColor(BODY).fontSize(9)
+          .text(t.axis.toUpperCase(), { continued: true, characterSpacing: 1 });
+        doc.font('Helvetica').fillColor(MUTED)
+          .text(`  —  ${t.category}`, { characterSpacing: 0 });
         if (t.content) {
-          doc.font('Helvetica').fillColor(MUTED).fontSize(9)
-            .text(t.content, { indent: 10, width: PAGE_WIDTH - 20 });
+          doc.moveDown(0.3);
+          note(t.content);
         }
-        doc.moveDown(0.6);
+        sep();
       });
     }
 
-    // ── Recommendations ───────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // RECOMMENDATIONS
+    // ─────────────────────────────────────────────────────────────────────────
     if (recommendations.length) {
       section('Recommandations');
       recommendations.forEach((r, i) => {
-        doc.font('Helvetica-Bold').fillColor(PRIMARY).fontSize(10)
-          .text(`${i + 1}. ${r.title}`);
-        kv('  Priorité :', r.priority);
+        if (doc.y > 700) doc.addPage();
+        const priorityColor = r.priority === 'HAUTE' ? '#ef4444' : r.priority === 'MOYENNE' ? ORANGE : '#6b7280';
+        doc.font('Helvetica-Bold').fillColor(BODY).fontSize(10)
+          .text(`${i + 1}.  ${r.title}`, { continued: false });
+        doc.font('Helvetica-Bold').fillColor(priorityColor).fontSize(7)
+          .text(r.priority, { characterSpacing: 1 });
         if (r.objective) {
+          doc.moveDown(0.3);
           doc.font('Helvetica').fillColor(MUTED).fontSize(9)
-            .text(r.objective, { indent: 20, width: PAGE_WIDTH - 20 });
+            .text(r.objective, { indent: 14, width: W - 14 });
         }
-        doc.fillColor(PRIMARY).fontSize(10);
-        doc.moveDown(0.7);
+        doc.fillColor(BODY).fontSize(10);
+        sep();
       });
     }
 
-    // ── Strategic Actions ─────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // STRATEGIC ACTIONS
+    // ─────────────────────────────────────────────────────────────────────────
     if (strategicActions.length) {
       section('Actions stratégiques');
       strategicActions.forEach((a, i) => {
-        doc.font('Helvetica-Bold').fillColor(PRIMARY).fontSize(10)
-          .text(`${i + 1}. ${a.title}`);
-        kv('  Priorité :', a.priority);
-        if (a.timeline) kv('  Timeline :', a.timeline);
-        if (a.resources) kv('  Ressources :', a.resources);
+        if (doc.y > 700) doc.addPage();
+        doc.font('Helvetica-Bold').fillColor(BODY).fontSize(10)
+          .text(`${i + 1}.  ${a.title}`);
+        if (a.timeline)  { kv('  Timeline :', a.timeline);   doc.moveDown(0.3); }
+        if (a.resources) { kv('  Ressources :', a.resources); doc.moveDown(0.3); }
         if (a.description) {
+          doc.moveDown(0.3);
           doc.font('Helvetica').fillColor(MUTED).fontSize(9)
-            .text(a.description, { indent: 20, width: PAGE_WIDTH - 20 });
+            .text(a.description, { indent: 14, width: W - 14 });
         }
-        doc.fillColor(PRIMARY).fontSize(10);
-        doc.moveDown(0.7);
+        doc.fillColor(BODY).fontSize(10);
+        sep();
       });
     }
 
-    // ── Footer ────────────────────────────────────────────────────────────────
-    doc.moveDown(2);
-    doc.fontSize(8).fillColor(MUTED).font('Helvetica')
-      .text(`Rapport généré le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`, { align: 'center' });
+    // ─────────────────────────────────────────────────────────────────────────
+    // FOOTER on every page
+    // ─────────────────────────────────────────────────────────────────────────
+    const totalPages = (doc as any).bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+      // Skip cover page footer
+      if (i === 0) {
+        doc.fillColor('#374151').fontSize(7).font('Helvetica')
+          .text('allocorner.fr', L, 826, { width: W / 2 });
+        doc.text(`${i + 1} / ${totalPages}`, L, 826, { width: W, align: 'right' });
+        continue;
+      }
+      doc.rect(L, 820, W, 0.5).fill('#e5e7eb');
+      doc.fillColor(ORANGE).fontSize(7).font('Helvetica-Bold')
+        .text('ALLO CORNER INSIGHT', L, 827, { width: W / 2, characterSpacing: 1 });
+      doc.fillColor(MUTED).fontSize(7).font('Helvetica')
+        .text(
+          `${project.title}  ·  Rapport généré le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
+          L, 827, { width: W - 40, align: 'center' },
+        );
+      doc.fillColor(MUTED).fontSize(7)
+        .text(`${i + 1} / ${totalPages}`, L, 827, { width: W, align: 'right' });
+    }
 
     doc.end();
   }

@@ -20,6 +20,7 @@ import TendancesPage from"./pages/TendancesPage";
 import EmotionsPage from"./pages/EmotionsPage";
 import RecommandationsPage from"./pages/RecommandationsPage";
 import RessourcesPage from"./pages/RessourcesPage";
+import TransversalPage from"./pages/TransversalPage";
 import WrappedPage from"./pages/WrappedPage";
 import NotFound from"./pages/NotFound";
 import AdminLayout from"./pages/admin/AdminLayout";
@@ -34,6 +35,7 @@ import AdminInvitationsPage from"./pages/admin/AdminInvitationsPage";
 import AdminObjectivesPage from"./pages/admin/AdminObjectivesPage";
 import AdminIrcBreakdownPage from"./pages/admin/AdminIrcBreakdownPage";
 import AdminStrategicActionsPage from"./pages/admin/AdminStrategicActionsPage";
+import AdminWrappedPage from"./pages/admin/AdminWrappedPage";
 import ProfilePage from"./pages/ProfilePage";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,7 @@ const App = () => (
  <Route path="tendances" element={<TendancesPage />} />
  <Route path="emotions" element={<EmotionsPage />} />
  <Route path="recommandations" element={<RecommandationsPage />} />
+ <Route path="transversal" element={<TransversalPage />} />
  <Route path="ressources" element={<RessourcesPage />} />
  </Route>
 
@@ -95,6 +98,7 @@ const App = () => (
  <Route path="objectives" element={<AdminObjectivesPage />} />
  <Route path="irc-breakdown" element={<AdminIrcBreakdownPage />} />
  <Route path="strategic-actions" element={<AdminStrategicActionsPage />} />
+ <Route path="wrapped" element={<AdminWrappedPage />} />
  </Route>
  </Route>
  </Route>

@@ -5,7 +5,7 @@ import { UpdateThemeDto } from './dto/update-theme.dto.js';
 
 @Injectable()
 export class ThemesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   findAll(projectId: string) {
     return this.prisma.theme.findMany({
@@ -20,6 +20,8 @@ export class ThemesService {
             transcriptTxt: true,
             duration: true,
             speaker: true,
+            speakerProfile: true,
+            tone: true,
           },
         },
       },
@@ -38,6 +40,8 @@ export class ThemesService {
             transcriptTxt: true,
             duration: true,
             speaker: true,
+            speakerProfile: true,
+            tone: true,
           },
         },
       },
@@ -56,6 +60,8 @@ export class ThemesService {
             transcriptTxt: true,
             duration: true,
             speaker: true,
+            speakerProfile: true,
+            tone: true,
           },
         },
       },
@@ -75,6 +81,8 @@ export class ThemesService {
             transcriptTxt: true,
             duration: true,
             speaker: true,
+            speakerProfile: true,
+            tone: true,
           },
         },
       },
@@ -121,7 +129,7 @@ export class ThemesService {
 
     const updatedTheme = await this.prisma.theme.update({
       where: { id: themeId },
-      data: { 
+      data: {
         totemMessageId: messageId,
         // Mettre à jour verbatimTotem avec la transcription du message
         verbatimTotem: messageId ? await this.getMessageTranscript(messageId) : '',
@@ -134,6 +142,8 @@ export class ThemesService {
             transcriptTxt: true,
             duration: true,
             speaker: true,
+            speakerProfile: true,
+            tone: true,
           },
         },
       },
@@ -149,7 +159,7 @@ export class ThemesService {
     });
 
     if (!message) return '';
-    
+
     // Utiliser la transcription ou un extrait du nom de fichier
     return message.transcriptTxt || `Message ${message.filename}`;
   }

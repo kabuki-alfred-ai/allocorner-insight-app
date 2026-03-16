@@ -61,13 +61,13 @@ export class MessagesService {
         processingStatus: 'PENDING', // Set initial status
         messageThemes: dto.themeIds?.length
           ? {
-              create: dto.themeIds.map((themeId) => ({ themeId })),
-            }
+            create: dto.themeIds.map((themeId) => ({ themeId })),
+          }
           : undefined,
         messageEmotions: dto.emotions?.length
           ? {
-              create: dto.emotions.map((emotionName) => ({ emotionName })),
-            }
+            create: dto.emotions.map((emotionName) => ({ emotionName })),
+          }
           : undefined,
       },
       include: {
@@ -181,7 +181,7 @@ export class MessagesService {
     for (const entry of mp3Entries) {
       const buffer = entry.getData();
       const filename = entry.entryName.split('/').pop() || entry.entryName;
-      
+
       // Get metadata from CSV if available
       const metadata = metadataMap.get(filename) || {};
 
@@ -400,12 +400,34 @@ export class MessagesService {
     return { deleted: true };
   }
 
+  async bulkRemove(ids: string[]) {
+    if (!ids || ids.length === 0) {
+      throw new BadRequestException('No message IDs provided');
+    }
+
+    const messages = await this.prisma.message.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, audioKey: true },
+    });
+
+    await Promise.all(
+      messages
+        .filter((m) => m.audioKey)
+        .map((m) => this.storage.deleteAudio(m.audioKey!)),
+    );
+
+    await this.prisma.message.deleteMany({ where: { id: { in: ids } } });
+
+    return { deleted: messages.length };
+  }
+
   async getStats(projectId: string) {
     const messages = await this.prisma.message.findMany({
       where: { projectId },
       select: {
         duration: true,
         emotionalLoad: true,
+        tone: true,
       },
     });
 
@@ -415,6 +437,7 @@ export class MessagesService {
       return {
         durationDistribution: [],
         emotionalLoadDistribution: [],
+        tonalityDistribution: [],
       };
     }
 
@@ -454,9 +477,27 @@ export class MessagesService {
       };
     });
 
+    // Distribution de la tonalité
+    const toneConfig = [
+      { tone: 'Positif', value: 'POSITIVE', color: '#39B36A' },
+      { tone: 'Neutre', value: 'NEUTRAL', color: '#94A3B8' },
+      { tone: 'Négatif', value: 'NEGATIVE', color: '#E35454' },
+    ];
+
+    const tonalityDistribution = toneConfig.map(({ tone, value, color }) => {
+      const count = messages.filter((m) => m.tone === value).length;
+      return {
+        tone,
+        count,
+        percentage: Math.round((count / total) * 100 * 10) / 10,
+        color,
+      };
+    });
+
     return {
       durationDistribution,
       emotionalLoadDistribution,
+      tonalityDistribution,
     };
   }
 
