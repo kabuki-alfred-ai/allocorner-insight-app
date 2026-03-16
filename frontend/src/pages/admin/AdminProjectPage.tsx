@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from"react";
 import { useParams, useNavigate } from"react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { useFeaturedVerbatims, useCreateFeaturedVerbatim, useDeleteFeaturedVerbatim } from"@/hooks/use-featured-verbatims";
+import { useMessages } from"@/hooks/use-messages";
+import type { VerbatimCategory } from"@/lib/types";
 import { useForm } from"react-hook-form";
 import { zodResolver } from"@hookform/resolvers/zod";
 import { z } from"zod";
@@ -14,7 +18,8 @@ import {
  Settings,
  Target as TargetIcon,
  GripVertical,
- Trash2
+ Trash2,
+ Quote,
 } from"lucide-react";
 
 import { createProject, updateProject, uploadLogo } from"@/lib/api/projects";
@@ -90,6 +95,61 @@ export function AdminProjectPage() {
  const { data: project, isLoading: isProjectLoading } = useProject(
  isCreating ?"" : projectId ||""
  );
+
+ // Featured verbatims
+ const { data: featuredVerbatims = [] } = useFeaturedVerbatims(isCreating ?"" : projectId ||"");
+ const createFeaturedVerbatim = useCreateFeaturedVerbatim(projectId ||"");
+ const deleteFeaturedVerbatim = useDeleteFeaturedVerbatim(projectId ||"");
+ const { data: messagesData } = useMessages(isCreating ?"" : projectId ||"", { limit: 1000 });
+ const messages = messagesData?.data || [];
+
+ const COER_CATEGORIES: { value: VerbatimCategory; label: string; description: string }[] = [
+  { value:"CONTRASTE", label:"Contraste", description:"Opposition, tension ou paradoxe révélateur" },
+  { value:"ORIGINALITE", label:"Originalité", description:"Angle de vue inattendu ou usage détourné" },
+  { value:"EMOTION", label:"Émotion", description:"Charge émotionnelle forte ou intime" },
+  { value:"REPRESENTATIVITE", label:"Représentativité", description:"Témoignage archétypal de la cible" },
+  { value:"TOTEM", label:"Totem", description:"Verbatim emblématique, quintessence du projet" },
+ ];
+
+ const [verbatimForms, setVerbatimForms] = useState<
+  Record<VerbatimCategory, { open: boolean; messageId: string; citation: string; implication: string }>
+ >({
+  CONTRASTE: { open: false, messageId:"", citation:"", implication:"" },
+  ORIGINALITE: { open: false, messageId:"", citation:"", implication:"" },
+  EMOTION: { open: false, messageId:"", citation:"", implication:"" },
+  REPRESENTATIVITE: { open: false, messageId:"", citation:"", implication:"" },
+  TOTEM: { open: false, messageId:"", citation:"", implication:"" },
+ });
+
+ const openVerbatimForm = (category: VerbatimCategory) =>
+  setVerbatimForms((prev) => ({ ...prev, [category]: { ...prev[category], open: true } }));
+
+ const closeVerbatimForm = (category: VerbatimCategory) =>
+  setVerbatimForms((prev) => ({ ...prev, [category]: { open: false, messageId:"", citation:"", implication:"" } }));
+
+ const updateVerbatimField = (category: VerbatimCategory, field: string, value: string) =>
+  setVerbatimForms((prev) => ({ ...prev, [category]: { ...prev[category], [field]: value } }));
+
+ const handleSelectMessage = (category: VerbatimCategory, msgId: string) => {
+  const msg = messages.find((m) => m.id === msgId);
+  setVerbatimForms((prev) => ({
+   ...prev,
+   [category]: {
+    ...prev[category],
+    messageId: msgId,
+    citation: msg?.transcriptTxt || msg?.quote ||"",
+   },
+  }));
+ };
+
+ const handleAddVerbatim = (category: VerbatimCategory) => {
+  const form = verbatimForms[category];
+  if (!form.citation.trim()) return;
+  createFeaturedVerbatim.mutate(
+   { category, messageId: form.messageId ||null, citation: form.citation, implication: form.implication },
+   { onSuccess: () => closeVerbatimForm(category) }
+  );
+ };
 
  const form = useForm<ProjectFormValues>({
  resolver: zodResolver(projectFormSchema),
@@ -274,11 +334,17 @@ export function AdminProjectPage() {
  >
  Identité Visuelle
  </TabsTrigger>
- <TabsTrigger 
- value="objectives" 
+ <TabsTrigger
+ value="objectives"
  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 md:py-4 text-[10px] font-semibold text-muted-foreground data-[state=active]:text-primary transition-all whitespace-nowrap"
  >
  Objectifs stratégiques
+ </TabsTrigger>
+ <TabsTrigger
+ value="verbatims"
+ className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 md:py-4 text-[10px] font-semibold text-muted-foreground data-[state=active]:text-primary transition-all whitespace-nowrap"
+ >
+ Verbatims Marquants
  </TabsTrigger>
  </>
  )}
@@ -559,6 +625,171 @@ export function AdminProjectPage() {
  </div>
  </div>
  </TabsContent>
+
+ {/* ── Verbatims Marquants ── */}
+ <TabsContent value="verbatims" className="m-0 focus-visible:ring-0">
+  <div className="p-4 md:p-6 lg:p-10 space-y-6">
+   <div>
+    <h3 className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-2 !text-primary">
+     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+     Verbatims C.O.E.R
+    </h3>
+    <p className="text-[11px] text-muted-foreground/60 mt-1 mb-6">
+     Associez un verbatim marquant à chaque dimension du modèle C.O.E.R.
+    </p>
+   </div>
+
+   <div className="space-y-4">
+    {COER_CATEGORIES.map(({ value: category, label, description }) => {
+     const existing = featuredVerbatims.find((v) => v.category === category);
+     const formState = verbatimForms[category];
+
+     return (
+      <div key={category} className="rounded-2xl border border-black/[0.06] bg-white/50 overflow-hidden">
+       {/* Header */}
+       <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-3">
+         <div className="w-8 h-8 rounded-xl bg-primary/[0.07] flex items-center justify-center">
+          <Quote className="h-3.5 w-3.5 text-primary/70" />
+         </div>
+         <div>
+          <p className="text-xs font-bold tracking-wide text-foreground">{label}</p>
+          <p className="text-[10px] text-muted-foreground/60">{description}</p>
+         </div>
+        </div>
+        {!existing && !formState.open && (
+         <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => openVerbatimForm(category)}
+          className="h-7 px-3 rounded-xl text-[10px] font-semibold border-primary/10 text-primary hover:bg-primary/5"
+         >
+          <Plus className="h-3 w-3 mr-1" />
+          Ajouter
+         </Button>
+        )}
+        {existing && (
+         <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => deleteFeaturedVerbatim.mutate(existing.id)}
+          className="h-7 w-7 p-0 rounded-xl text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5"
+         >
+          <Trash2 className="h-3.5 w-3.5" />
+         </Button>
+        )}
+       </div>
+
+       {/* Existing verbatim display */}
+       {existing && (
+        <div className="px-5 pb-5 space-y-3 border-t border-black/[0.04]">
+         <div className="pt-4 space-y-2">
+          {existing.message && (
+           <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
+            Msg {existing.message.filename?.replace(/\D/g, '') || existing.messageId?.slice(0, 6)}
+           </p>
+          )}
+          <blockquote className="text-sm font-medium text-foreground/80 italic border-l-2 border-primary/20 pl-3">
+           "{existing.citation}"
+          </blockquote>
+          {existing.implication && (
+           <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+            {existing.implication}
+           </p>
+          )}
+         </div>
+        </div>
+       )}
+
+       {/* Add form */}
+       {!existing && formState.open && (
+        <div className="px-5 pb-5 pt-4 border-t border-black/[0.04] space-y-4">
+         {/* Message picker */}
+         <div className="space-y-1.5">
+          <label className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+           Lier à un message (optionnel)
+          </label>
+          <Select
+           value={formState.messageId ||"none"}
+           onValueChange={(v) => handleSelectMessage(category, v ==="none" ?"" : v)}
+          >
+           <SelectTrigger className="h-9 text-xs rounded-xl border-black/[0.08] bg-white/80">
+            <SelectValue placeholder="Choisir un message..." />
+           </SelectTrigger>
+           <SelectContent>
+            <SelectItem value="none" className="text-xs text-muted-foreground">
+             Aucun message lié
+            </SelectItem>
+            {messages.map((msg) => (
+             <SelectItem key={msg.id} value={msg.id} className="text-xs">
+              <span className="font-semibold text-primary/80 mr-2">{msg.filename}</span>
+              <span className="text-muted-foreground truncate max-w-[300px]">
+               {(msg.transcriptTxt || msg.quote ||"").slice(0, 80)}…
+              </span>
+             </SelectItem>
+            ))}
+           </SelectContent>
+          </Select>
+         </div>
+
+         {/* Citation */}
+         <div className="space-y-1.5">
+          <label className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+           Extrait du verbatim *
+          </label>
+          <Textarea
+           value={formState.citation}
+           onChange={(e) => updateVerbatimField(category,"citation", e.target.value)}
+           placeholder="« Entrez l'extrait du verbatim... »"
+           className="min-h-[80px] text-xs rounded-xl border-black/[0.08] bg-white/80 resize-none"
+          />
+         </div>
+
+         {/* Implication */}
+         <div className="space-y-1.5">
+          <label className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+           Implication Sociologique & Stratégique
+          </label>
+          <Textarea
+           value={formState.implication}
+           onChange={(e) => updateVerbatimField(category,"implication", e.target.value)}
+           placeholder="Analyse de l'implication de ce verbatim..."
+           className="min-h-[80px] text-xs rounded-xl border-black/[0.08] bg-white/80 resize-none"
+          />
+         </div>
+
+         <div className="flex items-center gap-3 pt-1">
+          <Button
+           type="button"
+           size="sm"
+           onClick={() => handleAddVerbatim(category)}
+           disabled={!formState.citation.trim() || createFeaturedVerbatim.isPending}
+           className="h-8 px-4 rounded-xl text-[10px] font-semibold shadow-sm shadow-primary/20"
+          >
+           {createFeaturedVerbatim.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3 mr-1" />}
+           Enregistrer
+          </Button>
+          <Button
+           type="button"
+           size="sm"
+           variant="ghost"
+           onClick={() => closeVerbatimForm(category)}
+           className="h-8 px-3 rounded-xl text-[10px] font-semibold text-muted-foreground hover:text-foreground"
+          >
+           Annuler
+          </Button>
+         </div>
+        </div>
+       )}
+      </div>
+     );
+    })}
+   </div>
+  </div>
+ </TabsContent>
+
  </Tabs>
 
  {/* ── Footer / Submit ── */}

@@ -8,11 +8,14 @@ import { useProject } from "@/hooks/use-projects";
 import { useMessages } from "@/hooks/use-messages";
 import { useMessagesStats } from "@/hooks/use-messages-stats";
 import { useIrcBreakdown } from "@/hooks/use-irc-breakdown";
+import { useFeaturedVerbatims } from "@/hooks/use-featured-verbatims";
+import { useAudio } from "@/lib/audio-context";
 import { useParams } from "react-router-dom";
-import { Heart, Brain, Smile, Frown, Star, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { Heart, Brain, Smile, Frown, Star, AlertCircle, Loader2, Sparkles, Play, Pause } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { AudioPlayer } from "@/components/AudioPlayer";
-import type { ProjectPlutchik, Message } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { speakerProfileLabel, speakerProfileColor, toneLabel, toneColor } from "@/lib/verbatim-utils";
+import type { ProjectPlutchik } from "@/lib/types";
 
 const PLUTCHIK_EMOTION_KEYS: (keyof Pick<ProjectPlutchik, 'joy' | 'trust' | 'sadness' | 'anticipation' | 'anger' | 'surprise' | 'fear'>)[] = [
     'joy', 'trust', 'sadness', 'anticipation', 'anger', 'surprise', 'fear'
@@ -24,6 +27,16 @@ export default function EmotionsPage() {
     const { data: messagesData, isLoading: messagesLoading } = useMessages(projectId!);
     const { data: statsData, isLoading: statsLoading } = useMessagesStats(projectId!);
     const { data: ircBreakdownData, isLoading: ircLoading } = useIrcBreakdown(projectId!);
+    const { data: featuredVerbatims = [] } = useFeaturedVerbatims(projectId!);
+    const { currentMessage, isPlaying, playMessage, audioLoading } = useAudio();
+
+    const COER_META: Record<string, { label: string; description: string }> = {
+        CONTRASTE:        { label: "Contraste",          description: "Opposition ou paradoxe révélateur" },
+        ORIGINALITE:      { label: "Originalité",        description: "Angle inattendu ou usage détourné" },
+        EMOTION:          { label: "Émotion",            description: "Charge émotionnelle forte ou intime" },
+        REPRESENTATIVITE: { label: "Représentativité",   description: "Témoignage archétypal de la cible" },
+        TOTEM:            { label: "Totem",              description: "Verbatim emblématique du projet" },
+    };
 
     const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
 
@@ -334,16 +347,70 @@ export default function EmotionsPage() {
                                 </Card>
                             </div>
 
-                            {/* Exemples par charge */}
+                            {/* Modèle C.O.E.R */}
                             <div className="space-y-6">
                                 <div className="px-6">
-
-                                    <p className="text-xl font-semibold text-foreground tracking-tight">Matière marquante</p>
+                                    <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50 mb-1">Modèle C.O.E.R</p>
+                                    <p className="text-xl font-semibold text-foreground tracking-tight">Verbatims Marquants</p>
                                 </div>
-                                <div className="space-y-6 px-2">
-                                    {representativeMessages.map((message) => (
-                                        <AudioPlayer key={message.id} message={message} projectId={projectId!} />
-                                    ))}
+                                <div className="flex flex-col px-2">
+                                    {featuredVerbatims.length > 0 ? featuredVerbatims.map((v) => {
+                                        const msg = v.message ?? null;
+                                        const meta = COER_META[v.category];
+                                        const isCurrent = msg && currentMessage?.id === msg.id;
+                                        const isThisPlaying = isCurrent && isPlaying;
+                                        const isThisLoading = isCurrent && audioLoading;
+                                        return (
+                                            <div
+                                                key={v.id}
+                                                onClick={() => msg && playMessage(msg, projectId!)}
+                                                className={cn(
+                                                    "group flex items-center gap-4 px-3 py-4 rounded-xl border border-transparent transition-all",
+                                                    msg ? "cursor-pointer hover:bg-muted/40 hover:border-border/20" : "cursor-default",
+                                                    isCurrent ? "bg-muted/60 border-border/50" : ""
+                                                )}
+                                            >
+                                                <div className="w-10 h-10 flex items-center justify-center shrink-0 rounded-full bg-muted/20 group-hover:bg-primary/10 transition-colors">
+                                                    {isThisLoading ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                                    ) : isThisPlaying ? (
+                                                        <Pause className="h-4 w-4 fill-primary text-primary" />
+                                                    ) : (
+                                                        <Play className={cn(
+                                                            "h-4 w-4 fill-current transition-all",
+                                                            isCurrent ? "text-primary fill-primary" : msg ? "text-muted-foreground/40 group-hover:text-primary group-hover:fill-primary" : "text-muted-foreground/20"
+                                                        )} />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <h4 className={cn("text-[13px] font-semibold tracking-tight", isCurrent ? "text-primary" : "text-foreground/90")}>
+                                                            {meta?.label || v.category}
+                                                        </h4>
+                                                        <span className="text-[10px] text-muted-foreground/40 truncate">{meta?.description}</span>
+                                                    </div>
+                                                    {msg && (
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            {msg.speakerProfile && (
+                                                                <Badge variant="outline" className={cn("text-[9px] font-semibold px-2 py-0 border-none", speakerProfileColor[msg.speakerProfile])}>
+                                                                    {speakerProfileLabel[msg.speakerProfile]}
+                                                                </Badge>
+                                                            )}
+                                                            <Badge variant="outline" className={cn("text-[9px] font-semibold px-2 py-0 border-none", toneColor[msg.tone])}>
+                                                                {toneLabel[msg.tone]}
+                                                                <div className={cn("ml-1.5 w-1 h-1 rounded-full", msg.tone === 'POSITIVE' ? "bg-green-600" : msg.tone === 'NEGATIVE' ? "bg-red-600" : "bg-muted-foreground/40")} />
+                                                            </Badge>
+                                                        </div>
+                                                    )}
+                                                    <p className="text-[11px] text-muted-foreground/50 italic font-serif leading-relaxed line-clamp-1 mt-1">
+                                                        "{v.citation}"
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    }) : (
+                                        <p className="text-xs italic text-muted-foreground/30 px-3">Aucun verbatim marquant défini.</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

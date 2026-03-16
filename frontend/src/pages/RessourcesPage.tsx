@@ -153,7 +153,7 @@ export default function RessourcesPage() {
             />
 
             {/* ── Wrapped Player ── */}
-            <div className="mb-8 mx-2">
+            {project?.wrappedPublished && <div className="mb-8 mx-2">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Expérience</p>
@@ -209,7 +209,7 @@ export default function RessourcesPage() {
                   </div>
                 )}
               </Card>
-            </div>
+            </div>}
 
             {/* ── Fichiers téléchargeables ── */}
             {downloadResources.length > 0 && (

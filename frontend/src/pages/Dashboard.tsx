@@ -8,7 +8,11 @@ import { useMessages } from"@/hooks/use-messages";
 import { useThemes } from"@/hooks/use-themes";
 import { useMessagesStats } from"@/hooks/use-messages-stats";
 import { useObjectives } from"@/hooks/use-objectives";
+import { useFeaturedVerbatims } from"@/hooks/use-featured-verbatims";
 import { useAuth } from"@/lib/auth-context";
+import { useAudio } from"@/lib/audio-context";
+import { cn } from"@/lib/utils";
+import { speakerProfileLabel, speakerProfileColor, toneLabel, toneColor } from"@/lib/verbatim-utils";
 import { PageHeader } from"@/components/PageHeader";
 import {
  Users,
@@ -22,6 +26,8 @@ import {
  Info,
  CheckCircle2,
  Lightbulb,
+ Play,
+ Pause,
 } from"lucide-react";
 import { 
  BarChart, 
@@ -45,6 +51,16 @@ export default function Dashboard() {
  const { data: themesData, isLoading: themesLoading } = useThemes(projectId ||"");
  const { data: statsData, isLoading: statsLoading } = useMessagesStats(projectId ||"");
  const { data: objectivesData, isLoading: objectivesLoading } = useObjectives(projectId ||"");
+ const { data: featuredVerbatims = [] } = useFeaturedVerbatims(projectId ||"");
+ const { currentMessage, isPlaying, playMessage, audioLoading } = useAudio();
+
+ const COER_META: Record<string, { label: string; description: string }> = {
+  CONTRASTE:     { label:"Contraste",        description:"Opposition ou paradoxe révélateur" },
+  ORIGINALITE:   { label:"Originalité",      description:"Angle inattendu ou usage détourné" },
+  EMOTION:       { label:"Émotion",          description:"Charge émotionnelle forte ou intime" },
+  REPRESENTATIVITE:{ label:"Représentativité", description:"Témoignage archétypal de la cible" },
+  TOTEM:         { label:"Totem",            description:"Verbatim emblématique du projet" },
+ };
 
  if (projectLoading || messagesLoading || themesLoading || statsLoading || objectivesLoading) {
  return (
@@ -106,6 +122,7 @@ export default function Dashboard() {
  L'analyse concernant <span className="text-foreground font-medium">{project.title}</span> est prête. Explorez les indicateurs clés et plongez au cœur des retours pour identifier les signaux majeurs.
  </p>
 
+ {project.wrappedPublished && (
  <div className="flex flex-col sm:flex-row items-center gap-4 mt-4 pt-4">
  <Button
  variant="default"
@@ -119,6 +136,7 @@ export default function Dashboard() {
  Revivez les moments clés de votre projet.
  </p>
  </div>
+ )}
  </div>
  </Card>
 
@@ -129,31 +147,81 @@ export default function Dashboard() {
  
  </div>
  
- <div className="lg:col-span-8 space-y-6">
- <div className="space-y-6">
- <p className="text-lg font-medium leading-relaxed text-foreground/80 tracking-tight">
- {project.context}
- </p>
+ <div className="lg:col-span-8 flex flex-col">
+ {/* COER header */}
+ <div className="px-3 mb-4 space-y-0.5">
+  <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50">Modèle C.O.E.R</p>
+  <p className="text-[11px] text-muted-foreground/50">Contraste · Originalité · Émotion · Représentativité · Totem</p>
  </div>
 
- <div className="p-6 rounded-3xl bg-black/[0.02] border border-black/[0.03] space-y-8 group hover:bg-black/[0.03] transition-all duration-500">
- <div className="space-y-4">
- 
- <p className="text-base font-semibold font-heading tracking-tight italic text-primary/95 leading-tight">"{project.methodology}"
- </p>
- </div>
- <div className="pt-4 border-t border-black/[0.03] flex items-center justify-between">
- <div className="flex items-center gap-4">
- <div className="h-10 w-10 rounded-2xl bg-white border border-black/5 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500 text-muted-foreground/70">
- <Users className="h-4 w-4" />
- </div>
- <div>
- <p className="text-[8px] font-semibold text-muted-foreground/85 tracking-[0.2em]">Responsable d'étude</p>
- <p className="text-sm font-medium text-foreground/80">{project.analyst}</p>
- </div>
- </div>
- </div>
- </div>
+ {featuredVerbatims.length > 0 ? (
+  featuredVerbatims.map((v) => {
+   const msg = v.message ?? null;
+   const meta = COER_META[v.category];
+   const isCurrent = msg && currentMessage?.id === msg.id;
+   const isThisPlaying = isCurrent && isPlaying;
+   const isThisLoading = isCurrent && audioLoading;
+   return (
+    <div
+     key={v.id}
+     onClick={() => msg && playMessage(msg, projectId!)}
+     className={cn(
+      "group flex items-center gap-4 px-3 py-4 rounded-xl border border-transparent transition-all",
+      msg ? "cursor-pointer hover:bg-muted/40 hover:border-border/20" : "cursor-default",
+      isCurrent ? "bg-muted/60 border-border/50" : ""
+     )}
+    >
+     {/* Play button */}
+     <div className="w-10 h-10 flex items-center justify-center shrink-0 rounded-full bg-muted/20 group-hover:bg-primary/10 transition-colors">
+      {isThisLoading ? (
+       <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      ) : isThisPlaying ? (
+       <Pause className="h-4 w-4 fill-primary text-primary" />
+      ) : (
+       <Play className={cn(
+        "h-4 w-4 fill-current transition-all",
+        isCurrent ? "text-primary fill-primary" : msg ? "text-muted-foreground/40 group-hover:text-primary group-hover:fill-primary" : "text-muted-foreground/20"
+       )} />
+      )}
+     </div>
+
+     {/* Info */}
+     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+      <div className="flex items-baseline gap-2">
+       <h4 className={cn(
+        "text-[13px] font-semibold tracking-tight",
+        isCurrent ? "text-primary" : "text-foreground/90"
+       )}>
+        {meta?.label || v.category}
+       </h4>
+       <span className="text-[10px] text-muted-foreground/40 truncate">{meta?.description}</span>
+      </div>
+      {msg && (
+       <div className="flex items-center gap-2 mt-0.5">
+        {msg.speakerProfile && (
+         <Badge variant="outline" className={cn("text-[9px] font-semibold px-2 py-0 border-none", speakerProfileColor[msg.speakerProfile])}>
+          {speakerProfileLabel[msg.speakerProfile]}
+         </Badge>
+        )}
+        <Badge variant="outline" className={cn("text-[9px] font-semibold px-2 py-0 border-none", toneColor[msg.tone])}>
+         {toneLabel[msg.tone]}
+         <div className={cn("ml-1.5 w-1 h-1 rounded-full",
+          msg.tone === 'POSITIVE' ? "bg-green-600" :
+          msg.tone === 'NEGATIVE' ? "bg-red-600" : "bg-muted-foreground/40"
+         )} />
+        </Badge>
+       </div>
+      )}
+      <p className="text-[11px] text-muted-foreground/50 italic font-serif leading-relaxed line-clamp-1 mt-1">
+       "{v.citation}"
+      </p>
+     </div>
+    </div>
+   );
+  })
+ ) : (
+  <p className="text-xs italic text-muted-foreground/30 px-3">Aucun verbatim marquant défini.</p>
+ )}
  </div>
 
  <div className="lg:col-span-4 space-y-8">

@@ -34,7 +34,7 @@ export default function WrappedPage() {
 
     // Redirect non-admins if wrapped is not published
     useEffect(() => {
-        if (!projectLoading && project && !project.wrappedPublished && user?.role !== 'SUPERADMIN') {
+        if (!projectLoading && project && !project.wrappedPublished) {
             navigate(`/projects/${projectId}`, { replace: true });
         }
     }, [project, projectLoading, user, projectId, navigate]);
