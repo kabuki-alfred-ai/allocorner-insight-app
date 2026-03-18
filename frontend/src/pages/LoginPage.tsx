@@ -1,4 +1,4 @@
-import { useEffect } from"react";
+import { useEffect, useState } from"react";
 import { Link, useNavigate } from"react-router-dom";
 import { useForm } from"react-hook-form";
 import { zodResolver } from"@hookform/resolvers/zod";
@@ -42,6 +42,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginPage() {
  const navigate = useNavigate();
  const { login, isAuthenticated, user, isLoading: authLoading } = useAuth();
+ const [loginError, setLoginError] = useState<string | null>(null);
 
  const form = useForm<LoginFormValues>({
  resolver: zodResolver(loginSchema),
@@ -60,6 +61,7 @@ export function LoginPage() {
  }, [authLoading, isAuthenticated, user, navigate]);
 
  const onSubmit = async (values: LoginFormValues) => {
+ setLoginError(null);
  try {
  await login(values.email, values.password);
  toast.success("Connexion reussie !");
@@ -68,13 +70,13 @@ export function LoginPage() {
  const message =
  error instanceof Error
  ? error.message
- :"Identifiants incorrects. Veuillez reessayer.";
+ :"Identifiants incorrects. Veuillez réessayer.";
 
  // Attempt to extract a more specific message from axios error
  const axiosError = error as { response?: { data?: { message?: string } } };
  const serverMessage = axiosError?.response?.data?.message;
 
- toast.error(serverMessage || message);
+ setLoginError(serverMessage || message);
  }
  };
 
@@ -202,6 +204,12 @@ export function LoginPage() {
  </FormItem>
  )}
  />
+
+ {loginError && (
+ <div className="flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-xs font-medium text-destructive">
+ <span>{loginError}</span>
+ </div>
+ )}
 
  <Button
  type="submit"
