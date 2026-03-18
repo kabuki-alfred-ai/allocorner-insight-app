@@ -100,7 +100,7 @@ export default function Themes() {
     }
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-1000 pb-20">
+        <div className="pb-20">
             <PageHeader
                 title="Analyse Thématique"
                 description={project?.title}
@@ -109,9 +109,9 @@ export default function Themes() {
             />
 
             <div className="mt-12">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
                     {/* Column 1 - Theme selector - Sticky sidebar */}
-                    <aside className="lg:col-span-3 sticky top-8 self-start pt-0">
+                    <aside className="lg:col-span-3 sticky top-6 self-start h-[calc(100vh-6rem)] flex flex-col z-20">
                         <ThemeSelector
                             themes={themesList}
                             selectedTheme={selectedTheme}
@@ -121,14 +121,14 @@ export default function Themes() {
                     </aside>
 
                     {/* Column 2 - Theme Details - Main content flow */}
-                    <section className="lg:col-span-5 px-4 pt-0">
+                    <section className="lg:col-span-5 px-4 pt-0 min-h-screen pb-32">
                         {selectedTheme && (
                             <ThemeSynthesis theme={selectedTheme} projectId={projectId!} />
                         )}
                     </section>
 
-                    {/* Column 3 - Associated messages - Right panel flow */}
-                    <section className="lg:col-span-4 border-l border-border/50 pl-8 pt-0">
+                    {/* Column 3 - Associated messages - Sticky right panel */}
+                    <section className="lg:col-span-4 border-l border-border/50 pl-8 pt-0 sticky top-6 self-start h-[calc(100vh-6rem)] flex flex-col z-20">
                         {selectedTheme && (
                             <MessageList
                                 theme={selectedTheme}

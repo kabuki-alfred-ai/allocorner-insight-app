@@ -29,6 +29,19 @@ export class InvitationsService {
       );
     }
 
+    // Check if the user is already a member of the project
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      const existingMember = await this.prisma.projectMember.findUnique({
+        where: { projectId_userId: { projectId, userId: existingUser.id } },
+      });
+      if (existingMember) {
+        throw new ConflictException(
+          'This user is already a member of this project',
+        );
+      }
+    }
+
     // Get project and inviter info for email
     const [project, inviter] = await Promise.all([
       this.prisma.project.findUnique({ where: { id: projectId } }),

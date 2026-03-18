@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Badge } from"@/components/ui/badge";
 import { useRecommendations } from"@/hooks/use-recommendations";
+import { useStrategicActions } from"@/hooks/use-strategic-actions";
 import { useProject } from"@/hooks/use-projects";
 import { useParams } from"react-router-dom";
-import { Target, Loader2, ListChecks, ArrowRight, Zap, Clock3, CheckCircle2, AlertCircle } from"lucide-react";
+import { Target, Loader2, ListChecks, ArrowRight, Zap, Clock3, CheckCircle2, AlertCircle, Clock, Users } from"lucide-react";
 import { PageHeader } from"@/components/PageHeader";
 import type { Priority } from"@/lib/types";
 import { cn } from"@/lib/utils";
@@ -12,6 +13,8 @@ export default function RecommandationsPage() {
  const { projectId } = useParams<{ projectId: string }>();
  const { data: project } = useProject(projectId!);
  const { data: recsData, isLoading } = useRecommendations(projectId!);
+ const { data: actionsData } = useStrategicActions(projectId!);
+ const actions = [...(actionsData || [])].sort((a, b) => a.position - b.position);
 
  const priorityOrder: Record<string, number> = {
  'HAUTE': 0,
@@ -87,29 +90,7 @@ export default function RecommandationsPage() {
  icon={<ListChecks className="h-5 w-5" />}
  />
 
- {/* Strategy Intro Card */}
- <Card className="p-6 md:p-8 relative overflow-hidden group mb-6 flex flex-col items-start text-left mt-2 mx-2">
- {/* Background Decor */}
- <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20 z-0">
- <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-primary rounded-full blur-[120px] opacity-30 mix-blend-screen transition-transform duration-1000 group-hover:scale-110" />
- <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-orange-600 rounded-full blur-[120px] opacity-20 mix-blend-screen transition-transform duration-1000 group-hover:scale-110" />
- </div>
 
- <div className="relative z-10 flex flex-col space-y-4 max-w-3xl">
- <div className="flex items-center gap-3">
- <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center border">
- <Target className="h-4 w-4 text-foreground/80" />
- </div>
- 
- </div>
- <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tighter">
- Recommandations Stratégiques
- </h2>
- <p className="text-muted-foreground font-medium text-balance text-base leading-snug font-body">
- Sur la base de l'analyse des signaux remontés par les collaborateurs, voici le plan d'action hiérarchisé pour adresser les enjeux prioritaires et maximiser l'impact.
- </p>
- </div>
- </Card>
 
  <div className="space-y-8">
  <div className="px-4">
@@ -212,6 +193,48 @@ export default function RecommandationsPage() {
  </Card>
  ))}
  </div>
+    {/* Actions stratégiques */}
+    {actions.length > 0 && (
+     <div className="space-y-6 pt-10 border-t border-black/[0.04] px-2">
+      <div className="px-2">
+       <h3 className="text-xs font-semibold text-muted-foreground mb-1.5">Plan d'exécution</h3>
+       <p className="text-xl font-semibold text-foreground tracking-tight">Actions stratégiques</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-2">
+       {actions.map((action, idx) => (
+        <Card key={action.id} className="p-5 group transition-all duration-500 relative flex flex-col hover:-translate-y-1 hover:shadow-xl border border-black/[0.02] bg-white">
+         <div className={cn("absolute top-0 right-0 w-48 h-48 blur-[80px] rounded-full opacity-10 -mr-20 -mt-20 transition-all duration-700 group-hover:opacity-20",
+          action.priority === 'HAUTE' ? 'bg-chart-negative' : action.priority === 'MOYENNE' ? 'bg-chart-neutral' : 'bg-chart-positive'
+         )} />
+         <div className="relative z-10 flex flex-col h-full gap-3">
+          <div className="flex items-start justify-between">
+           <Badge variant="outline" className={cn("w-fit text-[9px] px-3.5 py-1.5 font-semibold tracking-[0.2em] rounded-full border-none shadow-sm",
+            action.priority === 'HAUTE' ? 'text-chart-negative bg-chart-negative/5' : action.priority === 'MOYENNE' ? 'text-chart-neutral bg-chart-neutral/5' : 'text-chart-positive bg-chart-positive/5'
+           )}>
+            {action.priority === 'HAUTE' ? <AlertCircle className="h-3 w-3 mr-1.5 inline" /> : action.priority === 'MOYENNE' ? <Clock3 className="h-3 w-3 mr-1.5 inline" /> : <CheckCircle2 className="h-3 w-3 mr-1.5 inline" />}
+            {action.priority === 'HAUTE' ? 'Haute' : action.priority === 'MOYENNE' ? 'Moyenne' : 'Basse'}
+           </Badge>
+           <div className="w-10 h-10 rounded-full bg-black/[0.02] border border-black/[0.04] flex items-center justify-center text-[11px] font-semibold text-foreground/85">
+            {String(idx + 1).padStart(2, '0')}
+           </div>
+          </div>
+          <div className="space-y-2 flex-1">
+           <h4 className="text-lg font-semibold tracking-tight leading-[1.1] text-foreground/90 group-hover:text-primary transition-colors duration-500 pr-4">{action.title}</h4>
+           <div className="h-px w-12 bg-black/[0.06] group-hover:w-24 group-hover:bg-primary/20 transition-all duration-500" />
+           {action.description && <p className="text-sm font-medium leading-relaxed text-muted-foreground/80 font-body">{action.description}</p>}
+          </div>
+          {(action.timeline || action.resources) && (
+           <div className="flex items-center gap-4 pt-2 border-t border-black/[0.04]">
+            {action.timeline && <span className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60"><Clock className="h-3 w-3" />{action.timeline}</span>}
+            {action.resources && <span className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60"><Users className="h-3 w-3" />{action.resources}</span>}
+           </div>
+          )}
+         </div>
+        </Card>
+       ))}
+      </div>
+     </div>
+    )}
  </div>
  </div>
  </>

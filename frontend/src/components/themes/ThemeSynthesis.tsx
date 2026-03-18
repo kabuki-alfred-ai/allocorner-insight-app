@@ -35,7 +35,7 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
                 <section className="space-y-3">
                     <div className="flex items-center gap-2 text-muted-foreground/40">
                         <Tags className="w-3.5 h-3.5" />
-                        <h4 className="text-[10px] font-semibold uppercase tracking-wider">Synthèse de l\\analyse</h4>
+                        <h4 className="text-[10px] font-semibold uppercase tracking-wider">Synthèse de l'analyse</h4>
                     </div>
                     <div className="border-l-2 border-primary/20 pl-6 py-1">
                         <p className="text-lg font-medium leading-relaxed text-foreground/90 font-serif italic text-balance">
@@ -48,7 +48,7 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
                 <section className="space-y-3">
 
                     <p className="text-sm font-medium leading-relaxed text-muted-foreground bg-muted/20 p-5 rounded-xl border border-border/50">
-                        {theme.strategicTeaching || "Cet enseignement souligne lopportunité dagir sur ce levier thématique pour renforcer ladhésion."}
+                        {theme.strategicTeaching || "Cet enseignement souligne l'opportunité d'agir sur ce levier thématique pour renforcer l'adhésion."}
                     </p>
                 </section>
 

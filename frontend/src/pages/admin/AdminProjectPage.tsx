@@ -197,6 +197,7 @@ export function AdminProjectPage() {
  analyst: data.analyst ||"",
  methodology: data.methodology ||"",
  participantsEstimated: data.participantsEstimated || 0,
+ wrappedPublished: false,
  };
  return createProject(payload);
  },
@@ -632,10 +633,10 @@ export function AdminProjectPage() {
    <div>
     <h3 className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-2 !text-primary">
      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-     Verbatims C.O.E.R
+     Verbatims Marquants
     </h3>
     <p className="text-[11px] text-muted-foreground/60 mt-1 mb-6">
-     Associez un verbatim marquant à chaque dimension du modèle C.O.E.R.
+     Associez un verbatim marquant à chaque dimension du projet.
     </p>
    </div>
 

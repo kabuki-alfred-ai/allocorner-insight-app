@@ -103,4 +103,14 @@ export class StorageService implements OnModuleInit {
   async getLogoStream(key: string) {
     return this.client.getObject(this.logosBucket, key);
   }
+
+  async getLogoBuffer(key: string): Promise<Buffer> {
+    const stream = await this.client.getObject(this.logosBucket, key);
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on('error', reject);
+    });
+  }
 }

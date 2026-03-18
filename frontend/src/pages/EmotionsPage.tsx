@@ -64,10 +64,10 @@ export default function EmotionsPage() {
 
     // Score IRC décomposé depuis la DB
     const ircBreakdown = ircBreakdownData ? [
-        { criterion: 'Intensité émotionnelle', score: Math.round(ircBreakdownData.intensity), weight: 30 },
-        { criterion: 'Richesse thématique', score: Math.round(ircBreakdownData.thematicRichness), weight: 25 },
-        { criterion: 'Cohérence narrative', score: Math.round(ircBreakdownData.narrativeCoherence), weight: 25 },
-        { criterion: 'Originalité', score: Math.round(ircBreakdownData.originality), weight: 20 }
+        { criterion: 'Intensité émotionnelle', score: Math.round(ircBreakdownData.intensity) },
+        { criterion: 'Richesse thématique', score: Math.round(ircBreakdownData.thematicRichness) },
+        { criterion: 'Cohérence narrative', score: Math.round(ircBreakdownData.narrativeCoherence) },
+        { criterion: 'Originalité', score: Math.round(ircBreakdownData.originality) }
     ] : [];
 
     function getEmotionColor(emotion: string): string {
@@ -153,7 +153,15 @@ export default function EmotionsPage() {
                                     </div>
                                     <div className="space-y-3">
                                         <p className="text-base font-semibold text-foreground tracking-[0.15em] tracking-tight">Impact de Résonance Citoyenne</p>
-                                        <p className="text-sm font-medium text-muted-foreground/85 max-w-[280px] mx-auto leading-relaxed">Engagement citoyen significatif et forte résonance territoriale identifiée.</p>
+                                        {metrics?.ircInterpretation && (
+                                            <p className="text-sm font-medium text-muted-foreground/85 max-w-[280px] mx-auto leading-relaxed">{metrics.ircInterpretation}</p>
+                                        )}
+                                        {metrics?.emotionalClimate && (
+                                            <div className="mt-2 space-y-1">
+                                                <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Climat émotionnel</p>
+                                                <p className="text-sm font-medium text-muted-foreground/85 max-w-[280px] mx-auto leading-relaxed">{metrics.emotionalClimate}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="w-full max-w-[200px] bg-black/[0.04] rounded-full h-1.5 overflow-hidden">
                                         <div
@@ -177,7 +185,6 @@ export default function EmotionsPage() {
                                                 <span className="text-[11px] font-semibold text-foreground/85 tracking-[0.2em] group-hover:text-primary transition-colors">{item.criterion}</span>
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-[11px] font-semibold text-muted-foreground/70">{item.score}/100</span>
-                                                    <span className="text-[9px] font-semibold bg-black/[0.04] px-3 py-1 rounded-full text-primary/90">{item.weight}%</span>
                                                 </div>
                                             </div>
                                             <div className="w-full bg-black/[0.04] rounded-full h-1.5 overflow-hidden">
@@ -289,6 +296,14 @@ export default function EmotionsPage() {
                                 </div>
                             </div>
                         </div>
+                        {plutchik?.cocktailSummary && (
+                            <div className="px-2">
+                                <div className="px-4 py-4 rounded-xl bg-black/[0.03] border border-black/[0.04] space-y-1">
+                                    <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Résumé du cocktail émotionnel</p>
+                                    <p className="text-sm font-medium text-muted-foreground/85 leading-relaxed">{plutchik.cocktailSummary}</p>
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     {/* Section 3: Tonalité & Verbatims */}
@@ -347,10 +362,8 @@ export default function EmotionsPage() {
                                 </Card>
                             </div>
 
-                            {/* Modèle C.O.E.R */}
                             <div className="space-y-6">
                                 <div className="px-6">
-                                    <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50 mb-1">Modèle C.O.E.R</p>
                                     <p className="text-xl font-semibold text-foreground tracking-tight">Verbatims Marquants</p>
                                 </div>
                                 <div className="flex flex-col px-2">

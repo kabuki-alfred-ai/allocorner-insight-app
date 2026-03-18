@@ -66,8 +66,8 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
     };
 
     return (
-        <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
-            <div className="flex items-center justify-between pt-0">
+        <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 h-full">
+            <div className="flex items-center justify-between pt-0 shrink-0">
                 <div className="space-y-1">
                     <h3 className="text-xl font-semibold tracking-tight text-foreground">
                         Témoignages
@@ -91,7 +91,7 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
             </div>
 
             {/* Header & Filters simplified */}
-            <div className="flex flex-col gap-5 bg-muted/20 p-4 rounded-xl border border-border/50">
+            <div className="flex flex-col gap-5 bg-muted/20 p-4 rounded-xl border border-border/50 shrink-0">
                 <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/40 w-4 h-4" />
                     <Input
@@ -160,10 +160,10 @@ export function MessageList({ theme, onThemeSelect, messages, allThemes, project
                 </div>
             </div>
 
-            {/* Messages List - 1 column for 3-column layout compatibility */}
-            <div className="flex flex-col border-t border-border/50 pt-4">
+            {/* Messages List - Scrollable area */}
+            <div className="flex-1 overflow-y-auto pr-4 -mr-4 space-y-1">
                 {filteredMessages.length === 0 ? (
-                    <div className="bg-muted/20 border border-transparent rounded-xl p-6 py-12 text-center flex flex-col items-center justify-center">
+                    <div className="bg-muted/20 border border-transparent rounded-xl p-6 py-12 text-center flex flex-col items-center justify-center mt-4">
                         <div className="mb-4 relative">
                             <Filter className="h-5 w-5 text-muted-foreground/30 relative z-10" />
                         </div>

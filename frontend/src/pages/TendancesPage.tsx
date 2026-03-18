@@ -52,10 +52,8 @@ export default function TendancesPage() {
  { name:"Potentiel restant", value: (1 - (project?.metrics?.participationRate ?? 0)) * 100, color:"hsl(var(--muted))" }
  ];
 
- const wordFrequencyData = recurringWords.map((word, index) => ({
+ const wordFrequencyData = recurringWords.map((word) => ({
  word: typeof word === 'string' ? word : String(word),
- frequency: Math.round((100 - index * 12) / 10) * 10,
- color: themesData?.[index % (themesData.length || 1)]?.color ||"#8B5CF6"
  }));
 
  if (trendsLoading || themesLoading || statsLoading) {
@@ -169,13 +167,6 @@ export default function TendancesPage() {
  <p className="text-sm font-medium leading-relaxed text-white/60">
  {weakSignalDetail ||"Une préoccupation émergente concernant la distance avec les centres de décision."}
  </p>
- </div>
- <div className="pt-8 border-t border-white/10">
- <p className="text-xs font-semibold text-muted-foreground !text-primary !mb-4">Implications stratégiques</p>
- <div className="flex flex-wrap gap-2">
- <Badge variant="outline" className="text-[10px] font-semibold bg-white/5 border-white/10 text-white rounded-xl px-4 py-1">LOCALITÉ</Badge>
- <Badge variant="outline" className="text-[10px] font-semibold bg-white/5 border-white/10 text-white rounded-xl px-4 py-1">PROXIMITÉ</Badge>
- </div>
  </div>
  </div>
  </Card>
@@ -324,28 +315,15 @@ export default function TendancesPage() {
  <h3 className="text-xs font-semibold text-muted-foreground mb-1.5">Univers Lexical</h3>
  <p className="text-xl font-semibold text-foreground tracking-tight">Analyse Sémantique</p>
  </div>
- <div className="grid grid-cols-1 gap-8 items-center">
- <div className="space-y-6 px-4">
- {wordFrequencyData.slice(0, 5).map((item, index) => (
- <div key={index} className="space-y-3 group cursor-default">
- <div className="flex items-center justify-between">
- <span className="text-xs font-semibold text-foreground/85 tracking-[0.2em] group-hover:text-foreground transition-colors">
+ <div className="flex flex-wrap gap-2 px-4">
+ {wordFrequencyData.map((item, index) => (
+ <span
+ key={index}
+ className="px-3 py-1.5 rounded-full text-xs font-semibold bg-black/[0.04] text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors cursor-default"
+ >
  {item.word}
  </span>
- <span className="text-[11px] font-semibold text-primary/80">{item.frequency}%</span>
- </div>
- <div className="w-full bg-black/[0.04] rounded-full h-1.5 overflow-hidden shadow-inner">
- <div
- className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(0,0,0,0.02)]"
- style={{
- backgroundColor: item.color,
- width:`${item.frequency}%`
- }}
- />
- </div>
- </div>
  ))}
- </div>
  </div>
  </div>
  </div>

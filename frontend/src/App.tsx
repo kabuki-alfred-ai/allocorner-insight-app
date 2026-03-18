@@ -33,7 +33,6 @@ import AdminRecommendationsPage from"./pages/admin/AdminRecommendationsPage";
 import AdminTransversalPage from"./pages/admin/AdminTransversalPage";
 import AdminInvitationsPage from"./pages/admin/AdminInvitationsPage";
 import AdminObjectivesPage from"./pages/admin/AdminObjectivesPage";
-import AdminIrcBreakdownPage from"./pages/admin/AdminIrcBreakdownPage";
 import AdminStrategicActionsPage from"./pages/admin/AdminStrategicActionsPage";
 import AdminWrappedPage from"./pages/admin/AdminWrappedPage";
 import ProfilePage from"./pages/ProfilePage";
@@ -96,7 +95,6 @@ const App = () => (
  <Route path="transversal" element={<AdminTransversalPage />} />
  <Route path="invitations" element={<AdminInvitationsPage />} />
  <Route path="objectives" element={<AdminObjectivesPage />} />
- <Route path="irc-breakdown" element={<AdminIrcBreakdownPage />} />
  <Route path="strategic-actions" element={<AdminStrategicActionsPage />} />
  <Route path="wrapped" element={<AdminWrappedPage />} />
  </Route>

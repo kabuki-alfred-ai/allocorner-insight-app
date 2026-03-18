@@ -149,9 +149,8 @@ export default function Dashboard() {
  
  <div className="lg:col-span-8 flex flex-col">
  {/* COER header */}
- <div className="px-3 mb-4 space-y-0.5">
-  <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-primary/50">Modèle C.O.E.R</p>
-  <p className="text-[11px] text-muted-foreground/50">Contraste · Originalité · Émotion · Représentativité · Totem</p>
+ <div className="px-4 mb-4">
+  <p className="text-lg font-semibold text-foreground tracking-tight">Verbatims marquants</p>
  </div>
 
  {featuredVerbatims.length > 0 ? (
@@ -224,8 +223,11 @@ export default function Dashboard() {
  )}
  </div>
 
- <div className="lg:col-span-4 space-y-8">
- <div className="px-2">
+ <div className="lg:col-span-4 flex flex-col">
+  <div className="px-4 mb-4">
+   <p className="text-lg font-semibold text-foreground tracking-tight">Objectifs stratégiques</p>
+  </div>
+ <div className="px-2 flex-1">
  
  <ul className="space-y-6">
  {(objectivesData || []).map((obj, i) => (
@@ -241,7 +243,7 @@ export default function Dashboard() {
  </ul>
  </div>
  
- <div className="p-6 rounded-2xl bg-primary/[0.02] border border-primary/5 flex items-start gap-4 hover:bg-primary/[0.04] transition-colors duration-500">
+ <div className="p-6 rounded-2xl bg-primary/[0.02] border border-primary/5 flex items-start gap-4 hover:bg-primary/[0.04] transition-colors duration-500 mt-auto">
  <Lightbulb className="h-4 w-4 text-primary/95 shrink-0 mt-0.5" />
  <div className="space-y-1">
  

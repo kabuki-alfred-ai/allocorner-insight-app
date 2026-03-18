@@ -1,4 +1,5 @@
 import { useParams } from"react-router-dom";
+import { useEffect } from"react";
 import { useForm } from"react-hook-form";
 import { zodResolver } from"@hookform/resolvers/zod";
 import { z } from"zod";
@@ -36,6 +37,7 @@ export default function AdminIrcBreakdownPage() {
  });
 
  // Pré-remplir le formulaire quand les données arrivent
+ useEffect(() => {
  if (ircBreakdown && !form.formState.isDirty) {
  form.reset({
  intensity: ircBreakdown.intensity,
@@ -44,6 +46,7 @@ export default function AdminIrcBreakdownPage() {
  originality: ircBreakdown.originality,
  });
  }
+ }, [ircBreakdown]);
 
  const onSubmit = async (values: IrcBreakdownFormValues) => {
  try {
