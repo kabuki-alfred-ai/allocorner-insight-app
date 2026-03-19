@@ -144,7 +144,7 @@ export class MailService {
       border: 1px solid #F0F0F0;
     }
     .logo { text-align: center; margin-bottom: 40px; }
-    .logo img { height: 40px; width: auto; }
+    .logo img { height: 40px; width: auto; background-color: #1A1A1A; padding: 12px 20px; border-radius: 12px; }
     .header { text-align: center; margin-bottom: 32px; }
     h1 {
       color: #1A1A1A;
@@ -269,6 +269,9 @@ export class MailService {
     .logo img {
       height: 40px;
       width: auto;
+      background-color: #1A1A1A;
+      padding: 12px 20px;
+      border-radius: 12px;
     }
     .header {
       text-align: center;
