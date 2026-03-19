@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SpeechClient } from '@google-cloud/speech';
+import { v2 } from '@google-cloud/speech';
 import { Readable } from 'stream';
 import { GoogleAuthService } from './google-auth.service';
+import { GoogleStorageService } from './google-storage.service';
 
 export interface TranscriptionResult {
   text: string;
@@ -15,123 +16,118 @@ export interface TranscriptionResult {
 @Injectable()
 export class GoogleSpeechService {
   private readonly logger = new Logger(GoogleSpeechService.name);
-  private readonly client: SpeechClient;
+  private readonly client: v2.SpeechClient;
 
   constructor(
     private configService: ConfigService,
     private googleAuthService: GoogleAuthService,
+    private googleStorage: GoogleStorageService,
   ) {
-    // GOOGLE_APPLICATION_CREDENTIALS is set by GoogleAuthService — no explicit auth needed
-    this.client = new SpeechClient();
+    this.client = new v2.SpeechClient();
   }
 
   /**
-   * Transcribe audio with speaker diarization
+   * Transcribe audio with speaker diarization using Speech-to-Text v2.
+   * Audio is temporarily uploaded to GCS to support files longer than 60 seconds.
    */
   async transcribe(
     audioStream: Readable,
     options: {
-      language?: string;
+      audioKey?: string;
       enableDiarization?: boolean;
     } = {},
   ): Promise<TranscriptionResult> {
-    const language =
-      options.language || this.configService.get<string>('google.speech.language');
     const enableDiarization =
       options.enableDiarization ??
       this.configService.get<boolean>('google.speech.enableDiarization');
 
-    this.logger.log('Starting audio transcription with Google Speech-to-Text');
+    const projectId = this.configService.get<string>('google.projectId');
+    const languages = this.configService.get<string[]>('google.speech.languages');
+
+    this.logger.log('Starting audio transcription with Google Speech-to-Text v2');
+
+    const audioBuffer = await this.streamToBuffer(audioStream);
+    const audioKey = options.audioKey ?? `audio-${Date.now()}`;
+    let gcsUri: string | null = null;
 
     try {
-      // Convert stream to buffer
-      const audioBuffer = await this.streamToBuffer(audioStream);
+      gcsUri = await this.googleStorage.uploadAudio(audioBuffer, audioKey);
 
-      // Prepare request
       const request = {
-        audio: {
-          content: audioBuffer.toString('base64'),
-        },
+        recognizer: `projects/${projectId}/locations/global/recognizers/_`,
         config: {
-          encoding: 'MP3' as const,
-          sampleRateHertz: 16000,
-          languageCode: language,
-          model: this.configService.get<string>('google.speech.model') || 'latest_long',
-          enableAutomaticPunctuation: true,
-          enableWordTimeOffsets: true,
-          diarizationConfig: enableDiarization
-            ? {
-                enableSpeakerDiarization: true,
+          autoDecodingConfig: {},
+          languageCodes: languages,
+          model: 'long',
+          features: {
+            enableAutomaticPunctuation: true,
+            enableWordTimeOffsets: true,
+            ...(enableDiarization && {
+              diarizationConfig: {
                 minSpeakerCount: 1,
                 maxSpeakerCount: 6,
-              }
-            : undefined,
+              },
+            }),
+          },
+        },
+        files: [{ uri: gcsUri }],
+        recognitionOutputConfig: {
+          inlineResponseConfig: {},
         },
       };
 
-      // Call Google Speech-to-Text API
-      const [response] = await this.client.recognize(request);
+      const [operation] = await this.client.batchRecognize(request);
+      const [response] = await operation.promise();
 
-      if (!response.results || response.results.length === 0) {
+      const fileResult = response.results?.[gcsUri];
+      if (!fileResult?.transcript?.results?.length) {
         throw new Error('No transcription results from Google Speech API');
       }
 
+      const results = fileResult.transcript.results;
+
       // Extract transcription
-      const transcription = response.results
+      const transcription = results
         .map((result) => result.alternatives?.[0]?.transcript || '')
         .join(' ')
         .trim();
 
-      // Extract speaker information from diarization
+      // Extract speaker information from diarization (v2 uses speakerLabel)
       const speakers = new Set<string>();
-      let primarySpeaker = 'Unknown';
+      const speakerCounts = new Map<string, number>();
 
-      if (enableDiarization && response.results.length > 0) {
-        const wordsInfo = response.results
-          .flatMap((result) => result.alternatives?.[0]?.words || []);
+      if (enableDiarization) {
+        const wordsInfo = results.flatMap((result) => result.alternatives?.[0]?.words || []);
 
         wordsInfo.forEach((wordInfo) => {
-          if (wordInfo.speakerTag !== undefined) {
-            speakers.add(`Speaker ${wordInfo.speakerTag}`);
+          const label = wordInfo.speakerLabel;
+          if (label) {
+            speakers.add(label);
+            speakerCounts.set(label, (speakerCounts.get(label) || 0) + 1);
           }
         });
-
-        // Primary speaker is the one with most words
-        const speakerCounts = new Map<string, number>();
-        wordsInfo.forEach((wordInfo) => {
-          if (wordInfo.speakerTag !== undefined) {
-            const speaker = `Speaker ${wordInfo.speakerTag}`;
-            speakerCounts.set(speaker, (speakerCounts.get(speaker) || 0) + 1);
-          }
-        });
-
-        if (speakerCounts.size > 0) {
-          primarySpeaker = Array.from(speakerCounts.entries()).sort(
-            (a, b) => b[1] - a[1],
-          )[0][0];
-        }
       }
 
-      // Calculate audio duration (approximate from word timestamps)
+      const primarySpeaker =
+        speakerCounts.size > 0
+          ? Array.from(speakerCounts.entries()).sort((a, b) => b[1] - a[1])[0][0]
+          : 'Unknown';
+
+      // Duration from last word timestamp
       let duration = 0;
-      const lastResult = response.results[response.results.length - 1];
-      const lastWord =
-        lastResult?.alternatives?.[0]?.words?.[
-          lastResult.alternatives[0].words.length - 1
-        ];
-
-      if (lastWord?.endTime) {
+      const lastResult = results[results.length - 1];
+      const lastWords = lastResult?.alternatives?.[0]?.words;
+      const lastWord = lastWords?.[lastWords.length - 1];
+      if (lastWord?.endOffset) {
         duration =
-          Number(lastWord.endTime.seconds || 0) +
-          Number(lastWord.endTime.nanos || 0) / 1e9;
+          Number((lastWord.endOffset as any).seconds || 0) +
+          Number((lastWord.endOffset as any).nanos || 0) / 1e9;
       }
 
-      // Get average confidence
+      // Average confidence
       const confidence =
-        response.results.reduce(
-          (sum, result) => sum + (result.alternatives?.[0]?.confidence || 0),
-          0,
-        ) / response.results.length;
+        results.reduce((sum, result) => sum + (result.alternatives?.[0]?.confidence || 0), 0) /
+        results.length;
 
       this.logger.log(
         `Transcription completed: ${transcription.length} chars, ${speakers.size} speakers, ${duration.toFixed(2)}s`,
@@ -144,15 +140,15 @@ export class GoogleSpeechService {
         duration,
         confidence,
       };
-    } catch (error) {
-      this.logger.error('Failed to transcribe audio', error.stack);
-      throw new Error(`Transcription failed: ${error.message}`);
+    } finally {
+      if (gcsUri) {
+        await this.googleStorage.deleteAudio(gcsUri).catch((err) =>
+          this.logger.warn(`Failed to delete GCS temp file: ${err.message}`),
+        );
+      }
     }
   }
 
-  /**
-   * Convert stream to buffer
-   */
   private async streamToBuffer(stream: Readable): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];

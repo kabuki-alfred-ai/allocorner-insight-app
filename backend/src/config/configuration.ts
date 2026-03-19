@@ -25,9 +25,12 @@ export default () => ({
   google: {
     projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
     credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    storage: {
+      bucket: process.env.GCS_AUDIO_BUCKET || 'your-gcs-bucket',
+    },
     speech: {
-      language: process.env.GOOGLE_SPEECH_LANGUAGE || 'fr-FR',
-      model: 'latest_long',
+      languages: (process.env.GOOGLE_SPEECH_LANGUAGES || 'fr-FR,en-US,es-ES,de-DE,it-IT').split(','),
+      model: 'long',
       enableDiarization: true,
     },
   },

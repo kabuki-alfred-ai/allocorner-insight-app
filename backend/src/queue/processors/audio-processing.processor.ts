@@ -61,7 +61,7 @@ export class AudioProcessingProcessor extends WorkerHost {
       const [pitchResult, transcriptionResult] = await Promise.all([
         this.pitchAnalysis.analyzeStream(Readable.from(audioBuffer)),
         this.googleSpeech.transcribe(Readable.from(audioBuffer), {
-          language: 'fr-FR',
+          audioKey: message.audioKey,
           enableDiarization: true,
         }),
       ]);
