@@ -11,7 +11,7 @@ export class GoogleStorageService {
 
   constructor(private configService: ConfigService) {
     this.storage = new Storage();
-    this.bucket = this.configService.get<string>('google.storage.bucket');
+    this.bucket = this.configService.get<string>('google.storage.bucket') ?? '';
   }
 
   async uploadAudio(audioBuffer: Buffer, originalKey: string): Promise<string> {
