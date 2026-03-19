@@ -142,7 +142,7 @@ export function LoginPage() {
  <div className="space-y-3 px-2">
  <div className="flex flex-col items-center">
  <p className="text-[10px] font-medium tracking-[0.3em] text-primary mb-2 opacity-90">
- Livre d'or Vocal
+ Feedback is calling
  </p>
  <h1 className="text-3xl font-semibold font-heading text-white tracking-tight">
  Insight Board
