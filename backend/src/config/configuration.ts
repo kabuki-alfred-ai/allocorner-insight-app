@@ -29,6 +29,7 @@ export default () => ({
       bucket: process.env.GCS_AUDIO_BUCKET || 'your-gcs-bucket',
     },
     speech: {
+      location: process.env.GOOGLE_SPEECH_LOCATION || 'europe-west4',
       languages: (process.env.GOOGLE_SPEECH_LANGUAGES || 'fr-FR,en-US,es-ES,de-DE,it-IT').split(','),
       model: 'latest_long',
       enableDiarization: true,

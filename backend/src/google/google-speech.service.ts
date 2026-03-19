@@ -23,7 +23,10 @@ export class GoogleSpeechService {
     private googleAuthService: GoogleAuthService,
     private googleStorage: GoogleStorageService,
   ) {
-    this.client = new v2.SpeechClient();
+    const location = this.configService.get<string>('google.speech.location') ?? 'europe-west4';
+    this.client = new v2.SpeechClient({
+      apiEndpoint: `${location}-speech.googleapis.com`,
+    });
   }
 
   /**
@@ -37,6 +40,7 @@ export class GoogleSpeechService {
     } = {},
   ): Promise<TranscriptionResult> {
     const projectId = this.configService.get<string>('google.projectId');
+    const location = this.configService.get<string>('google.speech.location') ?? 'europe-west4';
     const languages = this.configService.get<string[]>('google.speech.languages');
 
     this.logger.log('Starting audio transcription with Google Speech-to-Text v2');
@@ -49,7 +53,7 @@ export class GoogleSpeechService {
       gcsUri = await this.googleStorage.uploadAudio(audioBuffer, audioKey);
 
       const request = {
-        recognizer: `projects/${projectId}/locations/global/recognizers/_`,
+        recognizer: `projects/${projectId}/locations/${location}/recognizers/_`,
         config: {
           autoDecodingConfig: {},
           languageCodes: languages,
