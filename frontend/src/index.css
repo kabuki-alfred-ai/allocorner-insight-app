@@ -112,6 +112,10 @@
 }
 
 @layer utilities {
+  .font-body {
+    white-space: pre-wrap;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

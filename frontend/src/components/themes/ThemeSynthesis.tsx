@@ -45,12 +45,13 @@ export function ThemeSynthesis({ theme, projectId }: ThemeSynthesisProps) {
                 </section>
 
                 {/* Strategic Teaching */}
+                {theme.strategicTeaching && (
                 <section className="space-y-3">
-
                     <p className="text-sm font-medium leading-relaxed text-muted-foreground bg-muted/20 p-5 rounded-xl border border-border/50">
-                        {theme.strategicTeaching || "Cet enseignement souligne l'opportunité d'agir sur ce levier thématique pour renforcer l'adhésion."}
+                        {theme.strategicTeaching}
                     </p>
                 </section>
+                )}
 
                 {/* Emotion & Totem */}
                 <div className="grid grid-cols-1 gap-10">

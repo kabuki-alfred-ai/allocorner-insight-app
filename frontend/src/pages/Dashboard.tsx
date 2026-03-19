@@ -141,10 +141,23 @@ export default function Dashboard() {
  </Card>
 
  <div className="space-y-8">
+ {/* Study Context */}
+ {project.context && (
+ <div className="px-2">
+  <Card className="p-5 flex flex-col gap-3 bg-white">
+   <div className="flex items-center gap-2">
+   <Info className="h-3.5 w-3.5 text-primary/70 shrink-0" />
+   <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground/60 uppercase">Contexte de l'étude</span>
+   </div>
+   <p className="text-sm font-medium leading-relaxed text-foreground/70 font-body">{project.context}</p>
+  </Card>
+ </div>
+ )}
+
  {/* Context & Objectives Section */}
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-2 pb-4">
  <div className="lg:col-span-12">
- 
+
  </div>
  
  <div className="lg:col-span-8 flex flex-col">

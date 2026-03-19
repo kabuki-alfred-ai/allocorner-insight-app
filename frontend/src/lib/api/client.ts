@@ -84,7 +84,10 @@ apiClient.interceptors.response.use(
  };
 
  // Only attempt refresh on 401 responses that have not already been retried
- if (error.response?.status !== 401 || originalRequest._retry) {
+ // Skip refresh for auth endpoints (login, refresh) — propagate error directly
+ const url = originalRequest.url ?? '';
+ const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/refresh');
+ if (error.response?.status !== 401 || originalRequest._retry || isAuthEndpoint) {
  return Promise.reject(error);
  }
 
