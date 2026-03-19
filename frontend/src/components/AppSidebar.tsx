@@ -47,10 +47,10 @@ const navigationItems = [
     { title: "Accueil", path: "", icon: Home },
     { title: "Verbatims", path: "verbatims", icon: AudioLines },
     { title: "Analyse thematique", path: "themes", icon: Tags },
+    { title: "Analyse transversal", path: "transversal", icon: Network },
     { title: "Synthese & tendances", path: "tendances", icon: TrendingUp },
     { title: "IRC & Plutchik", path: "emotions", icon: Heart },
     { title: "Recommandations", path: "recommandations", icon: Target },
-    { title: "Analyse transversale", path: "transversal", icon: Network },
     { title: "Ressources", path: "ressources", icon: Download },
 ];
 
