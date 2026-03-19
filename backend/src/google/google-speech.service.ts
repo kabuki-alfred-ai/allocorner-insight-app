@@ -57,7 +57,7 @@ export class GoogleSpeechService {
         config: {
           autoDecodingConfig: {},
           languageCodes: languages,
-          model: 'latest_long',
+          model: 'chirp',
           features: {
             enableAutomaticPunctuation: true,
             enableWordTimeOffsets: true,
