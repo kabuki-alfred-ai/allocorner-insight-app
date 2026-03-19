@@ -68,43 +68,40 @@ export default function TransversalPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-20">
+          <div className={cn(
+            "grid gap-12 items-start",
+            axes.length === 1 ? "grid-cols-1 max-w-4xl mx-auto" : 
+            axes.length === 2 ? "grid-cols-1 md:grid-cols-2" : 
+            "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          )}>
             {axes.map((axis, axisIdx) => (
-              <section key={axis} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${axisIdx * 100}ms` }}>
+              <section key={axis} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${axisIdx * 100}ms` }}>
                 {/* Axis header - Refined label styling */}
-                <div className="px-2">
+                <div className="px-1">
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="text-[10px] font-bold text-primary tracking-[0.3em] uppercase">Axe Transversal {axisIdx + 1}</span>
+                    <span className="text-[10px] font-bold text-primary tracking-[0.3em] uppercase whitespace-nowrap">Axe {axisIdx + 1}</span>
                     <div className="h-px flex-1 bg-black/[0.04]" />
                   </div>
-                  <h2 className="text-2xl font-semibold tracking-tight text-foreground/90">
+                  <h2 className="text-lg font-semibold tracking-tight text-foreground/90 line-clamp-2 min-h-[3.5rem]">
                     {axis}
                   </h2>
                 </div>
 
-                {/* Cards for this axis */}
-                <div className={cn(
-                  "grid gap-6",
-                  grouped[axis].length === 1 ? "grid-cols-1 lg:grid-cols-1" : 
-                  grouped[axis].length === 2 ? "grid-cols-1 md:grid-cols-2" : 
-                  "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                )}>
+                {/* Cards for this axis - Forced single column within the axis column */}
+                <div className="grid grid-cols-1 gap-4">
                   {grouped[axis].map((a, idx) => (
                     <Card 
                       key={a.id}
-                      className={cn(
-                        "group transition-all duration-500 relative flex flex-col h-full border-black/[0.02] bg-white overflow-hidden",
-                        grouped[axis].length === 1 ? "p-8 md:p-10" : "p-6"
-                      )}
+                      className="group transition-all duration-500 relative flex flex-col h-full border-black/[0.02] bg-white overflow-hidden p-6 hover:shadow-lg"
                     >
                       {/* Decorative background element */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/[0.02] blur-[40px] rounded-full -mr-10 -mt-10 transition-transform duration-700 group-hover:scale-150" />
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/[0.02] blur-[30px] rounded-full -mr-8 -mt-8 transition-transform duration-700 group-hover:scale-150" />
                       
                       <CardContent className="relative z-10 p-0 flex flex-col h-full">
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-4">
                            <Badge
                             variant="outline"
-                            className="bg-black/[0.03] border-none text-[9px] font-bold tracking-[0.1em] px-3 py-1 rounded-lg text-primary/80"
+                            className="bg-black/[0.03] border-none text-[9px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-lg text-primary/80"
                           >
                             <span className="mr-2 opacity-60">{getCategoryIcon(a.category)}</span>
                             {a.category.toUpperCase()}
@@ -116,19 +113,11 @@ export default function TransversalPage() {
 
                         {a.content && (
                           <div className="space-y-4">
-                            <p className={cn(
-                              "font-medium leading-relaxed text-muted-foreground/90 font-body transition-colors group-hover:text-foreground",
-                              grouped[axis].length === 1 ? "text-lg italic font-serif" : "text-sm"
-                            )}>
+                            <p className="font-medium leading-relaxed text-muted-foreground/90 font-body transition-colors group-hover:text-foreground text-[13px]">
                               {a.content}
                             </p>
                           </div>
                         )}
-                        
-                        {/* Interactive footer line */}
-                        <div className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                           <div className="h-1 w-8 bg-primary/40 rounded-full" />
-                        </div>
                       </CardContent>
                     </Card>
                   ))}
