@@ -9,7 +9,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${SERVICE_URL_BACKEND:-http://backend:3000}
+        VITE_API_URL: "${SERVICE_URL_BACKEND:-http://backend:3000}"
     environment:
       - VITE_API_URL=${SERVICE_URL_BACKEND:-http://backend:3000}
     depends_on:

@@ -62,7 +62,6 @@ export class AudioProcessingProcessor extends WorkerHost {
         this.pitchAnalysis.analyzeStream(Readable.from(audioBuffer)),
         this.googleSpeech.transcribe(Readable.from(audioBuffer), {
           audioKey: message.audioKey,
-          enableDiarization: true,
         }),
       ]);
 

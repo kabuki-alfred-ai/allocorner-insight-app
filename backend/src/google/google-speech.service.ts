@@ -34,13 +34,8 @@ export class GoogleSpeechService {
     audioStream: Readable,
     options: {
       audioKey?: string;
-      enableDiarization?: boolean;
     } = {},
   ): Promise<TranscriptionResult> {
-    const enableDiarization =
-      options.enableDiarization ??
-      this.configService.get<boolean>('google.speech.enableDiarization');
-
     const projectId = this.configService.get<string>('google.projectId');
     const languages = this.configService.get<string[]>('google.speech.languages');
 
@@ -58,16 +53,10 @@ export class GoogleSpeechService {
         config: {
           autoDecodingConfig: {},
           languageCodes: languages,
-          model: 'long',
+          model: 'latest_long',
           features: {
             enableAutomaticPunctuation: true,
             enableWordTimeOffsets: true,
-            ...(enableDiarization && {
-              diarizationConfig: {
-                minSpeakerCount: 1,
-                maxSpeakerCount: 6,
-              },
-            }),
           },
         },
         files: [{ uri: gcsUri }],
@@ -92,26 +81,10 @@ export class GoogleSpeechService {
         .join(' ')
         .trim();
 
-      // Extract speaker information from diarization (v2 uses speakerLabel)
+      // Note: diarizationConfig is not supported by batchRecognize in v2.
+      // Speaker labels are not available in batch mode.
+      const primarySpeaker = 'Unknown';
       const speakers = new Set<string>();
-      const speakerCounts = new Map<string, number>();
-
-      if (enableDiarization) {
-        const wordsInfo = results.flatMap((result) => result.alternatives?.[0]?.words || []);
-
-        wordsInfo.forEach((wordInfo) => {
-          const label = wordInfo.speakerLabel;
-          if (label) {
-            speakers.add(label);
-            speakerCounts.set(label, (speakerCounts.get(label) || 0) + 1);
-          }
-        });
-      }
-
-      const primarySpeaker =
-        speakerCounts.size > 0
-          ? Array.from(speakerCounts.entries()).sort((a, b) => b[1] - a[1])[0][0]
-          : 'Unknown';
 
       // Duration from last word timestamp
       let duration = 0;

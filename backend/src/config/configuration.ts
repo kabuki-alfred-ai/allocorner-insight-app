@@ -30,7 +30,7 @@ export default () => ({
     },
     speech: {
       languages: (process.env.GOOGLE_SPEECH_LANGUAGES || 'fr-FR,en-US,es-ES,de-DE,it-IT').split(','),
-      model: 'long',
+      model: 'latest_long',
       enableDiarization: true,
     },
   },
