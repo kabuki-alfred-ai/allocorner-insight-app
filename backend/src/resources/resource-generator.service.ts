@@ -25,6 +25,15 @@ export class ResourceGeneratorService {
         throw new ForbiddenException('Access denied: you are not a member of this project');
       }
     }
+    // Allow virtual IDs: "PDF" or "CSV" to generate without a DB record
+    const typeId = resourceId.toUpperCase();
+    if (typeId === 'PDF' || typeId === 'CSV') {
+      const filename = typeId === 'PDF' ? 'Rapport_complet_analyse' : 'Dataset_des_messages';
+      return typeId === 'CSV'
+        ? this.generateCsv(projectId, filename, res)
+        : this.generatePdf(projectId, filename, res);
+    }
+
     const resource = await this.prisma.projectResource.findUnique({
       where: { id: resourceId },
     });

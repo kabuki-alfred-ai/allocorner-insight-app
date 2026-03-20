@@ -9,7 +9,14 @@
       "Bash(node -e \":*)",
       "WebSearch",
       "WebFetch(domain:ai.google.dev)",
-      "Bash(ffmpeg -version)"
+      "Bash(ffmpeg -version)",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"\\\\dt\")",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"SELECT id, title, type FROM project_resources WHERE project_id = ''ce56688f-7eec-40b3-8cfd-190e3523b9b1'';\")",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \":*)",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"SELECT id, title FROM projects;\")",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"SELECT id, title FROM projects WHERE id = ''d5d1e026-6fa0-41c5-9a3a-962ca04d9a8b'';\")",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"SELECT COUNT\\(*\\) as nb_messages FROM messages WHERE project_id = ''d5d1e026-6fa0-41c5-9a3a-962ca04d9a8b'';\")",
+      "Bash(PGPASSWORD=allocorner_dev_password psql -h localhost -p 5434 -U allocorner -d allocorner -c \"SELECT p.id, p.title, COUNT\\(m.id\\) as messages FROM projects p LEFT JOIN messages m ON m.project_id = p.id GROUP BY p.id, p.title;\")"
     ]
   }
 }

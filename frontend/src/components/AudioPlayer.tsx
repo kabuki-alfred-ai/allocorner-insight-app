@@ -1,6 +1,7 @@
 import { Play, Pause, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRef, useState } from "react";
 import {
     Sheet,
     SheetContent,
@@ -14,6 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { useAudio } from "@/lib/audio-context";
 import { speakerProfileLabel, speakerProfileColor, toneLabel, toneColor } from "@/lib/verbatim-utils";
 
+function formatDuration(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 interface AudioPlayerProps {
     message: Message;
     projectId: string;
@@ -22,11 +29,34 @@ interface AudioPlayerProps {
 }
 
 export function AudioPlayer({ message, projectId, className = "", index }: AudioPlayerProps) {
-    const { currentMessage, isPlaying, playMessage, audioLoading } = useAudio();
+    const { currentMessage, isPlaying, playMessage, audioLoading, progress, currentTime, duration, seek } = useAudio();
+    const progressBarRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [hoverProgress, setHoverProgress] = useState<number | null>(null);
 
     const isCurrent = currentMessage?.id === message.id;
     const isThisPlaying = isCurrent && isPlaying;
     const isThisLoading = isCurrent && audioLoading;
+
+    const getProgressFromEvent = (e: React.MouseEvent<HTMLDivElement>) => {
+        const bar = progressBarRef.current;
+        if (!bar) return null;
+        const rect = bar.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        return ratio * 100;
+    };
+
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        const p = getProgressFromEvent(e);
+        if (p !== null) seek(p);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const p = getProgressFromEvent(e);
+        setHoverProgress(p);
+        if (isDragging && p !== null) seek(p);
+    };
 
     const getCleanFilename = (filename: string) => {
         return filename.replace(/\.[^/.]+$/, "").replace(/testimonial_|verbatim_|témoignage_/gi, "");
@@ -87,10 +117,50 @@ export function AudioPlayer({ message, projectId, className = "", index }: Audio
                 <p className="text-[11px] text-muted-foreground/50 italic font-serif leading-relaxed line-clamp-1 mt-1">
                     "{message.quote || message.transcriptTxt}"
                 </p>
+
+                {/* Progress bar when playing */}
+                {isCurrent && (
+                    <div className="mt-2 flex items-center gap-2">
+                        <div className="flex-1 flex items-center group/bar">
+                            <div
+                                ref={progressBarRef}
+                                className="relative flex-1 h-1 bg-muted/60 rounded-full cursor-pointer group-hover/bar:h-1 transition-all duration-150"
+                                onClick={handleProgressClick}
+                                onMouseMove={handleMouseMove}
+                                onMouseLeave={() => setHoverProgress(null)}
+                                onMouseDown={(e) => { e.stopPropagation(); setIsDragging(true); }}
+                                onMouseUp={() => setIsDragging(false)}
+                            >
+                                {/* Filled track */}
+                                <div
+                                    className="absolute inset-y-0 left-0 bg-foreground rounded-full group-hover/bar:bg-primary transition-colors duration-150"
+                                    style={{
+                                        width: `${hoverProgress !== null ? hoverProgress : progress}%`,
+                                        transition: isDragging ? 'none' : 'width 80ms linear',
+                                    }}
+                                />
+                                {/* Thumb — appears on hover */}
+                                <div
+                                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-foreground shadow-sm opacity-0 group-hover/bar:opacity-100 transition-opacity duration-150 pointer-events-none"
+                                    style={{ left: `calc(${hoverProgress !== null ? hoverProgress : progress}% - 6px)` }}
+                                />
+                            </div>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground/50 tabular-nums shrink-0">
+                            {formatDuration(currentTime)} / {formatDuration(duration || 0)}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Secondary Actions */}
-            <div className="flex items-center shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+                {/* Duration badge (hidden when playing, replaced by progress) */}
+                {!isCurrent && message.duration && (
+                    <span className="text-[10px] text-muted-foreground/50 tabular-nums">
+                        {formatDuration(message.duration)}
+                    </span>
+                )}
                 <Sheet>
                     <SheetTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/20 hover:text-foreground hover:bg-transparent">

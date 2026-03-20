@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Database, FolderDown, Maximize2, Play, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { useResources } from "@/hooks/use-resources";
+import { useResources, useCreateResource } from "@/hooks/use-resources";
 import { useProject } from "@/hooks/use-projects";
 import { useThemes } from "@/hooks/use-themes";
 import { useMessages } from "@/hooks/use-messages";
@@ -22,6 +22,7 @@ export default function RessourcesPage() {
   const navigate = useNavigate();
   const { data: project } = useProject(projectId!);
   const { data: resourcesData, isLoading } = useResources(projectId!);
+  const createResource = useCreateResource(projectId!);
   const { data: themesData } = useThemes(projectId!);
   const { data: messagesData } = useMessages(projectId!);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -96,7 +97,12 @@ export default function RessourcesPage() {
   const handleDownloadResource = async (resourceId: string, title: string, type: string) => {
     setDownloadingId(resourceId);
     try {
-      const blob = await downloadResource(projectId!, resourceId);
+      let realId = resourceId;
+      if (resourceId === "PDF" || resourceId === "CSV") {
+        const created = await createResource.mutateAsync({ title, description: "", type, size: resourceId === "PDF" ? "2.4 MB" : "456 KB", position: resourceId === "PDF" ? 0 : 1 });
+        realId = created.id;
+      }
+      const blob = await downloadResource(projectId!, realId);
       // Guard: if the server returned an error JSON as a blob
       if (blob.type.includes("application/json")) {
         toast.error("Impossible de générer la ressource");
@@ -124,15 +130,20 @@ export default function RessourcesPage() {
     toast.info("Ouvrez en plein écran (F11) puis utilisez un outil de capture d'écran pour enregistrer la vidéo.");
   };
 
-  const downloadResources = resourcesData?.map((r) => ({
+  const DEFAULT_RESOURCES = [
+    { id: "PDF", title: "Rapport complet d'analyse", description: "Document PDF synthétisant l'ensemble des résultats et recommandations", type: "PDF", size: "2.4 MB" },
+    { id: "CSV", title: "Dataset des messages", description: "Fichier CSV avec métadonnées, transcriptions et classifications thématiques", type: "CSV", size: "456 KB" },
+  ];
+
+  const downloadResources = (resourcesData && resourcesData.length > 0 ? resourcesData : DEFAULT_RESOURCES).map((r) => ({
     id: r.id,
     title: r.title,
     description: r.description,
     type: r.type,
     size: r.size,
-    icon: r.type === "PDF" ? FileText : r.type === "CSV" ? Database : FileText,
-    color: r.type === "PDF" ? "text-red-500" : r.type === "CSV" ? "text-green-500" : "text-blue-500",
-  })) || [];
+    icon: r.type === "PDF" ? FileText : Database,
+    color: r.type === "PDF" ? "text-red-500" : "text-green-500",
+  }));
 
   return (
     <>
