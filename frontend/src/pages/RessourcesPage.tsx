@@ -98,8 +98,13 @@ export default function RessourcesPage() {
   const handleDownloadCsvLocally = async () => {
     setDownloadingId("CSV");
     try {
-      const all = await getMessages(projectId!, { limit: 10000 });
-      const messages = all.data ?? [];
+      const first = await getMessages(projectId!, { limit: 1000, page: 1 });
+      let messages = first.data ?? [];
+      const totalPages = first.totalPages ?? 1;
+      for (let p = 2; p <= totalPages; p++) {
+        const next = await getMessages(projectId!, { limit: 1000, page: p });
+        messages = messages.concat(next.data ?? []);
+      }
       const escape = (v: unknown) => {
         if (v == null) return '';
         const s = String(v).replace(/"/g, '""');
