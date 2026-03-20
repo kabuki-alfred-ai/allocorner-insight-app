@@ -324,7 +324,7 @@ export function AdminInvitationsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-sm bg-muted px-3 py-2 rounded truncate">
+              <code className="flex-1 text-sm bg-muted px-3 py-2 rounded break-all min-w-0">
                 {createdInvitation && getInvitationLink(createdInvitation.token)}
               </code>
               <Button
