@@ -10,6 +10,7 @@ import { useThemes } from "@/hooks/use-themes";
 import { useMessages } from "@/hooks/use-messages";
 import { useParams, useNavigate } from "react-router-dom";
 import { downloadResource } from "@/lib/api/resources";
+import { getMessages } from "@/lib/api/messages";
 import { getAudioUrl } from "@/lib/api/storage";
 import { toast } from "sonner";
 import { Player } from "@remotion/player";
@@ -94,29 +95,61 @@ export default function RessourcesPage() {
     prepareData();
   }, [project, themesData, messagesData, projectId]);
 
+  const handleDownloadCsvLocally = async () => {
+    setDownloadingId("CSV");
+    try {
+      const all = await getMessages(projectId!, { limit: 10000 });
+      const messages = all.data ?? [];
+      const escape = (v: unknown) => {
+        if (v == null) return '';
+        const s = String(v).replace(/"/g, '""');
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+      };
+      const headers = ['filename', 'speaker', 'duration_sec', 'tone', 'transcript'];
+      const rows = messages.map((m: any) =>
+        [m.filename, m.speakerProfile ?? '', m.duration ?? '', m.tone, m.transcriptTxt].map(escape).join(',')
+      );
+      const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Dataset_des_messages.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      toast.error("Impossible de générer le dataset");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const handleDownloadResource = async (resourceId: string, title: string, type: string) => {
+    if (type === "CSV") {
+      handleDownloadCsvLocally();
+      return;
+    }
     setDownloadingId(resourceId);
     try {
       let realId = resourceId;
-      if (resourceId === "PDF" || resourceId === "CSV") {
-        const created = await createResource.mutateAsync({ title, description: "", type, size: resourceId === "PDF" ? "2.4 MB" : "456 KB", position: resourceId === "PDF" ? 0 : 1 });
+      if (resourceId === "PDF") {
+        const created = await createResource.mutateAsync({ title, description: "", type, size: "2.4 MB", position: 0 });
         realId = created.id;
       }
       const blob = await downloadResource(projectId!, realId);
-      // Guard: if the server returned an error JSON as a blob
       if (blob.type.includes("application/json")) {
         toast.error("Impossible de générer la ressource");
         return;
       }
-      const ext = type === "CSV" ? "csv" : type === "PDF" ? "pdf" : type.toLowerCase();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${title}.${ext}`;
+      a.download = `${title}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // Delay revocation to let the browser start the download (fixes Windows race condition)
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
       toast.error("Impossible de générer la ressource");
@@ -130,12 +163,14 @@ export default function RessourcesPage() {
     toast.info("Ouvrez en plein écran (F11) puis utilisez un outil de capture d'écran pour enregistrer la vidéo.");
   };
 
+  const hasAnalysis = !!(project?.metrics && themesData && (themesData as any[]).length > 0);
+
   const DEFAULT_RESOURCES = [
-    { id: "PDF", title: "Rapport complet d'analyse", description: "Document PDF synthétisant l'ensemble des résultats et recommandations", type: "PDF", size: "2.4 MB" },
+    ...(hasAnalysis ? [{ id: "PDF", title: "Rapport complet d'analyse", description: "Document PDF synthétisant l'ensemble des résultats et recommandations", type: "PDF", size: "2.4 MB" }] : []),
     { id: "CSV", title: "Dataset des messages", description: "Fichier CSV avec métadonnées, transcriptions et classifications thématiques", type: "CSV", size: "456 KB" },
   ];
 
-  const downloadResources = (resourcesData && resourcesData.length > 0 ? resourcesData : DEFAULT_RESOURCES).map((r) => ({
+  const downloadResources = (resourcesData && resourcesData.length > 0 ? resourcesData.filter((r) => r.type !== "PDF" || hasAnalysis) : DEFAULT_RESOURCES).map((r) => ({
     id: r.id,
     title: r.title,
     description: r.description,
