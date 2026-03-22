@@ -152,7 +152,6 @@ export default function EmotionsPage() {
                                         <span className="absolute -top-1 -right-8 text-xs font-semibold text-muted-foreground/85 tracking-[0.25em]">/100</span>
                                     </div>
                                     <div className="space-y-3">
-                                        <p className="text-base font-semibold text-foreground tracking-[0.15em] tracking-tight">Impact de Résonance Citoyenne</p>
                                         {metrics?.ircInterpretation && (
                                             <p className="text-sm font-medium text-muted-foreground/85 max-w-[280px] mx-auto leading-relaxed">{metrics.ircInterpretation}</p>
                                         )}
