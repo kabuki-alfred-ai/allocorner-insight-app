@@ -175,15 +175,18 @@ export default function RessourcesPage() {
     { id: "CSV", title: "Dataset des messages", description: "Fichier CSV avec métadonnées, transcriptions et classifications thématiques", type: "CSV", size: "456 KB" },
   ];
 
-  const downloadResources = (resourcesData && resourcesData.length > 0 ? resourcesData.filter((r) => r.type !== "PDF" || hasAnalysis) : DEFAULT_RESOURCES).map((r) => ({
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    type: r.type,
-    size: r.size,
-    icon: r.type === "PDF" ? FileText : Database,
-    color: r.type === "PDF" ? "text-red-500" : "text-green-500",
-  }));
+  const downloadResources = DEFAULT_RESOURCES.map((def) => {
+    const existing = resourcesData?.find((r) => r.type === def.type);
+    return {
+      id: existing?.id ?? def.id,
+      title: def.title,
+      description: def.description,
+      type: def.type,
+      size: def.size,
+      icon: def.type === "PDF" ? FileText : Database,
+      color: def.type === "PDF" ? "text-red-500" : "text-green-500",
+    };
+  });
 
   return (
     <>
