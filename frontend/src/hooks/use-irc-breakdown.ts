@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { getIrcBreakdown, upsertIrcBreakdown, CreateIrcBreakdownDto } from '@/lib/api/irc-breakdown';
 
 export function useIrcBreakdown(projectId: string) {
@@ -15,6 +16,10 @@ export function useUpsertIrcBreakdown(projectId: string) {
  mutationFn: (data: CreateIrcBreakdownDto) => upsertIrcBreakdown(projectId, data),
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'irc-breakdown'] });
+ toast.success('Décomposition IRC enregistrée avec succès');
+ },
+ onError: () => {
+ toast.error("Erreur lors de l'enregistrement de la décomposition IRC");
  },
  });
 }

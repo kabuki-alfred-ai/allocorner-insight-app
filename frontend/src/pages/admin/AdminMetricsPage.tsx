@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Sliders, Loader2, BarChart3, Heart, ArrowLeft, Settings, Save } from "lucide-react";
+import { Sliders, Loader2, BarChart3, Heart, Save, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +35,7 @@ import { upsertMetrics, upsertPlutchik } from "@/lib/api/projects";
 import { useProject } from "@/hooks/use-projects";
 import { UpsertMetricsDto, UpsertPlutchikDto } from "@/lib/types";
 import { useIrcBreakdown, useUpsertIrcBreakdown } from "@/hooks/use-irc-breakdown";
+import { useMessages } from "@/hooks/use-messages";
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -49,7 +50,6 @@ const metricsSchema = z.object({
     tonalityAvg: z.coerce.number().default(0),
     highEmotionShare: z.coerce.number().min(0).max(1).default(0),
     ircInterpretation: z.string().default(""),
-    emotionalClimate: z.string().default(""),
 });
 
 const ircBreakdownSchema = z.object({
@@ -88,6 +88,17 @@ export function AdminMetricsPage() {
     const { data: ircBreakdown } = useIrcBreakdown(projectId!);
     const upsertIrcBreakdownMutation = useUpsertIrcBreakdown(projectId!);
 
+    const { data: messagesPage } = useMessages(projectId || "", { limit: 1000, page: 1 });
+    const computedCount = messagesPage?.total ?? 0;
+    const computedTotal = messagesPage?.data?.reduce((sum, m) => sum + (m.duration ?? 0), 0) ?? 0;
+    const computedAvg = computedCount > 0 ? Math.round(computedTotal / computedCount) : 0;
+
+    const syncFromMessages = () => {
+        metricsForm.setValue("messagesCount", computedCount, { shouldDirty: true });
+        metricsForm.setValue("totalDurationSec", Math.round(computedTotal), { shouldDirty: true });
+        metricsForm.setValue("avgDurationSec", computedAvg, { shouldDirty: true });
+    };
+
     // ---- Metrics form ----
     const metricsForm = useForm<MetricsFormValues>({
         resolver: zodResolver(metricsSchema),
@@ -100,7 +111,6 @@ export function AdminMetricsPage() {
             tonalityAvg: 0,
             highEmotionShare: 0,
             ircInterpretation: "",
-            emotionalClimate: "",
         },
     });
 
@@ -125,20 +135,28 @@ export function AdminMetricsPage() {
         },
     });
 
+    // Auto-sync from messages when metrics are not yet set
+    useEffect(() => {
+        if (computedCount > 0 && !project?.metrics?.messagesCount) {
+            metricsForm.setValue("messagesCount", computedCount, { shouldDirty: true });
+            metricsForm.setValue("totalDurationSec", Math.round(computedTotal), { shouldDirty: true });
+            metricsForm.setValue("avgDurationSec", computedAvg, { shouldDirty: true });
+        }
+    }, [computedCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
     // Pre-fill forms when project data arrives
     useEffect(() => {
         if (project?.metrics) {
             const m = project.metrics;
             metricsForm.reset({
-                messagesCount: m.messagesCount,
-                avgDurationSec: m.avgDurationSec,
-                totalDurationSec: m.totalDurationSec,
+                messagesCount: m.messagesCount || computedCount,
+                avgDurationSec: m.avgDurationSec || computedAvg,
+                totalDurationSec: m.totalDurationSec || Math.round(computedTotal),
                 participationRate: m.participationRate,
                 ircScore: m.ircScore,
                 tonalityAvg: m.tonalityAvg,
                 highEmotionShare: m.highEmotionShare,
                 ircInterpretation: m.ircInterpretation,
-                emotionalClimate: m.emotionalClimate,
             });
         }
         if (project?.plutchik) {
@@ -179,7 +197,6 @@ export function AdminMetricsPage() {
                 tonalityAvg: data.tonalityAvg ?? 0,
                 highEmotionShare: data.highEmotionShare ?? 0,
                 ircInterpretation: data.ircInterpretation ?? "",
-                emotionalClimate: data.emotionalClimate ?? "",
             };
             return upsertMetrics(projectId!, payload);
         },
@@ -248,6 +265,16 @@ export function AdminMetricsPage() {
                         <CardDescription className="text-xs font-medium text-muted-foreground/40 mt-1">
                             Performance globale de la campagne
                         </CardDescription>
+                        {computedCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={syncFromMessages}
+                                className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                            >
+                                <RefreshCw className="h-3 w-3" />
+                                Recalculer depuis les verbatims ({computedCount} messages)
+                            </button>
+                        )}
                     </CardHeader>
                     <CardContent className="px-8 pb-8">
                         <Form {...metricsForm}>
@@ -267,6 +294,7 @@ export function AdminMetricsPage() {
                                                 <FormControl>
                                                     <Input type="number" min={0} className="h-11 rounded-xl bg-background/50 border-border/50 font-mono" {...field} />
                                                 </FormControl>
+                                                {computedCount > 0 && <p className="text-[10px] text-muted-foreground/60">Calculé : {computedCount}</p>}
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -301,6 +329,7 @@ export function AdminMetricsPage() {
                                                         {...field}
                                                     />
                                                 </FormControl>
+                                                {computedAvg > 0 && <p className="text-[10px] text-muted-foreground/60">Calculé : {computedAvg}s</p>}
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -321,6 +350,7 @@ export function AdminMetricsPage() {
                                                         {...field}
                                                     />
                                                 </FormControl>
+                                                {computedTotal > 0 && <p className="text-[10px] text-muted-foreground/60">Calculé : {Math.round(computedTotal)}s</p>}
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -438,24 +468,6 @@ export function AdminMetricsPage() {
                                             <FormControl>
                                                 <Textarea
                                                     placeholder="Interprétation des résultats IRC..."
-                                                    className="min-h-[100px] rounded-xl bg-background/50 border-border/50 resize-none p-4"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={metricsForm.control}
-                                    name="emotionalClimate"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Climat émotionnel</FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    placeholder="Description du climat émotionnel..."
                                                     className="min-h-[100px] rounded-xl bg-background/50 border-border/50 resize-none p-4"
                                                     {...field}
                                                 />

@@ -120,7 +120,6 @@ export interface ProjectMetrics {
   tonalityAvg: number;
   highEmotionShare: number;
   ircInterpretation: string;
-  emotionalClimate: string;
 }
 
 // ──────────────────────────────────────────────
