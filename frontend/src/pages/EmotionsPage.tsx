@@ -300,7 +300,7 @@ export default function EmotionsPage() {
                             <div className="px-2">
                                 <div className="px-4 py-4 rounded-xl bg-black/[0.03] border border-black/[0.04] space-y-1">
                                     <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Résumé du cocktail émotionnel</p>
-                                    <p className="text-sm font-medium text-muted-foreground/85 leading-relaxed">{plutchik.cocktailSummary}</p>
+                                    <p className="text-sm font-medium text-muted-foreground/85 leading-relaxed whitespace-pre-wrap">{plutchik.cocktailSummary}</p>
                                 </div>
                             </div>
                         )}
