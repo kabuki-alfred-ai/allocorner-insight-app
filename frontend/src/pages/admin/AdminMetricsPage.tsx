@@ -624,6 +624,13 @@ export function AdminMetricsPage() {
                                         thematicRichness: v.thematicRichness ?? 0,
                                         narrativeCoherence: v.narrativeCoherence ?? 0,
                                         originality: v.originality ?? 0
+                                    }, {
+                                        onSuccess: (saved) => ircBreakdownForm.reset({
+                                            intensity: saved.intensity,
+                                            thematicRichness: saved.thematicRichness,
+                                            narrativeCoherence: saved.narrativeCoherence,
+                                            originality: saved.originality,
+                                        })
                                     })
                                 )}
                                 className="space-y-8"
