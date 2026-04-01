@@ -8,6 +8,7 @@ import type {
  UpdateProjectDto,
  UpsertMetricsDto,
  UpsertPlutchikDto,
+ ProjectMember,
 } from '@/lib/types';
 
 export async function getProjects(): Promise<Project[]> {
@@ -36,6 +37,15 @@ export async function updateProject(
 
 export async function deleteProject(id: string): Promise<void> {
  await apiClient.delete(`/projects/${id}`);
+}
+
+export async function getProjectMembers(id: string): Promise<ProjectMember[]> {
+ const response = await apiClient.get<ProjectMember[]>(`/projects/${id}/members`);
+ return response.data;
+}
+
+export async function removeProjectMember(id: string, userId: string): Promise<void> {
+ await apiClient.delete(`/projects/${id}/members/${userId}`);
 }
 
 export async function upsertMetrics(

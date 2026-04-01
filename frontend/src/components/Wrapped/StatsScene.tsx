@@ -180,8 +180,7 @@ export const StatsScene: React.FC<{
           <div
             key={i}
             className="absolute inset-0 flex flex-col items-center justify-center"
-            style={{ color: tc }}
-            style={{ opacity, transform: `scale(${scale})`, filter: `blur(${enterBlur}px)` }}
+            style={{ color: tc, opacity, transform: `scale(${scale})`, filter: `blur(${enterBlur}px)` }}
           >
             {/* Background glow */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: glowOpacity }}>

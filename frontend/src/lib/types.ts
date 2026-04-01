@@ -105,6 +105,16 @@ export interface ProjectWithRelations extends Project {
   _count?: { messages: number; members: number };
 }
 
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string;
+  invitedById: string | null;
+  acceptedAt: string | null;
+  createdAt: string;
+  user?: User;
+}
+
 // ──────────────────────────────────────────────
 // Metrics
 // ──────────────────────────────────────────────
@@ -120,6 +130,7 @@ export interface ProjectMetrics {
   tonalityAvg: number;
   highEmotionShare: number;
   ircInterpretation: string;
+  emotionalClimate: string;
 }
 
 // ──────────────────────────────────────────────

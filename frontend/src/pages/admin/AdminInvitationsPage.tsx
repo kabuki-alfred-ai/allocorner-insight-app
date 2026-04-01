@@ -35,6 +35,10 @@ import {
  getInvitations,
  revokeInvitation,
 } from"@/lib/api/invitations";
+import {
+ getProjectMembers,
+ removeProjectMember,
+} from"@/lib/api/projects";
 
 import type { Invitation, InvitationStatus } from"@/lib/types";
 
@@ -104,6 +108,12 @@ export function AdminInvitationsPage() {
  enabled: !!projectId,
  });
 
+ const { data: members = [], isLoading: isLoadingMembers } = useQuery({
+ queryKey: ["projectMembers", projectId],
+ queryFn: () => getProjectMembers(projectId!),
+ enabled: !!projectId,
+ });
+
  // -- Mutations -------------------------------------------------------------
 
  const createMutation = useMutation({
@@ -125,6 +135,15 @@ export function AdminInvitationsPage() {
  toast.success("Invitation revoquee");
  },
  onError: () => toast.error("Erreur lors de la revocation"),
+ });
+
+ const removeMemberMutation = useMutation({
+ mutationFn: (userId: string) => removeProjectMember(projectId!, userId),
+ onSuccess: () => {
+ queryClient.invalidateQueries({ queryKey: ["projectMembers", projectId] });
+ toast.success("Acces retire avec succes");
+ },
+ onError: () => toast.error("Erreur lors du retrait de l'acces"),
  });
 
  // -- Handlers --------------------------------------------------------------
@@ -207,6 +226,84 @@ export function AdminInvitationsPage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Members List */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Membres du projet</h2>
+          {isLoadingMembers && (
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <Skeleton className="h-5 w-2/3 mb-2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {!isLoadingMembers && members.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                Aucun membre.
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoadingMembers && members.length > 0 && (
+            <Card className="overflow-hidden border-white/5 bg-black/[0.01]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-white/5">
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground/60 px-6">Utilisateur</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground/60">Email</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground/60 text-right px-6">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {members.map((member) => (
+                    <TableRow key={member.id} className="group border-white/5 hover:bg-white/[0.02] transition-colors">
+                      <TableCell className="px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <Users className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="text-sm font-medium text-foreground">{member.user?.name || "Sans nom"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {member.user?.email}
+                      </TableCell>
+                      <TableCell className="text-right px-6">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (window.confirm("Voulez-vous vraiment retirer l'accès à ce membre ?")) {
+                              removeMemberMutation.mutate(member.userId);
+                            }
+                          }}
+                          disabled={removeMemberMutation.isPending}
+                          className="h-8 w-8 rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50"
+                        >
+                          {removeMemberMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </div>
+
+        {/* Invitations section */}
+        <div className="space-y-4 pt-4">
+          <h2 className="text-sm font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Invitations</h2>
 
         {/* Loading skeleton */}
         {isLoading && (
@@ -307,6 +404,7 @@ export function AdminInvitationsPage() {
             </Table>
           </Card>
         )}
+        </div>
       </div>
 
       {/* Success Dialog */}

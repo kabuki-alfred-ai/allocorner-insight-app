@@ -42,8 +42,7 @@ export const ThemesScene: React.FC<{ themes: ThemeStat[]; theme: WrappedTheme }>
     >
       <div
         className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none"
-        style={{ color: theme.textColor }}
-        style={{ opacity: titleOpacity * titleFade, transform: `translateY(${titleY}px)` }}
+        style={{ color: theme.textColor, opacity: titleOpacity * titleFade, transform: `translateY(${titleY}px)` }}
       >
         <span className="text-sm md:text-base font-medium tracking-[0.2em] block mb-4" style={{ color: hexToRgba(theme.textColor, 0.5) }}>
           Thématiques Clés

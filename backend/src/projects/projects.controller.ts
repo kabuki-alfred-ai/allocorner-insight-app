@@ -64,6 +64,23 @@ export class ProjectsController {
     return this.projectsService.remove(id);
   }
 
+  @Get(':id/members')
+  @UseGuards(RolesGuard)
+  @Roles('SUPERADMIN')
+  getMembers(@Param('id') id: string) {
+    return this.projectsService.getMembers(id);
+  }
+
+  @Delete(':id/members/:userId')
+  @UseGuards(RolesGuard)
+  @Roles('SUPERADMIN')
+  removeMember(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.projectsService.removeMember(id, userId);
+  }
+
   @Put(':id/metrics')
   @UseGuards(RolesGuard)
   @Roles('SUPERADMIN')

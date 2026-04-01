@@ -105,6 +105,45 @@ export class ProjectsService {
     return this.prisma.project.delete({ where: { id } });
   }
 
+  async getMembers(id: string) {
+    await this.ensureExists(id);
+
+    return this.prisma.projectMember.findMany({
+      where: { projectId: id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async removeMember(id: string, userId: string) {
+    await this.ensureExists(id);
+
+    const member = await this.prisma.projectMember.findUnique({
+      where: {
+        projectId_userId: { projectId: id, userId },
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`User ${userId} is not a member of project ${id}`);
+    }
+
+    return this.prisma.projectMember.delete({
+      where: {
+        projectId_userId: { projectId: id, userId },
+      },
+    });
+  }
+
   async upsertMetrics(projectId: string, dto: UpsertMetricsDto) {
     await this.ensureExists(projectId);
 
